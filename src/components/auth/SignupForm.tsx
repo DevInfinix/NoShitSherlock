@@ -251,7 +251,7 @@ export function SignupForm() {
               </div>
 
               {/* Viewport-Dominating Main Typography */}
-              <h1 className="font-valmist font-extrabold text-6xl sm:text-7xl md:text-8xl lg:text-[7.8rem] xl:text-[8.5rem] tracking-tight text-paper uppercase leading-[0.88] select-none">
+              <h1 className="font-valmist font-extrabold text-5xl sm:text-7xl md:text-8xl lg:text-[7.8rem] xl:text-[8.5rem] tracking-tight text-paper uppercase leading-[0.88] select-none">
                 Detective
                 <br />
                 <span className="text-evidence-red">Sign Up</span>
@@ -491,7 +491,7 @@ export function SignupForm() {
               <DetectiveIDCard3D
                 email={email}
                 agentTag={agentTag || "???"}
-                codename="RECRUIT"
+                codename={username || ""}
                 isPasswordFocused={isPasswordFocused}
                 hoveredProvider={hoveredOption}
               />
@@ -551,7 +551,11 @@ export function SignupForm() {
             </div>
 
             <div className="lg:col-span-4 flex items-center justify-center w-full">
-              <DetectiveIDCard3D email={email} agentTag={agentTag || "004"} codename="RECRUIT" />
+              <DetectiveIDCard3D
+                email={email}
+                agentTag={agentTag || "???"}
+                codename={username || ""}
+              />
             </div>
           </motion.div>
         )}
@@ -610,11 +614,7 @@ export function SignupForm() {
             </div>
 
             <div className="lg:col-span-4 flex items-center justify-center w-full">
-              <DetectiveIDCard3D
-                email={email}
-                agentTag={agentTag}
-                codename={username || "INSPECTOR"}
-              />
+              <DetectiveIDCard3D email={email} agentTag={agentTag} codename={username || ""} />
             </div>
           </motion.div>
         )}
