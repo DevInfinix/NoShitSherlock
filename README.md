@@ -24,6 +24,9 @@ Inspect suspect dossiers, decode intercepted audio tapes, log verified clues in 
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/LICENSE-APACHE--2.0-641B1B?style=for-the-badge&logo=open-source-initiative&logoColor=E7DDC8&labelColor=15110F" alt="License" />
   </a>
+  <a href="https://ko-fi.com/DevInfinix" target="_blank">
+    <img src="https://img.shields.io/badge/Support_on_Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white&labelColor=15110F" alt="Support on Ko-fi" />
+  </a>
 </p>
 
 <p align="center">
@@ -258,6 +261,14 @@ We welcome community contributions. Every change requires an open issue before o
 2. Create a branch: `type/<issue-number>-short-slug` (e.g. `feat/12-clue-pinboard`).
 3. Follow Conventional Commits: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `perf`, `build`.
 4. Ensure `bun run check` passes before pushing changes.
+
+---
+
+## Support the Investigation
+
+If you enjoy solving cold cases or contributing to open-source detective fiction, consider supporting case production and asset generation:
+
+[![Support on Ko-fi](https://img.shields.io/badge/Support_on_Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white&labelColor=15110F)](https://ko-fi.com/DevInfinix)
 
 ---
 
