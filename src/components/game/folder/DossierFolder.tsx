@@ -1,10 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
 import { useState } from "react";
 import { requestHintAction, submitAnswerAction } from "@/server/actions/gameplay-actions";
 import type { SessionDossier } from "@/server/services/game-session-service";
 import { useFolderStore } from "@/store/folder-store";
+import { NotebookDrawer } from "../notebook/NotebookDrawer";
 import { CrypticQuestion } from "./CrypticQuestion";
 import { FillDashesQuestion } from "./FillDashesQuestion";
 import { McqQuestion } from "./McqQuestion";
@@ -339,23 +341,34 @@ export function DossierFolder({ initialDossier }: DossierFolderProps) {
                 Page {activeSectionIndex + 1} of {dossier.sections.length}
               </span>
 
-              <button
-                type="button"
-                disabled={activeSectionIndex >= dossier.sections.length - 1}
-                onClick={() => {
-                  setActiveSectionIndex(
-                    Math.min(dossier.sections.length - 1, activeSectionIndex + 1),
-                  );
-                  setFeedback(null);
-                }}
-                className="border border-brass/40 px-4 py-2 font-mono text-xs uppercase tracking-wider text-brass hover:border-brass hover:text-paper disabled:opacity-30 transition-colors cursor-pointer"
-              >
-                Next Dossier Page &rarr;
-              </button>
+              {activeSectionIndex >= dossier.sections.length - 1 ? (
+                <Link
+                  href={`/pinboard/${dossier.case.slug}`}
+                  className="bg-oxblood hover:bg-evidence-red border-2 border-evidence-red text-paper px-4 py-2 font-mono text-xs uppercase tracking-wider transition-colors"
+                >
+                  Enter Pinboard Finale &rarr;
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveSectionIndex(
+                      Math.min(dossier.sections.length - 1, activeSectionIndex + 1),
+                    );
+                    setFeedback(null);
+                  }}
+                  className="border border-brass/40 px-4 py-2 font-mono text-xs uppercase tracking-wider text-brass hover:border-brass hover:text-paper disabled:opacity-30 transition-colors cursor-pointer"
+                >
+                  Next Dossier Page &rarr;
+                </button>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Floating Field Notebook Drawer */}
+      <NotebookDrawer unlockedClues={dossier.unlockedClues} />
     </div>
   );
 }

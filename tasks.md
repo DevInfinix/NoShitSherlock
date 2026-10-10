@@ -194,26 +194,27 @@ This document tracks all project tasks across development milestones with granul
 ## Phase M4: Detective Notebook & Chronological Pinboard
 
 ### Detective Notebook Drawer (`src/components/game/notebook/`)
-- [ ] ★ Slide-out leather/cloth field notebook panel.
-- [ ] ★ Filter unlocked clues by suspect, crime scene, forensics, or timeline tag.
-- [ ] ★ Detailed clue inspection modal showing high-res evidence image, transcript quote, and timestamp note.
-- [ ] ★ Zustand notebook state store (`src/store/notebook-store.ts`) for UI opening/closing state.
+- [x] ★ Slide-out leather/cloth field notebook panel.
+- [x] ★ Filter unlocked clues by suspect, crime scene, forensics, or timeline tag.
+- [x] ★ Detailed clue inspection modal showing high-res evidence image, transcript quote, and timestamp note.
+- [x] ★ Zustand notebook state store (`src/store/notebook-store.ts`) for UI opening/closing state.
 
 ### Chronological Evidence Pinboard (`src/components/game/pinboard/`)
-- [ ] ★ Corkboard surface view rendered upon completing Section 5.
-- [ ] ★ Drag-and-drop timeline builder powered by `@dnd-kit/core` and `@dnd-kit/sortable`.
-- [ ] ★ Keyboard accessibility and mobile touch support for clue card ordering.
-- [ ] ★ Dynamic SVG red yarn lines connecting cards in placed sequence.
-- [ ] ★ Respect `prefers-reduced-motion` settings.
+- [x] ★ Corkboard surface view rendered upon completing Section 5.
+- [x] ★ Drag-and-drop timeline builder powered by `@dnd-kit/core` and `@dnd-kit/sortable`.
+- [x] ★ Keyboard accessibility and mobile touch support for clue card ordering.
+- [x] ★ Dynamic SVG red yarn lines connecting cards in placed sequence.
+- [x] ★ Respect `prefers-reduced-motion` settings.
 
 ### Pinboard Validation & Case Resolution (`src/server/services/pinboard-service.ts`)
-- [ ] ★ Transactional pinboard submission service:
+- [x] ★ Transactional pinboard submission service:
   1. Record submission and clue card positions in `pinboard_submissions` and `pinboard_placements`.
   2. Validate placed positions against `clues.chronological_order`.
   3. If correct: calculate finale score bonuses, compute `total_time_seconds`, mark session `COMPLETED`.
   4. If incorrect: enforce retry cooldown and record placement penalty.
-- [ ] ★ Case Solved Verdict Screen:
-  - [ ] Case summary debrief, accuracy breakdown, squad contributions, and final rank badge.
+- [x] ★ Case Solved Verdict Screen (`src/components/game/pinboard/CaseSolvedScreen.tsx`):
+  - [x] Case summary debrief, accuracy breakdown, clearance rank commendation, and elapsed time tracking.
+- [x] ★ Pinboard integration test suite in `tests/pinboard.test.ts`.
 
 ---
 
