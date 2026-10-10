@@ -61,9 +61,9 @@ This document tracks all project tasks across development milestones with granul
 - [x] ★ Copy header banner to `.github/assets/banner.png`.
 - [x] ★ Add repository trending topics on GitHub (`detective-game`, `puzzle-game`, `mystery-game`, `web-game`, `interactive-fiction`, `multiplayer-game`, `nextjs`, `react19`, `typescript`, `bun`, `tailwind-css`, `drizzle-orm`, `neon-postgres`, `fullstack`, `open-source`).
 - [x] ★ Add repository description on GitHub.
-- [!] ★ Clarify and update `.github/FUNDING.yml` platforms (GitHub Sponsors, Ko-fi, Patreon, Open Collective, custom URL) per user preference.
-- [!] ★ Clarify and update security reporting email in `SECURITY.md` (remove placeholder assumption).
-- [!] ★ Clarify and update outbound email sender address `EMAIL_FROM` in `.env.example`.
+- [x] ★ Configure `.github/FUNDING.yml` with Ko-fi (`ko_fi: DevInfinix`).
+- [x] ★ Update security reporting email in `SECURITY.md` to `admin@thesamstudios.in`.
+- [x] ★ Update outbound email sender address placeholder `EMAIL_FROM` in `.env.example` to `NoShitSherlock <auth@yourdomain.com>`.
 - [x] ★ Create `tasks.md` and `progress.md` tracking frameworks.
 
 ---

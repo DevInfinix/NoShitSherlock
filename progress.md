@@ -34,43 +34,38 @@
 3. **Execution Tracking Established**:
    - Authored `tasks.md` with detailed phase breakdowns, starred subtasks, and progress indicators.
    - Authored `progress.md` (this file).
+4. **Configuration Assumptions Resolved**:
+   - Updated `SECURITY.md` contact email to `admin@thesamstudios.in`.
+   - Updated `.env.example` `EMAIL_FROM` to standard generic placeholder `NoShitSherlock <auth@yourdomain.com>`.
+   - Updated `.github/FUNDING.yml` to Ko-fi platform (`ko_fi: DevInfinix`).
 
 ---
 
-## 3. Pending Questions & Clarification Blockers
+## 3. Pending Approval Before Phase M1
 
-Before advancing to Phase M1 (Database Architecture), the user requested clarifications regarding placeholder assumptions:
-
-1. **`.github/FUNDING.yml` Platforms**:
-   - Current state: contains `github: [DevInfinix]`.
-   - Need confirmation on which funding services to enable (e.g., GitHub Sponsors username, Ko-fi, Open Collective, Patreon, Buy Me a Coffee, custom link, or remove entirely).
-2. **Security Vulnerability Reporting Email in `SECURITY.md`**:
-   - Current state: line 17 previously used placeholder `security@thesamstudios.in`.
-   - Need actual contact email address or preference to route through GitHub Private Vulnerability Reporting only.
-3. **Outbound Notification & OTP Sender Email in `.env.example`**:
-   - Current state: line 22 has `EMAIL_FROM="NoShitSherlock <detective@thesamstudios.in>"`.
-   - Need intended sender address / domain for Resend verification emails.
+All Phase M0 and M0.5 intermediate adjustments are complete and clean. Awaiting user authorization to proceed to **Phase M1: Database Architecture, Migrations & Content Pipeline**.
 
 ---
 
-## 4. Next Immediate Steps (Upon Clarification)
+## 4. Next Immediate Steps (Phase M1: Database & Content Pipeline)
 
-1. **Update Assumed Files**:
-   - Patch `SECURITY.md`, `.github/FUNDING.yml`, and `.env.example` with user-specified email addresses and funding settings.
-   - Commit and push those fixes with Conventional Commits.
-   - Mark Phase M0.5 items complete in `tasks.md` and update `progress.md`.
-2. **Proceed to Phase M1 (Database & Content Architecture)**:
-   - Create schema files in `src/db/schema/`:
-     - `auth.ts` (Better Auth tables)
-     - `teams.ts` (`teams`, `team_members`)
-     - `content.ts` (`cases`, `assets`, `sections`, `questions`, `question_options`, `clues`, `hints`)
-     - `runtime.ts` (`game_sessions`, `session_question_states`, `session_answers`, `session_clues`, `pinboard_*`)
-     - `legal.ts` (`legal_acceptances`)
-   - Create `src/db/client.ts` with pooled Neon connection.
-   - Author Zod schema in `src/lib/case-schema.ts` for validating `case.json`.
-   - Generate initial migration with `bun run db:generate`.
-   - Build idempotent seeder in `src/db/seed.ts`.
-   - Author database integration tests in `tests/db.test.ts`.
+Upon approval, the exact plan for Phase M1 includes:
+1. **Schema Definition (`src/db/schema/`)**:
+   - `auth.ts` (Better Auth tables: `user`, `session`, `account`, `verification`)
+   - `teams.ts` (`teams`, `team_members`)
+   - `content.ts` (`cases`, `assets`, `sections`, `questions`, `question_options`, `clues`, `hints`, asset relation tables)
+   - `runtime.ts` (`game_sessions`, `session_question_states`, `session_answers`, `session_clues`, `hint_requests`, `pinboard_submissions`, `pinboard_placements`)
+   - `legal.ts` (`legal_acceptances`)
+2. **Database Client (`src/db/client.ts`)**:
+   - Pooled PostgreSQL connection client using Drizzle ORM and `pg` with Neon / local support.
+3. **Zod Case Validation (`src/lib/case-schema.ts`)**:
+   - Complete schema validator for authored `case.json`.
+4. **Initial Migration (`bun run db:generate`)**:
+   - Generate committed SQL migration in `drizzle/`.
+5. **Case Seeding Pipeline (`src/db/seed.ts`)**:
+   - Author Case 01 dossier content and implement idempotent database seeder.
+6. **Database Integration Tests (`tests/db.test.ts`)**:
+   - Verify transaction isolation, row locking (`SELECT ... FOR UPDATE`), constraints, and seed idempotency.
 
 ---
 

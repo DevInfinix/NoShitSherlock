@@ -14,7 +14,7 @@ We take the security of NoShitSherlock seriously. If you discover a security vul
 
 Please report security issues privately by emailing the maintainers or creating a private security advisory on GitHub:
 
-- **Email**: `security@thesamstudios.in`
+- **Email**: `admin@thesamstudios.in`
 - **GitHub**: Use the "Report a repository vulnerability" button under the **Security** tab.
 
 Please include:
