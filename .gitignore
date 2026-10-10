@@ -1,0 +1,38 @@
+# Next.js
+.next/
+out/
+
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env*.local
+!.env.example
+
+# Case inbox (raw PDFs, original high-res assets from Google Drive - see docs/content-pipeline.md)
+content/inbox/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing & Coverage
+coverage/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Local IDE & agent configs
+.kilo/
+.vscode/
+
+# Tooling caches
+.turbo/
+.biome/
