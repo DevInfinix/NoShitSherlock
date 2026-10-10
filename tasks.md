@@ -152,25 +152,29 @@ This document tracks all project tasks across development milestones with granul
 - [x] ★ Server Actions for team UI: `createTeamAction`, `joinTeamAction`, `leaveTeamAction`, `getMyTeamsAction`, `getTeamRosterAction`.
 - [x] ★ Unit & integration tests for team authorization and legal consent rules (`tests/teams.test.ts`).
 
-### Interactive Detective Auth & Onboarding Revamp (Issue #5)
+### Interactive Detective Auth & Onboarding Revamp (Issue #5 & Issue #7)
 - [x] ★ Install and configure `@react-three/fiber`, `@react-three/drei`, `three`, and `@types/three`.
 - [x] ★ Integrate licensed detective fonts (TBJ Valmist, Charlea Demo, Gothica Modern, Harmera, ITC Garamond, Selnora, plus Google Caveat & Special Elite) with CSS font variables in `src/app/fonts.ts` and Tailwind `@theme`.
 - [x] ★ Database Schema Migration: added `agent_tag` (3-digit unique), `username` (unique), and `training_completed` (boolean) to `users` table via Drizzle migration `0001_mighty_thing.sql`.
 - [x] ★ 3D Interactive Detective Warrant Card (`src/components/auth/DetectiveIDCard3D.tsx`):
-  - [x] Realistic weathered laminated ID badge with brass clip and lanyard loop.
-  - [x] Real-time updates as operative types email, callsign, and agent tag.
-  - [x] Tactile mouse tilt tracking and 180° flip animation revealing cryptographic access chip, barcode, and signature block.
+  - [x] Realistic weathered laminated ID badge with brass clip and lanyard loop, framed camera preventing any clipping.
+  - [x] Click-to-flip directly on 3D card without external buttons.
+  - [x] Replaced Scotland Yard with project-authentic branding: "No Shit Sherlock" and "Department of Unresolved Investigations".
+  - [x] Dynamic real-time updates as operative types email, callsign, and agent tag.
+  - [x] Dynamic hover effects reflecting Google, GitHub, and Email provider clearances in real time.
 - [x] ★ Minimalist Noir Detective Sign In (`src/components/auth/LoginForm.tsx`):
-  - [x] Viewport-dominating "Detective Sign In" typography in TBJ Valmist.
-  - [x] 3-option full-width horizontal hover accordion (Email, Google, GitHub) where hovered option expands and neighbors contract.
-  - [x] Large stylized placeholders for operative telegraph address and passcode.
+  - [x] Viewport-dominating "Detective Sign In" typography in TBJ Valmist spanning the dominant left side of the viewport.
+  - [x] Minimal and bold mode switcher pill (SIGN IN / ENLIST).
+  - [x] Vertical options stack (Email Login, Google Login, GitHub Login) with smooth vertical expansion and shrinking hover states.
+  - [x] In-place email and password disclosure with large stylized inputs.
   - [x] Full-page slide-in "Welcome back, Agent [tag]" animation with alternating left/right trajectory.
 - [x] ★ Multi-Step Detective Enlistment & Onboarding (`src/components/auth/SignupForm.tsx`):
-  - [x] Enlistment credentials intake with 3-way split options.
-  - [x] 3-digit numerical Agent Tag selection with real-time uniqueness validation.
+  - [x] Matching split-screen layout with dominant left column and persistent 3D card on the right.
+  - [x] Enlistment credentials intake with vertical accordion stack.
+  - [x] 3-digit numerical Agent Tag selection with real-time uniqueness validation and live card sync.
   - [x] Callsign / username assignment with live ID card signature engraving.
   - [x] "Welcome, Agent [tag]" dramatic entrance.
-  - [x] Aged parchment legal document with Scotland Yard Directives, age 13+ compliance, and interactive "Complete Training" rubber stamp.
+  - [x] Aged parchment legal document with Department of Unresolved Investigations Directives, age 13+ compliance, and interactive "Complete Training" rubber stamp.
 
 ---
 
