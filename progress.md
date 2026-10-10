@@ -15,10 +15,10 @@
 
 ---
 
-## 2. Current State (As of Phase M0.5 Intermediate Step)
+## 2. Current State (Phase M1: In Progress)
 
 ### What Was Accomplished
-1. **M0 Foundation Fully Implemented & Pushed**:
+1. **M0 Foundation Fully Completed**:
    - Initialized Next.js 16 and Bun project layout.
    - Configured Tailwind CSS v4 with custom noir theme tokens.
    - Configured Biome linter/formatter with Tailwind directive support.
@@ -26,46 +26,37 @@
    - Added Apache-2.0 `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, issue/PR templates, and Dependabot config.
    - Authored multi-stage `Dockerfile` and `docker-compose.yml`.
    - Built GitHub Actions CI workflow running PostgreSQL 17, Biome, TypeScript typecheck, tests, and build. All runs passing green.
-   - Created `src/proxy.ts`, `src/app/api/health/route.ts`, and `tests/health.test.ts`.
-2. **GitHub Presence Enhanced**:
+2. **GitHub Presence & Sponsorship Configured**:
    - Transferred official brand banner to `.github/assets/banner.png`.
-   - Published high-impact, humanized `README.md` containing game pitch, 3-act mechanics breakdown, system architecture with Mermaid sequence diagram, self-hosting guide, and contributor acknowledgments (Ayurda & Shashwat).
-   - Added trending repository topics and an evocative repository description on GitHub.
+   - Published comprehensive `README.md` containing game pitch, 3-act mechanics breakdown, system architecture with Mermaid sequence diagram, self-hosting guide, and contributor acknowledgments.
+   - Integrated visible Ko-fi badge in `README.md` header and dedicated "Support the Investigation" section.
+   - Configured `.github/FUNDING.yml` with `ko_fi: DevInfinix` and custom link.
 3. **Execution Tracking Established**:
-   - Authored `tasks.md` with detailed phase breakdowns, starred subtasks, and progress indicators.
-   - Authored `progress.md` (this file).
-4. **Configuration Assumptions Resolved**:
-   - Updated `SECURITY.md` contact email to `admin@thesamstudios.in`.
-   - Updated `.env.example` `EMAIL_FROM` to standard generic placeholder `NoShitSherlock <auth@yourdomain.com>`.
-   - Updated `.github/FUNDING.yml` to Ko-fi platform (`ko_fi: DevInfinix`).
+   - Authored `tasks.md` and `progress.md`.
+4. **Phase M1 Database Architecture Built**:
+   - Created full Drizzle ORM schemas in `src/db/schema/`: `auth.ts`, `teams.ts`, `content.ts`, `runtime.ts`, `legal.ts`, `index.ts` covering 24 tables, check constraints, partial indexes, and foreign key cascades.
+   - Created database client in `src/db/client.ts` with connection pooling support.
+   - Created strict Zod case validator in `src/lib/case-schema.ts` with unit test suite in `tests/case-schema.test.ts`.
+   - Generated initial committed migration file: `drizzle/0000_steep_lenny_balinger.sql`.
+   - Committed and pushed changes under commit `44eec57`.
 
 ---
 
-## 3. Pending Approval Before Phase M1
+## 3. Pending Information & Environment Configuration
 
-All Phase M0 and M0.5 intermediate adjustments are complete and clean. Awaiting user authorization to proceed to **Phase M1: Database Architecture, Migrations & Content Pipeline**.
+To test applying the generated migrations (`bun run db:migrate`) and run the database seeder against Neon PostgreSQL, we require the following environment variables:
+1. `DATABASE_URL`: Neon pooled connection string (e.g., `postgresql://...pooler...?sslmode=require`).
+2. `DATABASE_URL_UNPOOLED`: Neon direct unpooled connection string (used by `drizzle-kit` for schema migrations).
 
 ---
 
-## 4. Next Immediate Steps (Phase M1: Database & Content Pipeline)
+## 4. Next Immediate Steps (Upon Receiving Database Credentials)
 
-Upon approval, the exact plan for Phase M1 includes:
-1. **Schema Definition (`src/db/schema/`)**:
-   - `auth.ts` (Better Auth tables: `user`, `session`, `account`, `verification`)
-   - `teams.ts` (`teams`, `team_members`)
-   - `content.ts` (`cases`, `assets`, `sections`, `questions`, `question_options`, `clues`, `hints`, asset relation tables)
-   - `runtime.ts` (`game_sessions`, `session_question_states`, `session_answers`, `session_clues`, `hint_requests`, `pinboard_submissions`, `pinboard_placements`)
-   - `legal.ts` (`legal_acceptances`)
-2. **Database Client (`src/db/client.ts`)**:
-   - Pooled PostgreSQL connection client using Drizzle ORM and `pg` with Neon / local support.
-3. **Zod Case Validation (`src/lib/case-schema.ts`)**:
-   - Complete schema validator for authored `case.json`.
-4. **Initial Migration (`bun run db:generate`)**:
-   - Generate committed SQL migration in `drizzle/`.
-5. **Case Seeding Pipeline (`src/db/seed.ts`)**:
-   - Author Case 01 dossier content and implement idempotent database seeder.
-6. **Database Integration Tests (`tests/db.test.ts`)**:
-   - Verify transaction isolation, row locking (`SELECT ... FOR UPDATE`), constraints, and seed idempotency.
+1. Store credentials in `.env.local` (kept git-ignored).
+2. Execute `bun run db:migrate` to apply all 24 tables to Neon.
+3. Build the idempotent Case 01 seeder in `src/db/seed.ts`.
+4. Run `bun run db:seed` and verify zero-error execution.
+5. Create database integration test in `tests/db.test.ts` verifying constraints and row locking.
 
 ---
 

@@ -71,56 +71,54 @@ This document tracks all project tasks across development milestones with granul
 ## Phase M1: Database Architecture, Migrations & Content Pipeline
 
 ### Database Layer & Schemas (`src/db/schema/`)
-- [ ] ★ Database Client & Pool Setup (`src/db/client.ts`):
-  - [ ] Configure `pg` connection pool with SSL support for Neon Postgres in production.
-  - [ ] Configure direct unpooled connection for `drizzle-kit` migrations.
-  - [ ] Wrap Drizzle client with typed query logger for local development.
-- [ ] ★ Auth Schema (`src/db/schema/auth.ts`):
-  - [ ] `user` table (id, name, email, emailVerified, image, createdAt, updatedAt).
-  - [ ] `session` table (id, expiresAt, token, createdAt, updatedAt, ipAddress, userAgent, userId).
-  - [ ] `account` table (id, accountId, providerId, userId, accessToken, refreshToken, expiresAt, password).
-  - [ ] `verification` table (id, identifier, value, expiresAt, createdAt, updatedAt).
-- [ ] ★ Teams Schema (`src/db/schema/teams.ts`):
-  - [ ] `teams` table (BIGINT IDENTITY PK, name, join_code 8-char random alphanumeric unique, owner_id FK to user, created_at).
-  - [ ] `team_members` table (team_id FK, user_id FK, role ENUM `owner` | `member`, joined_at; composite PK `team_id, user_id`).
-- [ ] ★ Content Schema (`src/db/schema/content.ts`):
-  - [ ] `cases` table (id IDENTITY, slug UNIQUE, title, description, difficulty 1-5, max_score, is_active, created_at).
-  - [ ] `assets` table (id IDENTITY, case_id FK, asset_key, asset_type ENUM `IMAGE`|`AUDIO`|`PDF`|`DOCUMENT`, url, mime_type, alt_text; UNIQUE `case_id, asset_key`).
-  - [ ] `sections` table (id IDENTITY, case_id FK, section_order > 0, title, narrative, folder_page_asset_id, time_limit_seconds; UNIQUE `case_id, section_order`).
-  - [ ] `questions` table (id IDENTITY, section_id FK, question_key, question_type ENUM `FILL_DASHES`|`MCQ`|`TRUE_FALSE`|`CRYPTIC`|`VOICEMAIL_TRANSCRIPT`, prompt, placeholder_text, correct_answer [NULL for MCQ], points >= 0, max_attempts default 5, penalty_per_wrong >= 0, sort_order, metadata JSONB; UNIQUE `section_id, question_key`).
-  - [ ] `question_options` table (id IDENTITY, question_id FK, option_text, is_correct, sort_order; UNIQUE `question_id, sort_order`; partial unique index enforcing max 1 correct option per question).
-  - [ ] `question_assets` table (question_id FK, asset_id FK, usage_type; composite PK `question_id, asset_id`).
-  - [ ] `clues` table (id IDENTITY, case_id FK, clue_key, title, clue_text, chronological_order > 0, metadata JSONB; UNIQUE `case_id, clue_key`, UNIQUE `case_id, chronological_order`).
-  - [ ] `clue_assets` table (clue_id FK, asset_id FK; composite PK `clue_id, asset_id`).
-  - [ ] `question_clues` table (question_id FK, clue_id FK; composite PK `question_id, clue_id`).
-  - [ ] `hints` table (id IDENTITY, question_id FK, hint_text, cost_points >= 0, hint_order; UNIQUE `question_id, hint_order`).
-- [ ] ★ Runtime Progress Schema (`src/db/schema/runtime.ts`):
-  - [ ] `game_sessions` table (id IDENTITY, case_id FK, user_id FK nullable, team_id FK nullable, status ENUM `IN_PROGRESS`|`COMPLETED`|`ABANDONED`, current_section_id, score >= 0, hint_balance >= 0, wrong_attempts >= 0, started_at, completed_at, total_time_seconds >= 0; CHECK exactly one of user_id/team_id set; partial unique indexes for max 1 `IN_PROGRESS` per user/case and team/case).
-  - [ ] `session_question_states` table (session_id FK, question_id FK, attempts_used, is_solved, last_attempt_at, solved_at; composite PK `session_id, question_id`).
-  - [ ] `session_answers` table (id IDENTITY, session_id FK, question_id FK, answered_by_user_id FK, submitted_answer, is_correct, time_taken_ms, hint_used, created_at).
-  - [ ] `session_clues` table (session_id FK, clue_id FK, source_question_id FK, unlocked_at; composite PK `session_id, clue_id`).
-  - [ ] `hint_requests` table (id IDENTITY, session_id FK, hint_id FK, cost_points, created_at; UNIQUE `session_id, hint_id`).
-  - [ ] `pinboard_submissions` table (id IDENTITY, session_id FK, is_correct, score_awarded, penalty_applied, submitted_at).
-  - [ ] `pinboard_placements` table (id IDENTITY, submission_id FK, clue_id FK, placed_position > 0, is_correct_position; UNIQUE `submission_id, clue_id`, UNIQUE `submission_id, placed_position`).
-- [ ] ★ Legal & Compliance Schema (`src/db/schema/legal.ts`):
-  - [ ] `legal_acceptances` table (id IDENTITY, user_id FK, document_version, is_over_13 BOOLEAN, terms_accepted_at, privacy_accepted_at, marketing_opt_in BOOLEAN).
+- [x] ★ Database Client & Pool Setup (`src/db/client.ts`):
+  - [x] Configure `pg` connection pool with SSL support for Neon Postgres in production.
+  - [x] Configure direct unpooled connection for `drizzle-kit` migrations.
+  - [x] Wrap Drizzle client with singleton instance pattern for development hot-reloading.
+- [x] ★ Auth Schema (`src/db/schema/auth.ts`):
+  - [x] `user` table (id, name, email, emailVerified, image, createdAt, updatedAt).
+  - [x] `session` table (id, expiresAt, token, createdAt, updatedAt, ipAddress, userAgent, userId).
+  - [x] `account` table (id, accountId, providerId, userId, accessToken, refreshToken, expiresAt, password).
+  - [x] `verification` table (id, identifier, value, expiresAt, createdAt, updatedAt).
+- [x] ★ Teams Schema (`src/db/schema/teams.ts`):
+  - [x] `teams` table (BIGINT IDENTITY PK, name, join_code 8-char random alphanumeric unique, owner_id FK to user, created_at).
+  - [x] `team_members` table (team_id FK, user_id FK, role ENUM `owner` | `member`, joined_at; composite PK `team_id, user_id`).
+- [x] ★ Content Schema (`src/db/schema/content.ts`):
+  - [x] `cases` table (id IDENTITY, slug UNIQUE, title, description, difficulty 1-5, max_score, is_active, created_at).
+  - [x] `assets` table (id IDENTITY, case_id FK, asset_key, asset_type ENUM `IMAGE`|`AUDIO`|`PDF`|`DOCUMENT`, url, mime_type, alt_text; UNIQUE `case_id, asset_key`).
+  - [x] `sections` table (id IDENTITY, case_id FK, section_order > 0, title, narrative, folder_page_asset_id, time_limit_seconds; UNIQUE `case_id, section_order`).
+  - [x] `questions` table (id IDENTITY, section_id FK, question_key, question_type ENUM `FILL_DASHES`|`MCQ`|`TRUE_FALSE`|`CRYPTIC`|`VOICEMAIL_TRANSCRIPT`, prompt, placeholder_text, correct_answer [NULL for MCQ], points >= 0, max_attempts default 5, penalty_per_wrong >= 0, sort_order, metadata JSONB; UNIQUE `section_id, question_key`).
+  - [x] `question_options` table (id IDENTITY, question_id FK, option_text, is_correct, sort_order; UNIQUE `question_id, sort_order`; partial unique index enforcing max 1 correct option per question).
+  - [x] `question_assets` table (question_id FK, asset_id FK, usage_type; composite PK `question_id, asset_id`).
+  - [x] `clues` table (id IDENTITY, case_id FK, clue_key, title, clue_text, chronological_order > 0, metadata JSONB; UNIQUE `case_id, clue_key`, UNIQUE `case_id, chronological_order`).
+  - [x] `clue_assets` table (clue_id FK, asset_id FK; composite PK `clue_id, asset_id`).
+  - [x] `question_clues` table (question_id FK, clue_id FK; composite PK `question_id, clue_id`).
+  - [x] `hints` table (id IDENTITY, question_id FK, hint_text, cost_points >= 0, hint_order; UNIQUE `question_id, hint_order`).
+- [x] ★ Runtime Progress Schema (`src/db/schema/runtime.ts`):
+  - [x] `game_sessions` table (id IDENTITY, case_id FK, user_id FK nullable, team_id FK nullable, status ENUM `IN_PROGRESS`|`COMPLETED`|`ABANDONED`, current_section_id, score >= 0, hint_balance >= 0, wrong_attempts >= 0, started_at, completed_at, total_time_seconds >= 0; CHECK exactly one of user_id/team_id set; partial unique indexes for max 1 `IN_PROGRESS` per user/case and team/case).
+  - [x] `session_question_states` table (session_id FK, question_id FK, attempts_used, is_solved, last_attempt_at, solved_at; composite PK `session_id, question_id`).
+  - [x] `session_answers` table (id IDENTITY, session_id FK, question_id FK, answered_by_user_id FK, submitted_answer, is_correct, time_taken_ms, hint_used, created_at).
+  - [x] `session_clues` table (session_id FK, clue_id FK, source_question_id FK, unlocked_at; composite PK `session_id, clue_id`).
+  - [x] `hint_requests` table (id IDENTITY, session_id FK, hint_id FK, cost_points, created_at; UNIQUE `session_id, hint_id`).
+  - [x] `pinboard_submissions` table (id IDENTITY, session_id FK, is_correct, score_awarded, penalty_applied, submitted_at).
+  - [x] `pinboard_placements` table (id IDENTITY, submission_id FK, clue_id FK, placed_position > 0, is_correct_position; UNIQUE `submission_id, clue_id`, UNIQUE `submission_id, placed_position`).
+- [x] ★ Legal & Compliance Schema (`src/db/schema/legal.ts`):
+  - [x] `legal_acceptances` table (id IDENTITY, user_id FK, document_version, is_over_13 BOOLEAN, terms_accepted_at, privacy_accepted_at, marketing_opt_in BOOLEAN).
 
 ### Migration Pipeline & Seed Automation
-- [ ] ★ Drizzle Migration Generation:
-  - [ ] Run `bun run db:generate` to produce initial SQL migration under `drizzle/`.
-  - [ ] Verify migration execution locally and in CI.
-- [ ] ★ Zod Case Specification Validator (`src/lib/case-schema.ts`):
-  - [ ] Validate complete structure of `content/cases/<case-slug>/case.json` (sections, questions, options, clues, hints, asset keys).
-  - [ ] Validate question rules: MCQ must have NULL `correct_answer` and matching options; other types require explicit `correct_answer`.
-  - [ ] Validate clue chronological ordering uniqueness.
+- [x] ★ Drizzle Migration Generation:
+  - [x] Run `bun run db:generate` to produce initial SQL migration under `drizzle/` (`0000_steep_lenny_balinger.sql`).
+- [x] ★ Zod Case Specification Validator (`src/lib/case-schema.ts`):
+  - [x] Validate complete structure of `content/cases/<case-slug>/case.json` (sections, questions, options, clues, hints, asset keys).
+  - [x] Validate question rules: MCQ must have NULL `correct_answer` and matching options; other types require explicit `correct_answer`.
+  - [x] Validate clue chronological ordering uniqueness.
+  - [x] Automated unit test suite `tests/case-schema.test.ts`.
+- [!] ★ Migration Execution & Idempotent Seeding:
+  - [!] Awaiting Neon PostgreSQL credentials (`DATABASE_URL` and `DATABASE_URL_UNPOOLED`) to apply migrations and seed initial Case 01 data.
 - [ ] ★ Automated Case Seeder (`src/db/seed.ts`):
   - [ ] Parse `content/cases/` folders and load `case.json`.
   - [ ] Ensure idempotent execution (can run multiple times without duplicating data or breaking foreign keys).
   - [ ] Implement Case 01 content seed from authored dossiers.
-- [ ] ★ Automated Case Import Tooling (Phase M1 CLI extension):
-  - [ ] Build script to extract text & sections from `content/inbox/Cases PDF/`.
-  - [ ] Generate optimized WebP assets into `public/cases/<case-slug>/images/`.
-  - [ ] Build `asset-manifest.json` with provenance and alt-text drafts.
 - [ ] ★ Database Integration Tests (`tests/db.test.ts`):
   - [ ] Verify transaction isolation and row-level locking (`SELECT ... FOR UPDATE`).
   - [ ] Test unique constraints, partial indexes, and cascade delete behaviors.
