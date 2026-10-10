@@ -152,6 +152,26 @@ This document tracks all project tasks across development milestones with granul
 - [x] ★ Server Actions for team UI: `createTeamAction`, `joinTeamAction`, `leaveTeamAction`, `getMyTeamsAction`, `getTeamRosterAction`.
 - [x] ★ Unit & integration tests for team authorization and legal consent rules (`tests/teams.test.ts`).
 
+### Interactive Detective Auth & Onboarding Revamp (Issue #5)
+- [x] ★ Install and configure `@react-three/fiber`, `@react-three/drei`, `three`, and `@types/three`.
+- [x] ★ Integrate licensed detective fonts (TBJ Valmist, Charlea Demo, Gothica Modern, Harmera, ITC Garamond, Selnora, plus Google Caveat & Special Elite) with CSS font variables in `src/app/fonts.ts` and Tailwind `@theme`.
+- [x] ★ Database Schema Migration: added `agent_tag` (3-digit unique), `username` (unique), and `training_completed` (boolean) to `users` table via Drizzle migration `0001_mighty_thing.sql`.
+- [x] ★ 3D Interactive Detective Warrant Card (`src/components/auth/DetectiveIDCard3D.tsx`):
+  - [x] Realistic weathered laminated ID badge with brass clip and lanyard loop.
+  - [x] Real-time updates as operative types email, callsign, and agent tag.
+  - [x] Tactile mouse tilt tracking and 180° flip animation revealing cryptographic access chip, barcode, and signature block.
+- [x] ★ Minimalist Noir Detective Sign In (`src/components/auth/LoginForm.tsx`):
+  - [x] Viewport-dominating "Detective Sign In" typography in TBJ Valmist.
+  - [x] 3-option full-width horizontal hover accordion (Email, Google, GitHub) where hovered option expands and neighbors contract.
+  - [x] Large stylized placeholders for operative telegraph address and passcode.
+  - [x] Full-page slide-in "Welcome back, Agent [tag]" animation with alternating left/right trajectory.
+- [x] ★ Multi-Step Detective Enlistment & Onboarding (`src/components/auth/SignupForm.tsx`):
+  - [x] Enlistment credentials intake with 3-way split options.
+  - [x] 3-digit numerical Agent Tag selection with real-time uniqueness validation.
+  - [x] Callsign / username assignment with live ID card signature engraving.
+  - [x] "Welcome, Agent [tag]" dramatic entrance.
+  - [x] Aged parchment legal document with Scotland Yard Directives, age 13+ compliance, and interactive "Complete Training" rubber stamp.
+
 ---
 
 ## Phase M3: Gameplay Loop & Dossier Engine

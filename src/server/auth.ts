@@ -22,6 +22,23 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "default-dev-secret-key-at-least-32-chars-long",
   baseURL:
     process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  user: {
+    additionalFields: {
+      agentTag: {
+        type: "string",
+        required: false,
+      },
+      username: {
+        type: "string",
+        required: false,
+      },
+      trainingCompleted: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,

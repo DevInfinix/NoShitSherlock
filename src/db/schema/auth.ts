@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 export const users = pgTable("user", {
   id: text("id").primaryKey(),
@@ -6,6 +6,9 @@ export const users = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
+  agentTag: varchar("agent_tag", { length: 3 }).unique(),
+  username: text("username").unique(),
+  trainingCompleted: boolean("training_completed").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

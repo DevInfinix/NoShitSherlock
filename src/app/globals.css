@@ -9,6 +9,15 @@
   --color-paper-muted: #b8ad98;
   --color-brass: #a9874a;
   --color-smoke: #78716a;
+
+  --font-valmist: var(--font-valmist), Georgia, serif;
+  --font-charlea: var(--font-charlea), Georgia, serif;
+  --font-gothica: var(--font-gothica), sans-serif;
+  --font-harmera: var(--font-harmera), sans-serif;
+  --font-garamond: var(--font-garamond), serif;
+  --font-selnora: var(--font-selnora), serif;
+  --font-handwriting: var(--font-handwriting), cursive;
+  --font-stamp: var(--font-stamp), monospace;
 }
 
 :root {
