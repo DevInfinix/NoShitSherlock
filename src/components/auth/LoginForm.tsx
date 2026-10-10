@@ -2,27 +2,12 @@
 
 import { ArrowRight, Lock, Mail, ShieldAlert } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { signIn } from "@/lib/auth-client";
 import { getAgentDetailsAction } from "@/server/actions/auth-actions";
-
-const DetectiveIDCard3D = dynamic(
-  () => import("./DetectiveIDCard3D").then((mod) => mod.DetectiveIDCard3D),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-[620px] lg:h-[780px] flex flex-col items-center justify-center p-6">
-        <div className="w-12 h-12 border-2 border-brass border-t-transparent rounded-full animate-spin mb-4" />
-        <span className="font-mono text-xs text-brass uppercase tracking-widest text-center">
-          Materializing Operative Dossier Identification...
-        </span>
-      </div>
-    ),
-  },
-);
+import { DetectiveIDCard3D } from "./DetectiveIDCard3D";
 
 export function LoginForm() {
   const router = useRouter();

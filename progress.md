@@ -62,12 +62,12 @@
    - Added Statutory Compliance page in `src/app/(public)/legal/page.tsx`.
    - Created public routes at `/login`, `/signup`, and `/legal`.
    - Shipped via GitHub Issue #3, branch `feat/3-auth-shell`, and merged Pull Request #4.
-8. **Interactive 3D Detective Auth & Onboarding Revamp (Issue #5, #7, #9, #11)**:
+8. **Interactive 3D Detective Auth & Onboarding Revamp (Issue #5, #7, #9, #11, #13)**:
    - Integrated full detective font catalog (TBJ Valmist, Charlea Demo, Gothica Modern, Harmera, ITC Garamond, Selnora, plus Google Caveat & Special Elite) with CSS variables in `src/app/fonts.ts` and Tailwind CSS v4 `@theme`.
    - Added `agent_tag` (3-digit unique), `username` (unique), and `training_completed` (boolean) to the `users` table via Drizzle migration `0001_mighty_thing.sql`.
-   - Engineered 3D Detective ID Badge via React Three Fiber (`src/components/auth/DetectiveIDCard3D.tsx`) with real-time dynamic canvas texture updates, integral brass swivel clip, and 180° flip animation on direct card click.
-   - Stabilized physical tilt response with exponential lerp damping, eliminating harsh wobble and disconnected hardware lines.
-   - Refined camera framing and sizing across mobile phones and desktop viewports, eliminating invisible box cutoff boundaries.
+   - Re-architected Detective ID Badge (`src/components/auth/DetectiveIDCard3D.tsx`) with high-performance, zero-latency tactile CSS 3D perspective (`preserve-3d`, `rotateY(180deg)`), eliminating WebGL bundle strain, mobile context crashes, and infinite loading spinners.
+   - Restored instant 0ms rendering across iOS/Android mobile and desktop browsers with permanent clip/D-ring hardware anchoring.
+   - Refined mobile responsiveness: enabled vertical scrolling when inputs are focused, verified full tap-to-flip and input collapse/reveal interactions.
    - Set unauthenticated initial badge tag to "AGENT ???" consistently across login and signup.
    - Scaled layout coverage to 85-90% of the viewport with oversized TBJ Valmist typography and an intuitive `SIGN IN` / `SIGN UP` switcher.
    - Replaced horizontal blocks with a vertical expanding/shrinking options stack with prominent hover contrast and in-place email/password input disclosures.
