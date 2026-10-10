@@ -54,15 +54,23 @@
      - `CaseSolvedScreen.tsx`: Case closed report with final score, elapsed time, and Scotland Yard clearance rank commendations.
      - `src/app/(game)/pinboard/[slug]/page.tsx`: Protected Server Component route.
    - Built Pinboard Integration test suite in `tests/pinboard.test.ts` (18/18 total test suite passing against live Neon database).
+7. **Authentication & Detective Onboarding Shell Fully Delivered (PR #4)**:
+   - Built Better Auth React client in `src/lib/auth-client.ts`.
+   - Created Legal Consent server action in `src/server/actions/auth-actions.ts`.
+   - Built Detective Warrant Card Login UI in `src/components/auth/LoginForm.tsx`.
+   - Built Detective Enrollment Signup UI with 13+ COPPA age gate in `src/components/auth/SignupForm.tsx`.
+   - Added Statutory Compliance page in `src/app/(public)/legal/page.tsx`.
+   - Created public routes at `/login`, `/signup`, and `/legal`.
+   - Shipped via GitHub Issue #3, branch `feat/3-auth-shell`, and merged Pull Request #4.
 
 ---
 
 ## 3. Pending Information & Next Steps
 
-Phase M4 is 100% complete.
+Phase M4 and Auth Shell are 100% complete.
 Next focus areas:
-- **Phase M5**: Leaderboard system (individual and squad rankings), session refresh sync, and production hardening.
-- **Landing Page & Authentication UI**: Per user guidance, the main landing page will be an interactive 3D GSAP scroll-driven canvas sequence once sequential frame assets are prepared. Visual brief will be submitted for approval before writing public UI pages.
+- **Landing Page GSAP Canvas Animation**: Interactive 3D scroll sequence using sequential frames in `public/landing/frames/`.
+- **Phase M5**: Leaderboards, squad sync, and accessibility pass.
 
 ---
 
