@@ -125,7 +125,7 @@ export function LoginForm() {
             </div>
 
             {/* Viewport-Dominating Main Typography */}
-            <h1 className="font-valmist font-extrabold text-6xl sm:text-7xl md:text-8xl lg:text-[7.8rem] xl:text-[8.5rem] tracking-tight text-paper uppercase leading-[0.88] select-none">
+            <h1 className="font-valmist font-extrabold text-5xl sm:text-7xl md:text-8xl lg:text-[7.8rem] xl:text-[8.5rem] tracking-tight text-paper uppercase leading-[0.88] select-none">
               Detective
               <br />
               <span className="text-brass">Sign In</span>
@@ -362,7 +362,7 @@ export function LoginForm() {
           <div className="lg:col-span-4 flex items-center justify-center w-full">
             <DetectiveIDCard3D
               email={email}
-              agentTag="004"
+              agentTag="???"
               isPasswordFocused={isPasswordFocused}
               hoveredProvider={hoveredOption}
             />

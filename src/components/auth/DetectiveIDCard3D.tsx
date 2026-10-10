@@ -4,6 +4,20 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
+// Suppress THREE.Clock deprecation warning from internal R3F loop on Three.js r186+
+if (typeof window !== "undefined") {
+  const originalWarn = console.warn;
+  console.warn = (...args: unknown[]) => {
+    if (
+      typeof args[0] === "string" &&
+      args[0].includes("THREE.Clock: This module has been deprecated")
+    ) {
+      return;
+    }
+    originalWarn(...args);
+  };
+}
+
 export interface DetectiveCardProps {
   email?: string;
   agentTag?: string;
@@ -16,7 +30,7 @@ export interface DetectiveCardProps {
 
 function CardMesh({
   email = "",
-  agentTag = "004",
+  agentTag = "???",
   codename = "",
   isPasswordFocused = false,
   isFlipped = false,
@@ -24,17 +38,7 @@ function CardMesh({
   onCardClick,
 }: DetectiveCardProps) {
   const cardGroupRef = useRef<THREE.Group>(null);
-  const clipRef = useRef<THREE.Group>(null);
-  const lanyardLeftRef = useRef<THREE.Mesh>(null);
-  const lanyardRightRef = useRef<THREE.Mesh>(null);
-
-  // Pendulum spring physics state
-  const rotVel = useRef({ x: 0, y: 0, z: 0 });
-  const currentRot = useRef({ x: 0, y: 0, z: 0 });
-  const posVel = useRef({ x: 0, y: 0 });
-  const currentPos = useRef({ x: 0, y: -0.2 });
-
-  const { pointer } = useThree();
+  const { pointer, size } = useThree();
 
   // Create high-res canvas textures for front and back
   const { frontTexture, backTexture } = useMemo(() => {
@@ -69,6 +73,7 @@ function CardMesh({
   const rawEmailPrefix = cleanEmail ? cleanEmail.split("@")[0] : "";
   const activeCallsign = (rawUsername || rawEmailPrefix || "RECRUIT").toUpperCase();
   const activeEmail = cleanEmail ? cleanEmail.toLowerCase() : "PENDING CLEARANCE";
+  const displayTag = agentTag === "???" || !agentTag ? "???" : agentTag;
 
   // Redraw front texture with dynamic live updates
   useEffect(() => {
@@ -124,7 +129,7 @@ function CardMesh({
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Header Title: No Shit Sherlock / Department of Unresolved Investigations
+    // Header Title: No Shit Sherlock
     ctx.fillStyle = "#a9874a";
     ctx.font = "bold 34px 'TBJ Valmist', Georgia, serif";
     ctx.textAlign = "center";
@@ -155,7 +160,7 @@ function CardMesh({
     ctx.lineWidth = 4;
     ctx.strokeRect(photoX, photoY, photoW, photoH);
 
-    // Detective Silhouette
+    // Silhouette
     ctx.fillStyle = "#2d241e";
     ctx.beginPath();
     ctx.moveTo(photoX + 50, photoY + photoH);
@@ -207,7 +212,7 @@ function CardMesh({
 
     ctx.fillStyle = "#e7ddc8";
     ctx.font = "bold 64px 'TBJ Valmist', Georgia, serif";
-    ctx.fillText(`AGENT ${agentTag || "004"}`, 460, 330);
+    ctx.fillText(`AGENT ${displayTag}`, 460, 330);
 
     ctx.fillStyle = "#78716a";
     ctx.font = "bold 17px monospace";
@@ -317,7 +322,7 @@ function CardMesh({
     ctx.font = "20px monospace";
     ctx.textAlign = "center";
     ctx.letterSpacing = "6px";
-    ctx.fillText(`NSS-DOI-${agentTag || "004"}-883492-X`, w / 2, 1225);
+    ctx.fillText(`NSS-DOI-${displayTag}-883492-X`, w / 2, 1225);
 
     // Footer notice
     ctx.fillStyle = "#78716a";
@@ -326,7 +331,7 @@ function CardMesh({
     ctx.fillText("AUTHORIZED WARRANT • DEPARTMENT OF UNRESOLVED INVESTIGATIONS", w / 2, 1335);
 
     frontTexture.needsUpdate = true;
-  }, [agentTag, activeCallsign, activeEmail, isPasswordFocused, hoveredProvider, frontTexture]);
+  }, [displayTag, activeCallsign, activeEmail, isPasswordFocused, hoveredProvider, frontTexture]);
 
   // Redraw back texture
   useEffect(() => {
@@ -423,7 +428,7 @@ function CardMesh({
 
     ctx.fillStyle = "#e7ddc8";
     ctx.font = "20px monospace";
-    ctx.fillText(`HASH: [SHA-256::NSS-${agentTag || "004"}::993a4f8b]`, 110, 960);
+    ctx.fillText(`HASH: [SHA-256::NSS-${displayTag}::993a4f8b]`, 110, 960);
     ctx.fillText(`TELEGRAPH: ${activeEmail}`, 110, 1000);
     ctx.fillStyle = "#a9874a";
     ctx.fillText("CLEARANCE: GRANTED FOR ALL ACTIVE DOSSIERS", 110, 1050);
@@ -445,9 +450,9 @@ function CardMesh({
     ctx.restore();
 
     backTexture.needsUpdate = true;
-  }, [agentTag, activeCallsign, activeEmail, backTexture]);
+  }, [displayTag, activeCallsign, activeEmail, backTexture]);
 
-  // Realistic Lanyard & Pendulum Physics Simulation
+  // Butter-Smooth Lenient Mouse Tilt (No wobble, no harsh jitter)
   useFrame((_, delta) => {
     if (!cardGroupRef.current) return;
 
@@ -455,124 +460,87 @@ function CardMesh({
     const shouldFlip = isFlipped || isPasswordFocused;
     const targetYRot = shouldFlip ? Math.PI : 0;
 
-    // Realistic pendulum physics with mouse inertia and damping
-    const targetRotX = -pointer.y * 0.28;
-    const targetRotY = targetYRot + pointer.x * 0.32;
-    const targetRotZ = -pointer.x * 0.12; // Pendulum lateral sway
+    // Lenient, smooth target rotation with restrained amplitude
+    const targetRotX = -pointer.y * 0.14;
+    const targetRotY = targetYRot + pointer.x * 0.16;
 
-    // Spring-mass acceleration
-    const springK = 8.5;
-    const damping = 0.85;
+    // Smooth exponential damping (critically damped - no oscillation or wobble)
+    const smoothFactor = 1 - Math.exp(-5.5 * Math.min(delta, 0.1));
 
-    rotVel.current.x += (targetRotX - currentRot.current.x) * springK * delta;
-    rotVel.current.x *= damping;
-    currentRot.current.x += rotVel.current.x;
-
-    rotVel.current.y += (targetRotY - currentRot.current.y) * springK * delta;
-    rotVel.current.y *= damping;
-    currentRot.current.y += rotVel.current.y;
-
-    rotVel.current.z += (targetRotZ - currentRot.current.z) * springK * delta;
-    rotVel.current.z *= damping;
-    currentRot.current.z += rotVel.current.z;
-
-    // Apply rotation to card group
-    cardGroupRef.current.rotation.x = currentRot.current.x;
-    cardGroupRef.current.rotation.y = currentRot.current.y;
-    cardGroupRef.current.rotation.z = currentRot.current.z;
-
-    // Lateral displacement physics (badge swings on a pendulum)
-    const targetPosX = pointer.x * 0.25;
-    const targetPosY = -0.35 + Math.abs(pointer.x) * -0.06;
-
-    posVel.current.x += (targetPosX - currentPos.current.x) * springK * delta;
-    posVel.current.x *= damping;
-    currentPos.current.x += posVel.current.x;
-
-    posVel.current.y += (targetPosY - currentPos.current.y) * springK * delta;
-    posVel.current.y *= damping;
-    currentPos.current.y += posVel.current.y;
-
-    cardGroupRef.current.position.x = currentPos.current.x;
-    cardGroupRef.current.position.y = currentPos.current.y;
-
-    // Swivel clip rotates with the card
-    if (clipRef.current) {
-      clipRef.current.rotation.y = currentRot.current.y * 0.4;
-      clipRef.current.rotation.z = currentRot.current.z * 0.6;
-    }
+    cardGroupRef.current.rotation.x = THREE.MathUtils.lerp(
+      cardGroupRef.current.rotation.x,
+      targetRotX,
+      smoothFactor,
+    );
+    cardGroupRef.current.rotation.y = THREE.MathUtils.lerp(
+      cardGroupRef.current.rotation.y,
+      targetRotY,
+      smoothFactor,
+    );
+    // Subtle lateral tilt without erratic swing
+    cardGroupRef.current.rotation.z = THREE.MathUtils.lerp(
+      cardGroupRef.current.rotation.z,
+      -pointer.x * 0.04,
+      smoothFactor,
+    );
   });
 
+  // Responsive scale: compute based on canvas aspect ratio
+  const isMobile = size.width < 500;
+  const responsiveScale = isMobile ? 0.78 : 0.96;
+
   return (
-    <group>
-      {/* Upper Lanyard Strap (Two dark woven fabric ribbons descending from offscreen) */}
-      <group position={[0, 1.8, 0]}>
-        {/* Left strap */}
-        <mesh ref={lanyardLeftRef} position={[-0.18, 1.3, 0]} rotation={[0, 0, 0.08]}>
-          <boxGeometry args={[0.22, 2.8, 0.015]} />
-          <meshStandardMaterial color="#1a1512" roughness={0.92} metalness={0.08} />
+    // Single unified group: badge + hardware are permanently anchored together
+    // biome-ignore lint/a11y/noStaticElementInteractions: R3F Canvas group element
+    <group ref={cardGroupRef} onClick={onCardClick} scale={responsiveScale} position={[0, 0, 0]}>
+      {/* Top Metallic Brass Swivel Clip & Ring permanently affixed to the badge slot */}
+      <group position={[0, 1.82, 0.02]}>
+        {/* Metal Swivel Body */}
+        <mesh position={[0, 0.08, 0]}>
+          <cylinderGeometry args={[0.07, 0.07, 0.16, 16]} />
+          <meshStandardMaterial color="#c5a059" roughness={0.3} metalness={0.85} />
         </mesh>
-
-        {/* Right strap */}
-        <mesh ref={lanyardRightRef} position={[0.18, 1.3, 0]} rotation={[0, 0, -0.08]}>
-          <boxGeometry args={[0.22, 2.8, 0.015]} />
-          <meshStandardMaterial color="#1a1512" roughness={0.92} metalness={0.08} />
-        </mesh>
-
-        {/* Metal Swivel Clasp / D-Ring at anchor point */}
-        <mesh position={[0, -0.05, 0.02]}>
+        {/* Swivel D-Ring */}
+        <mesh position={[0, 0.22, 0]}>
           <torusGeometry args={[0.12, 0.03, 16, 24]} />
           <meshStandardMaterial color="#a9874a" roughness={0.25} metalness={0.85} />
         </mesh>
-      </group>
-
-      {/* Hanging Badge Group (Pivoting from the lanyard clip) */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: R3F Canvas group element */}
-      <group ref={cardGroupRef} onClick={onCardClick} scale={0.95} position={[0, -0.35, 0]}>
-        {/* Metal Swivel Clip */}
-        <group ref={clipRef} position={[0, 1.84, 0.03]}>
-          {/* Swivel body */}
-          <mesh position={[0, 0.08, 0]}>
-            <cylinderGeometry args={[0.06, 0.06, 0.16, 16]} />
-            <meshStandardMaterial color="#c5a059" roughness={0.25} metalness={0.9} />
-          </mesh>
-          {/* Bulldog clamp gripping through card slot */}
-          <mesh position={[0, -0.08, 0]}>
-            <boxGeometry args={[0.62, 0.22, 0.09]} />
-            <meshStandardMaterial color="#a9874a" roughness={0.3} metalness={0.85} />
-          </mesh>
-        </group>
-
-        {/* Front Face */}
-        <mesh position={[0, 0, 0.012]}>
-          <planeGeometry args={[2.5, 3.52]} />
-          <meshPhysicalMaterial
-            map={frontTexture}
-            roughness={0.22}
-            metalness={0.12}
-            clearcoat={0.65}
-            clearcoatRoughness={0.18}
-          />
-        </mesh>
-
-        {/* Back Face */}
-        <mesh position={[0, 0, -0.012]} rotation={[0, Math.PI, 0]}>
-          <planeGeometry args={[2.5, 3.52]} />
-          <meshPhysicalMaterial
-            map={backTexture}
-            roughness={0.22}
-            metalness={0.12}
-            clearcoat={0.65}
-            clearcoatRoughness={0.18}
-          />
-        </mesh>
-
-        {/* Laminated Card Rim */}
-        <mesh>
-          <boxGeometry args={[2.52, 3.54, 0.022]} />
-          <meshStandardMaterial color="#090807" roughness={0.6} metalness={0.25} />
+        {/* Metal Clamp gripping through the slot */}
+        <mesh position={[0, -0.06, 0]}>
+          <boxGeometry args={[0.68, 0.2, 0.08]} />
+          <meshStandardMaterial color="#a9874a" roughness={0.3} metalness={0.85} />
         </mesh>
       </group>
+
+      {/* Front Face */}
+      <mesh position={[0, 0, 0.012]}>
+        <planeGeometry args={[2.5, 3.52]} />
+        <meshPhysicalMaterial
+          map={frontTexture}
+          roughness={0.25}
+          metalness={0.12}
+          clearcoat={0.65}
+          clearcoatRoughness={0.2}
+        />
+      </mesh>
+
+      {/* Back Face */}
+      <mesh position={[0, 0, -0.012]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[2.5, 3.52]} />
+        <meshPhysicalMaterial
+          map={backTexture}
+          roughness={0.25}
+          metalness={0.12}
+          clearcoat={0.65}
+          clearcoatRoughness={0.2}
+        />
+      </mesh>
+
+      {/* Laminated Card Rim */}
+      <mesh>
+        <boxGeometry args={[2.52, 3.54, 0.022]} />
+        <meshStandardMaterial color="#090807" roughness={0.6} metalness={0.25} />
+      </mesh>
     </group>
   );
 }
@@ -590,10 +558,10 @@ export function DetectiveIDCard3D(props: DetectiveCardProps) {
       type="button"
       aria-label="Interactive 3D Detective ID Badge. Click card to flip."
       onClick={handleToggleFlip}
-      className="relative w-full h-[620px] lg:h-[780px] xl:h-[840px] flex items-center justify-center cursor-pointer select-none bg-transparent border-none p-0 outline-none"
+      className="relative w-full h-[360px] sm:h-[460px] md:h-[540px] lg:h-[720px] xl:h-[780px] flex items-center justify-center cursor-pointer select-none bg-transparent border-none p-0 outline-none"
     >
       {/* 3D Canvas with generous viewport framing preventing ANY boundary cutoff */}
-      <Canvas camera={{ position: [0, 0.2, 6.4], fov: 40 }} gl={{ antialias: true, alpha: true }}>
+      <Canvas camera={{ position: [0, 0, 6.2], fov: 38 }} gl={{ antialias: true, alpha: true }}>
         <ambientLight intensity={1.4} />
         <directionalLight position={[4, 6, 4]} intensity={2.4} color="#fbf4e8" />
         <directionalLight position={[-4, -3, 3]} intensity={1.1} color="#a9874a" />
