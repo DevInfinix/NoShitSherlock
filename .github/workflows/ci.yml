@@ -51,6 +51,11 @@ jobs:
       - name: TypeScript Typecheck
         run: bun run typecheck
 
+      - name: Apply Migrations & Seed Database
+        run: |
+          bun run db:migrate
+          bun run db:seed
+
       - name: Run Tests
         run: bun run test
 
