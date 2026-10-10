@@ -1,6 +1,22 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
+
+// Suppress THREE.Clock deprecation warning from internal R3F loop on Three.js r186+
+if (typeof window !== "undefined") {
+  const originalWarn = console.warn;
+  console.warn = (...args: unknown[]) => {
+    if (
+      typeof args[0] === "string" &&
+      args[0].includes("THREE.Clock: This module has been deprecated")
+    ) {
+      return;
+    }
+    originalWarn(...args);
+  };
+}
 
 export interface DetectiveCardProps {
   email?: string;
@@ -12,7 +28,7 @@ export interface DetectiveCardProps {
   onCardClick?: () => void;
 }
 
-export function DetectiveIDCard3D({
+function CardMesh({
   email = "",
   agentTag = "???",
   codename = "",
@@ -21,11 +37,37 @@ export function DetectiveIDCard3D({
   hoveredProvider = null,
   onCardClick,
 }: DetectiveCardProps) {
-  const cardRef = useRef<HTMLButtonElement>(null);
-  const [internalFlip, setInternalFlip] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
+  const cardGroupRef = useRef<THREE.Group>(null);
+  const { pointer, size } = useThree();
 
+  // Create high-res canvas textures for front and back
+  const { frontTexture, backTexture } = useMemo(() => {
+    const fCanvas = document.createElement("canvas");
+    fCanvas.width = 1024;
+    fCanvas.height = 1440;
+    const fCtx = fCanvas.getContext("2d");
+
+    const bCanvas = document.createElement("canvas");
+    bCanvas.width = 1024;
+    bCanvas.height = 1440;
+    const bCtx = bCanvas.getContext("2d");
+
+    const fTex = new THREE.CanvasTexture(fCanvas);
+    const bTex = new THREE.CanvasTexture(bCanvas);
+    fTex.colorSpace = THREE.SRGBColorSpace;
+    bTex.colorSpace = THREE.SRGBColorSpace;
+
+    return {
+      frontCanvas: fCanvas,
+      frontCtx: fCtx,
+      frontTexture: fTex,
+      backCanvas: bCanvas,
+      backCtx: bCtx,
+      backTexture: bTex,
+    };
+  }, []);
+
+  // Compute live display names and email
   const cleanEmail = email.trim();
   const rawUsername = codename && codename !== "RECRUIT" ? codename.trim() : "";
   const rawEmailPrefix = cleanEmail ? cleanEmail.split("@")[0] : "";
@@ -33,311 +75,551 @@ export function DetectiveIDCard3D({
   const activeEmail = cleanEmail ? cleanEmail.toLowerCase() : "PENDING CLEARANCE";
   const displayTag = agentTag === "???" || !agentTag ? "???" : agentTag;
 
-  const shouldFlip = (isFlipped ?? internalFlip) || isPasswordFocused;
+  // Redraw front texture with rich gradients and detailed noir artwork
+  useEffect(() => {
+    const ctx = frontTexture.image.getContext("2d");
+    if (!ctx) return;
+    const w = 1024;
+    const h = 1440;
+
+    // Card background: deep worn leather / ink-raised with brass rim
+    ctx.fillStyle = "#120f0d";
+    ctx.fillRect(0, 0, w, h);
+
+    // Inner paper container
+    ctx.fillStyle = "#171310";
+    ctx.fillRect(24, 24, w - 48, h - 48);
+
+    // Rich weathered gradient reflecting hovered provider
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    if (hoveredProvider === "google") {
+      grad.addColorStop(0, "rgba(59, 130, 246, 0.4)");
+      grad.addColorStop(0.3, "rgba(14, 165, 233, 0.2)");
+      grad.addColorStop(0.7, "rgba(169, 135, 74, 0.08)");
+      grad.addColorStop(1, "rgba(9, 8, 7, 0.7)");
+    } else if (hoveredProvider === "github") {
+      grad.addColorStop(0, "rgba(168, 85, 247, 0.4)");
+      grad.addColorStop(0.3, "rgba(192, 132, 252, 0.2)");
+      grad.addColorStop(0.7, "rgba(100, 27, 27, 0.12)");
+      grad.addColorStop(1, "rgba(9, 8, 7, 0.7)");
+    } else if (hoveredProvider === "email") {
+      grad.addColorStop(0, "rgba(169, 42, 40, 0.45)");
+      grad.addColorStop(0.3, "rgba(100, 27, 27, 0.25)");
+      grad.addColorStop(0.7, "rgba(169, 135, 74, 0.1)");
+      grad.addColorStop(1, "rgba(9, 8, 7, 0.7)");
+    } else {
+      grad.addColorStop(0, "rgba(169, 135, 74, 0.15)");
+      grad.addColorStop(0.4, "rgba(100, 27, 27, 0.12)");
+      grad.addColorStop(1, "rgba(9, 8, 7, 0.65)");
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(24, 24, w - 48, h - 48);
+
+    // Embossed double brass border
+    ctx.strokeStyle = hoveredProvider ? "#f3e8d2" : "#a9874a";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(36, 36, w - 72, h - 72);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#a9874a";
+    ctx.strokeRect(48, 48, w - 96, h - 96);
+
+    // Decorative corner brass brackets
+    const bracketLen = 36;
+    ctx.strokeStyle = "#d4af37";
+    ctx.lineWidth = 4;
+    // Top-left
+    ctx.beginPath();
+    ctx.moveTo(56, 56 + bracketLen);
+    ctx.lineTo(56, 56);
+    ctx.lineTo(56 + bracketLen, 56);
+    ctx.stroke();
+    // Top-right
+    ctx.beginPath();
+    ctx.moveTo(w - 56 - bracketLen, 56);
+    ctx.lineTo(w - 56, 56);
+    ctx.lineTo(w - 56, 56 + bracketLen);
+    ctx.stroke();
+    // Bottom-left
+    ctx.beginPath();
+    ctx.moveTo(56, h - 56 - bracketLen);
+    ctx.lineTo(56, h - 56);
+    ctx.lineTo(56 + bracketLen, h - 56);
+    ctx.stroke();
+    // Bottom-right
+    ctx.beginPath();
+    ctx.moveTo(w - 56 - bracketLen, h - 56);
+    ctx.lineTo(w - 56, h - 56);
+    ctx.lineTo(w - 56, h - 56 - bracketLen);
+    ctx.stroke();
+
+    // Clip slot cutout at top center
+    ctx.fillStyle = "#090807";
+    ctx.beginPath();
+    ctx.roundRect(w / 2 - 120, 56, 240, 24, 12);
+    ctx.fill();
+    ctx.strokeStyle = "#a9874a";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Header Title: No Shit Sherlock
+    ctx.fillStyle = "#a9874a";
+    ctx.font = "bold 34px 'TBJ Valmist', Georgia, serif";
+    ctx.textAlign = "center";
+    ctx.letterSpacing = "6px";
+    ctx.fillText("NO SHIT SHERLOCK", w / 2, 138);
+
+    ctx.fillStyle = "#b8ad98";
+    ctx.font = "18px monospace";
+    ctx.letterSpacing = "3px";
+    ctx.fillText("DEPARTMENT OF UNRESOLVED INVESTIGATIONS", w / 2, 172);
+
+    ctx.strokeStyle = "rgba(169, 135, 74, 0.4)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(100, 202);
+    ctx.lineTo(w - 100, 202);
+    ctx.stroke();
+
+    // Detective Silhouette Photo Box
+    const photoX = 80;
+    const photoY = 236;
+    const photoW = 340;
+    const photoH = 440;
+
+    ctx.fillStyle = "#090807";
+    ctx.fillRect(photoX, photoY, photoW, photoH);
+    ctx.strokeStyle = "#a9874a";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(photoX, photoY, photoW, photoH);
+
+    // Silhouette Torso
+    ctx.fillStyle = "#2d241e";
+    ctx.beginPath();
+    ctx.moveTo(photoX + 50, photoY + photoH);
+    ctx.lineTo(photoX + 110, photoY + photoH - 140);
+    ctx.lineTo(photoX + photoW - 110, photoY + photoH - 140);
+    ctx.lineTo(photoX + photoW - 50, photoY + photoH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Fedora
+    ctx.fillStyle = "#1e1814";
+    ctx.beginPath();
+    ctx.ellipse(photoX + photoW / 2, photoY + 180, 110, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(photoX + photoW / 2, photoY + 160, 65, Math.PI, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Collar lapels
+    ctx.strokeStyle = "#a9874a";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(photoX + 120, photoY + photoH - 140);
+    ctx.lineTo(photoX + photoW / 2, photoY + photoH - 60);
+    ctx.lineTo(photoX + photoW - 120, photoY + photoH - 140);
+    ctx.stroke();
+
+    // Verified Stamp watermark on photo
+    ctx.save();
+    ctx.translate(photoX + photoW - 65, photoY + photoH - 50);
+    ctx.rotate(-0.25);
+    ctx.strokeStyle = "#a92a28";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(-60, -30, 120, 60);
+    ctx.fillStyle = "#a92a28";
+    ctx.font = "bold 20px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("VERIFIED", 0, 8);
+    ctx.restore();
+
+    // Right Column: Operative Details (LIVE UPDATING)
+    ctx.textAlign = "left";
+    ctx.letterSpacing = "2px";
+
+    ctx.fillStyle = "#78716a";
+    ctx.font = "bold 17px monospace";
+    ctx.fillText("OPERATIVE NO.", 460, 264);
+
+    ctx.fillStyle = "#e7ddc8";
+    ctx.font = "bold 64px 'TBJ Valmist', Georgia, serif";
+    ctx.fillText(`AGENT ${displayTag}`, 460, 330);
+
+    ctx.fillStyle = "#78716a";
+    ctx.font = "bold 17px monospace";
+    ctx.fillText("CALLSIGN", 460, 395);
+
+    ctx.fillStyle = "#e7ddc8";
+    ctx.font = "bold 26px monospace";
+    const truncatedName =
+      activeCallsign.length > 17 ? `${activeCallsign.substring(0, 15)}..` : activeCallsign;
+    ctx.fillText(truncatedName, 460, 428);
+
+    ctx.fillStyle = "#78716a";
+    ctx.font = "bold 17px monospace";
+    ctx.fillText("OPERATIVE TELEGRAPH", 460, 485);
+
+    ctx.fillStyle = "#b8ad98";
+    ctx.font = "20px monospace";
+    const truncatedEmail =
+      activeEmail.length > 22 ? `${activeEmail.substring(0, 20)}..` : activeEmail;
+    ctx.fillText(truncatedEmail, 460, 516);
+
+    ctx.fillStyle = "#78716a";
+    ctx.font = "bold 17px monospace";
+    ctx.fillText("CLEARANCE STATUS", 460, 580);
+
+    // Dynamic Hover Indicator on front
+    if (hoveredProvider === "google") {
+      ctx.fillStyle = "#60a5fa";
+      ctx.font = "bold 20px monospace";
+      ctx.fillText("● GOOGLE OAUTH CLEARANCE", 460, 615);
+    } else if (hoveredProvider === "github") {
+      ctx.fillStyle = "#c084fc";
+      ctx.font = "bold 20px monospace";
+      ctx.fillText("● GITHUB KEY CLEARANCE", 460, 615);
+    } else if (hoveredProvider === "email") {
+      ctx.fillStyle = "#f87171";
+      ctx.font = "bold 20px monospace";
+      ctx.fillText("● TELEGRAPH PASSCODE CLEARANCE", 460, 615);
+    } else if (isPasswordFocused) {
+      ctx.fillStyle = "#a92a28";
+      ctx.font = "bold 20px monospace";
+      ctx.fillText("● VERIFYING CREDENTIALS", 460, 615);
+    } else {
+      ctx.fillStyle = "#4ade80";
+      ctx.font = "bold 20px monospace";
+      ctx.fillText("● ACTIVE INVESTIGATOR", 460, 615);
+    }
+
+    // Divider Line
+    ctx.strokeStyle = "rgba(169, 135, 74, 0.4)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(80, 715);
+    ctx.lineTo(w - 80, 715);
+    ctx.stroke();
+
+    // Fingerprint Graphic
+    const fpX = 140;
+    const fpY = 875;
+    ctx.strokeStyle = "rgba(169, 135, 74, 0.35)";
+    ctx.lineWidth = 3;
+    for (let r = 15; r <= 85; r += 14) {
+      ctx.beginPath();
+      ctx.ellipse(fpX, fpY, r, r * 1.35, 0.1, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Official Project Seal
+    ctx.save();
+    ctx.translate(w / 2 + 100, 875);
+    ctx.strokeStyle = "#a9874a";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, 95, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(0, 0, 85, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = "#a9874a";
+    ctx.font = "bold 18px 'TBJ Valmist', Georgia, serif";
+    ctx.textAlign = "center";
+    ctx.fillText("NO SHIT SHERLOCK", 0, -25);
+    ctx.font = "13px monospace";
+    ctx.fillText("COLD CASE INVESTIGATOR", 0, 5);
+    ctx.fillText("LONDON DISTRICT", 0, 35);
+    ctx.restore();
+
+    // Bottom Barcode & Serial Number
+    ctx.fillStyle = "#090807";
+    ctx.fillRect(80, 1070, w - 160, 180);
+    ctx.strokeStyle = "#a9874a";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(80, 1070, w - 160, 180);
+
+    // Procedural Barcode Lines
+    ctx.fillStyle = "#e7ddc8";
+    let bx = 120;
+    while (bx < w - 120) {
+      const bw = (bx % 7) + 2;
+      ctx.fillRect(bx, 1100, bw, 90);
+      bx += bw + (bx % 5) + 3;
+    }
+
+    ctx.fillStyle = "#b8ad98";
+    ctx.font = "20px monospace";
+    ctx.textAlign = "center";
+    ctx.letterSpacing = "6px";
+    ctx.fillText(`NSS-DOI-${displayTag}-883492-X`, w / 2, 1225);
+
+    // Footer notice
+    ctx.fillStyle = "#78716a";
+    ctx.font = "16px monospace";
+    ctx.letterSpacing = "2px";
+    ctx.fillText("AUTHORIZED WARRANT • DEPARTMENT OF UNRESOLVED INVESTIGATIONS", w / 2, 1335);
+
+    frontTexture.needsUpdate = true;
+  }, [displayTag, activeCallsign, activeEmail, isPasswordFocused, hoveredProvider, frontTexture]);
+
+  // Redraw back texture
+  useEffect(() => {
+    const ctx = backTexture.image.getContext("2d");
+    if (!ctx) return;
+    const w = 1024;
+    const h = 1440;
+
+    // Card background
+    ctx.fillStyle = "#120f0d";
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.fillStyle = "#181412";
+    ctx.fillRect(24, 24, w - 48, h - 48);
+
+    ctx.strokeStyle = "#a9874a";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(36, 36, w - 72, h - 72);
+
+    // Magnetic Stripe across top
+    ctx.fillStyle = "#080706";
+    ctx.fillRect(24, 120, w - 48, 180);
+    ctx.strokeStyle = "rgba(169, 135, 74, 0.4)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(24, 120, w - 48, 180);
+
+    // Microchip
+    const chipX = 100;
+    const chipY = 360;
+    const chipW = 200;
+    const chipH = 160;
+
+    ctx.fillStyle = "#a9874a";
+    ctx.fillRect(chipX, chipY, chipW, chipH);
+    ctx.strokeStyle = "#2d241e";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(chipX, chipY, chipW, chipH);
+
+    ctx.strokeRect(chipX, chipY + 50, chipW, 60);
+    ctx.beginPath();
+    ctx.moveTo(chipX + 100, chipY);
+    ctx.lineTo(chipX + 100, chipY + chipH);
+    ctx.stroke();
+
+    // Legal & Operational Directives
+    ctx.fillStyle = "#e7ddc8";
+    ctx.font = "bold 20px monospace";
+    ctx.textAlign = "left";
+    ctx.letterSpacing = "1px";
+    ctx.fillText("CONFIDENTIAL INVESTIGATIVE DOSSIER", 340, 390);
+
+    ctx.fillStyle = "#b8ad98";
+    ctx.font = "18px Georgia, serif";
+    const textLines = [
+      "This warrant card certifies the operative as an authorized investigator",
+      "for No Shit Sherlock: Department of Unresolved Investigations.",
+      "Bearer is granted access to examine crime scenes, decrypt ciphers,",
+      "and reconstruct chronological clues upon the evidence pinboard.",
+      "Loss of credentials must be immediately reported to dispatch.",
+    ];
+    let ty = 430;
+    for (const line of textLines) {
+      ctx.fillText(line, 340, ty);
+      ty += 28;
+    }
+
+    // Signature Panel
+    ctx.fillStyle = "#e7ddc8";
+    ctx.fillRect(80, 640, w - 160, 160);
+    ctx.strokeStyle = "#a9874a";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(80, 640, w - 160, 160);
+
+    ctx.fillStyle = "#78716a";
+    ctx.font = "bold 16px monospace";
+    ctx.fillText("AUTHORIZED OPERATIVE SIGNATURE", 95, 670);
+
+    // Handwritten cursive signature
+    ctx.fillStyle = "#1e1b4b";
+    ctx.font = "italic 48px 'Caveat', cursive, serif";
+    ctx.fillText(activeCallsign || "Sherlock Holmes", 120, 740);
+
+    // Cryptographic Access Block
+    ctx.fillStyle = "#090807";
+    ctx.fillRect(80, 860, w - 160, 240);
+    ctx.strokeStyle = "#641b1b";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(80, 860, w - 160, 240);
+
+    ctx.fillStyle = "#a92a28";
+    ctx.font = "bold 22px monospace";
+    ctx.letterSpacing = "3px";
+    ctx.fillText("AUTHENTICATION CREDENTIALS", 110, 910);
+
+    ctx.fillStyle = "#e7ddc8";
+    ctx.font = "20px monospace";
+    ctx.fillText(`HASH: [SHA-256::NSS-${displayTag}::993a4f8b]`, 110, 960);
+    ctx.fillText(`TELEGRAPH: ${activeEmail}`, 110, 1000);
+    ctx.fillStyle = "#a9874a";
+    ctx.fillText("CLEARANCE: GRANTED FOR ALL ACTIVE DOSSIERS", 110, 1050);
+
+    // Red Evidence Stamp
+    ctx.save();
+    ctx.translate(w / 2, 1220);
+    ctx.rotate(0.12);
+    ctx.strokeStyle = "#a92a28";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(-220, -50, 440, 100);
+    ctx.fillStyle = "#a92a28";
+    ctx.font = "bold 32px monospace";
+    ctx.textAlign = "center";
+    ctx.letterSpacing = "5px";
+    ctx.fillText("NO SHIT SHERLOCK", 0, -8);
+    ctx.font = "bold 18px monospace";
+    ctx.fillText("UNRESOLVED CASES DIVISION", 0, 26);
+    ctx.restore();
+
+    backTexture.needsUpdate = true;
+  }, [displayTag, activeCallsign, activeEmail, backTexture]);
+
+  // Butter-Smooth Lenient Mouse Tilt (No wobble, no harsh jitter)
+  useFrame((_, delta) => {
+    if (!cardGroupRef.current) return;
+
+    // Flip target: 180 degrees (Math.PI)
+    const shouldFlip = isFlipped || isPasswordFocused;
+    const targetYRot = shouldFlip ? Math.PI : 0;
+
+    // Lenient, smooth target rotation with restrained amplitude
+    const targetRotX = -pointer.y * 0.15;
+    const targetRotY = targetYRot + pointer.x * 0.18;
+
+    // Frame-rate independent exponential damping
+    const smoothFactor = 1 - Math.exp(-5.5 * Math.min(delta, 0.1));
+
+    cardGroupRef.current.rotation.x = THREE.MathUtils.lerp(
+      cardGroupRef.current.rotation.x,
+      targetRotX,
+      smoothFactor,
+    );
+    cardGroupRef.current.rotation.y = THREE.MathUtils.lerp(
+      cardGroupRef.current.rotation.y,
+      targetRotY,
+      smoothFactor,
+    );
+    cardGroupRef.current.rotation.z = THREE.MathUtils.lerp(
+      cardGroupRef.current.rotation.z,
+      -pointer.x * 0.04,
+      smoothFactor,
+    );
+  });
+
+  // Responsive scale: compute based on canvas aspect ratio
+  const isMobile = size.width < 500;
+  const responsiveScale = isMobile ? 0.92 : 1.12;
+
+  return (
+    // Single unified group: badge + hardware are permanently anchored together
+    // biome-ignore lint/a11y/noStaticElementInteractions: R3F Canvas group element
+    <group
+      ref={cardGroupRef}
+      onClick={onCardClick}
+      scale={responsiveScale}
+      position={[0, -0.05, 0]}
+    >
+      {/* Top Metallic Brass Swivel Clip & Ring permanently affixed to the badge slot */}
+      <group position={[0, 2.05, 0.02]}>
+        {/* Metal Swivel Body */}
+        <mesh position={[0, 0.08, 0]}>
+          <cylinderGeometry args={[0.08, 0.08, 0.18, 16]} />
+          <meshStandardMaterial color="#c5a059" roughness={0.25} metalness={0.9} />
+        </mesh>
+        {/* Swivel D-Ring */}
+        <mesh position={[0, 0.24, 0]}>
+          <torusGeometry args={[0.14, 0.035, 16, 24]} />
+          <meshStandardMaterial color="#d4af37" roughness={0.2} metalness={0.9} />
+        </mesh>
+        {/* Metal Clamp gripping through the slot */}
+        <mesh position={[0, -0.08, 0]}>
+          <boxGeometry args={[0.78, 0.22, 0.09]} />
+          <meshStandardMaterial color="#a9874a" roughness={0.25} metalness={0.9} />
+        </mesh>
+      </group>
+
+      {/* Front Face with Realistic Clearcoat & Reflections */}
+      <mesh position={[0, 0, 0.014]}>
+        <planeGeometry args={[2.75, 3.86]} />
+        <meshPhysicalMaterial
+          map={frontTexture}
+          roughness={0.2}
+          metalness={0.15}
+          clearcoat={0.8}
+          clearcoatRoughness={0.15}
+          reflectivity={0.9}
+        />
+      </mesh>
+
+      {/* Back Face */}
+      <mesh position={[0, 0, -0.014]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[2.75, 3.86]} />
+        <meshPhysicalMaterial
+          map={backTexture}
+          roughness={0.25}
+          metalness={0.2}
+          clearcoat={0.7}
+          clearcoatRoughness={0.2}
+        />
+      </mesh>
+
+      {/* Laminated Card Rim */}
+      <mesh>
+        <boxGeometry args={[2.78, 3.89, 0.026]} />
+        <meshStandardMaterial color="#0b0908" roughness={0.65} metalness={0.3} />
+      </mesh>
+    </group>
+  );
+}
+
+export function DetectiveIDCard3D(props: DetectiveCardProps) {
+  const [internalFlip, setInternalFlip] = useState(false);
 
   const handleToggleFlip = () => {
     setInternalFlip((prev) => !prev);
-    if (onCardClick) onCardClick();
+    if (props.onCardClick) props.onCardClick();
   };
-
-  // Lenient, smooth 3D tilt tracking without jitter or wobble
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMousePos({ x, y });
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    setMousePos({ x: 0, y: 0 });
-  };
-
-  const rotX = isHovered ? -mousePos.y * 14 : 0;
-  const rotY = (shouldFlip ? 180 : 0) + (isHovered ? mousePos.x * 16 : 0);
 
   return (
-    <div
-      className="relative w-full py-4 flex items-center justify-center select-none"
-      style={{ perspective: "1400px" }}
+    <button
+      type="button"
+      aria-label="Interactive 3D Detective ID Badge. Click card to flip."
+      onClick={handleToggleFlip}
+      className="relative w-full h-[540px] sm:h-[640px] lg:h-[780px] xl:h-[840px] flex items-center justify-center cursor-pointer select-none bg-transparent border-none p-0 outline-none overflow-visible"
     >
-      {/* 3D Interactive Card Container */}
-      <button
-        type="button"
-        ref={cardRef}
-        aria-label="Interactive Detective ID Warrant Card. Tap or click to flip."
-        onClick={handleToggleFlip}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleToggleFlip();
-          }
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        className="relative cursor-pointer transition-transform duration-500 ease-out outline-none border-none p-0 bg-transparent text-left"
-        style={{
-          transformStyle: "preserve-3d",
-          transform: `rotateX(${rotX}deg) rotateY(${rotY}deg)`,
-          width: "min(92vw, 360px)",
-          height: "520px",
-        }}
-      >
-        {/* Top Metallic Brass Swivel Clip & D-Ring (Permanently Anchored) */}
-        <div
-          className="absolute -top-7 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none"
-          style={{ transform: "translateZ(12px)" }}
-        >
-          {/* D-Ring */}
-          <div className="w-8 h-4 border-2 border-brass rounded-t-full bg-ink/80 shadow-md" />
-          {/* Swivel body */}
-          <div className="w-5 h-4 bg-gradient-to-b from-[#c5a059] to-[#8c6d31] rounded-sm shadow-sm" />
-          {/* Clip jaw over slot */}
-          <div className="w-16 h-3 bg-[#a9874a] border border-[#d4af37] shadow-lg rounded-xs" />
-        </div>
+      {/* 3D Canvas with camera framed with ample margins preventing ANY boundary cutoff */}
+      <Canvas camera={{ position: [0, 0, 6.4], fov: 42 }} gl={{ antialias: true, alpha: true }}>
+        {/* Ambient base illumination */}
+        <ambientLight intensity={1.2} />
 
-        {/* FRONT FACE OF WARRANT BADGE */}
-        <div
-          className="absolute inset-0 rounded-lg p-5 flex flex-col justify-between shadow-2xl border-2 border-brass/80 bg-[#14100e] text-paper overflow-hidden"
-          style={{
-            backfaceVisibility: "hidden",
-            transform: "translateZ(1px)",
-            boxShadow:
-              "0 25px 50px -12px rgba(0, 0, 0, 0.85), inset 0 0 25px rgba(169, 135, 74, 0.12)",
-          }}
-        >
-          {/* Ambient Provider Background Tint */}
-          {hoveredProvider === "google" && (
-            <div className="absolute inset-0 bg-blue-500/10 pointer-events-none transition-opacity duration-300" />
-          )}
-          {hoveredProvider === "github" && (
-            <div className="absolute inset-0 bg-purple-500/10 pointer-events-none transition-opacity duration-300" />
-          )}
-          {hoveredProvider === "email" && (
-            <div className="absolute inset-0 bg-evidence-red/15 pointer-events-none transition-opacity duration-300" />
-          )}
+        {/* Golden dramatic lighting from the left */}
+        <directionalLight position={[-5, 0, 3.5]} intensity={2.8} color="#e5b85c" />
 
-          {/* Inner hairline border */}
-          <div className="absolute inset-2 border border-brass/30 rounded-md pointer-events-none" />
+        {/* Key neutral light from top-right */}
+        <directionalLight position={[4, 6, 4]} intensity={2.2} color="#fbf4e8" />
 
-          {/* Badge Top Header */}
-          <div className="relative z-10 text-center pt-2 border-b border-brass/30 pb-2.5">
-            <div className="w-14 h-1.5 mx-auto mb-2 bg-[#090807] border border-brass/50 rounded-full" />
-            <h3 className="font-valmist font-extrabold text-base tracking-[0.2em] text-brass uppercase leading-none">
-              NO SHIT SHERLOCK
-            </h3>
-            <p className="font-mono text-[9px] text-paper-muted tracking-wider uppercase mt-1">
-              DEPARTMENT OF UNRESOLVED INVESTIGATIONS
-            </p>
-          </div>
+        {/* Fill center light */}
+        <pointLight position={[0, 1, 3.5]} intensity={1.5} color="#e7ddc8" />
 
-          {/* Photo Box & Details Row */}
-          <div className="relative z-10 grid grid-cols-12 gap-3 items-center my-auto">
-            {/* Silhouette Photo Box (Left 5 cols) */}
-            <div className="col-span-5 relative bg-[#090807] border-2 border-brass/80 h-36 rounded-xs flex flex-col items-center justify-end overflow-hidden p-1 shadow-inner">
-              {/* Fedora & Trench Silhouette */}
-              <div className="w-12 h-6 bg-[#261e18] rounded-t-full mb-1 relative">
-                <div className="w-16 h-1.5 bg-[#18130f] rounded-full absolute -bottom-0.5 -left-2" />
-              </div>
-              <div className="w-16 h-14 bg-[#1f1814] rounded-t-lg relative border-t border-brass/40" />
+        {/* Subtle oxblood under-glow */}
+        <pointLight position={[0, -3, 2]} intensity={0.9} color="#641b1b" />
 
-              {/* Verified Stamp Overlay */}
-              <div className="absolute bottom-1 right-1 border border-evidence-red text-evidence-red px-1 py-0.5 text-[8px] font-mono font-bold rotate-[-12deg] bg-ink/70">
-                VERIFIED
-              </div>
-            </div>
-
-            {/* Operative Details (Right 7 cols) */}
-            <div className="col-span-7 flex flex-col justify-center space-y-2 text-left pl-1">
-              <div>
-                <span className="font-mono text-[9px] text-smoke block uppercase tracking-wider">
-                  OPERATIVE NO.
-                </span>
-                <span className="font-valmist font-extrabold text-2xl text-paper tracking-wide block leading-tight">
-                  AGENT {displayTag}
-                </span>
-              </div>
-
-              <div>
-                <span className="font-mono text-[9px] text-smoke block uppercase tracking-wider">
-                  CALLSIGN
-                </span>
-                <span className="font-mono font-bold text-xs text-brass block truncate">
-                  {activeCallsign}
-                </span>
-              </div>
-
-              <div>
-                <span className="font-mono text-[9px] text-smoke block uppercase tracking-wider">
-                  TELEGRAPH
-                </span>
-                <span className="font-mono text-[10px] text-paper-muted block truncate">
-                  {activeEmail}
-                </span>
-              </div>
-
-              <div>
-                <span className="font-mono text-[9px] text-smoke block uppercase tracking-wider">
-                  STATUS
-                </span>
-                <span className="font-mono font-bold text-[10px] block leading-tight">
-                  {hoveredProvider === "google" && (
-                    <span className="text-blue-400">● GOOGLE CLEARANCE</span>
-                  )}
-                  {hoveredProvider === "github" && (
-                    <span className="text-purple-400">● GITHUB CLEARANCE</span>
-                  )}
-                  {hoveredProvider === "email" && (
-                    <span className="text-red-400">● TELEGRAPH PASSCODE</span>
-                  )}
-                  {!hoveredProvider && isPasswordFocused && (
-                    <span className="text-amber-400">● VERIFYING PASSCODE</span>
-                  )}
-                  {!hoveredProvider && !isPasswordFocused && (
-                    <span className="text-emerald-400">● ACTIVE INVESTIGATOR</span>
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Fingerprint & Department Seal */}
-          <div className="relative z-10 flex items-center justify-between border-t border-brass/30 pt-2 px-1">
-            {/* Stylized Fingerprint */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-9 border border-brass/40 rounded-full flex items-center justify-center relative overflow-hidden opacity-60">
-                <div className="w-6 h-7 border border-brass/50 rounded-full" />
-                <div className="w-4 h-5 border border-brass/60 rounded-full absolute" />
-                <div className="w-2 h-3 border border-brass/70 rounded-full absolute" />
-              </div>
-              <span className="font-mono text-[8px] text-smoke uppercase tracking-tight">
-                CLASS V<br />
-                DOSSIER
-              </span>
-            </div>
-
-            {/* Circular Project Seal */}
-            <div className="w-12 h-12 rounded-full border border-brass/60 flex flex-col items-center justify-center text-center p-1 opacity-80">
-              <span className="font-valmist text-[7px] font-bold text-brass uppercase leading-none">
-                NO SHIT
-              </span>
-              <span className="font-mono text-[6px] text-smoke uppercase">SHERLOCK</span>
-            </div>
-          </div>
-
-          {/* Barcode & Serial Number */}
-          <div className="relative z-10 bg-[#090807] border border-brass/40 rounded-xs p-1.5 text-center mt-1">
-            <div className="h-6 flex items-center justify-center gap-0.5 overflow-hidden opacity-85">
-              {[
-                { id: "b1", w: 3 },
-                { id: "b2", w: 1 },
-                { id: "b3", w: 4 },
-                { id: "b4", w: 1 },
-                { id: "b5", w: 5 },
-                { id: "b6", w: 2 },
-                { id: "b7", w: 6 },
-                { id: "b8", w: 1 },
-                { id: "b9", w: 3 },
-                { id: "b10", w: 4 },
-                { id: "b11", w: 1 },
-                { id: "b12", w: 2 },
-                { id: "b13", w: 5 },
-                { id: "b14", w: 1 },
-                { id: "b15", w: 3 },
-                { id: "b16", w: 2 },
-                { id: "b17", w: 4 },
-                { id: "b18", w: 1 },
-                { id: "b19", w: 6 },
-                { id: "b20", w: 2 },
-                { id: "b21", w: 1 },
-                { id: "b22", w: 3 },
-              ].map((bar) => (
-                <div key={bar.id} style={{ width: `${bar.w}px` }} className="h-full bg-paper" />
-              ))}
-            </div>
-            <div className="font-mono text-[9px] text-paper-muted tracking-widest mt-1">
-              NSS-DOI-{displayTag}-883492-X
-            </div>
-          </div>
-
-          {/* Flip Hint */}
-          <div className="relative z-10 text-center font-mono text-[8px] text-smoke uppercase tracking-widest mt-1">
-            [ TAP OR CLICK TO FLIP WARRANT ]
-          </div>
-        </div>
-
-        {/* BACK FACE OF WARRANT BADGE */}
-        <div
-          className="absolute inset-0 rounded-lg p-5 flex flex-col justify-between shadow-2xl border-2 border-brass/80 bg-[#14100e] text-paper overflow-hidden"
-          style={{
-            backfaceVisibility: "hidden",
-            transform: "rotateY(180deg) translateZ(1px)",
-            boxShadow:
-              "0 25px 50px -12px rgba(0, 0, 0, 0.85), inset 0 0 25px rgba(169, 135, 74, 0.12)",
-          }}
-        >
-          {/* Inner hairline border */}
-          <div className="absolute inset-2 border border-brass/30 rounded-md pointer-events-none" />
-
-          {/* Magnetic Stripe across top */}
-          <div className="relative z-10 -mx-5 -mt-1 h-10 bg-[#090807] border-y border-brass/40 flex items-center justify-center">
-            <span className="font-mono text-[8px] text-brass/70 tracking-[0.3em] uppercase">
-              ENCRYPTED TRACK 1 {"//"} METROPOLITAN VAULT
-            </span>
-          </div>
-
-          {/* Microchip & Legal Directives */}
-          <div className="relative z-10 flex gap-3 items-center my-2">
-            {/* Gold Microchip */}
-            <div className="w-12 h-10 bg-gradient-to-br from-[#d4af37] to-[#8c6d31] rounded-xs border border-ink p-1 flex flex-col justify-between shadow-md shrink-0">
-              <div className="w-full h-0.5 bg-[#423315]" />
-              <div className="w-full h-0.5 bg-[#423315]" />
-              <div className="w-full h-0.5 bg-[#423315]" />
-            </div>
-
-            {/* Directive notice */}
-            <p className="font-serif text-[9px] text-paper-muted leading-tight text-left">
-              Official warrant of No Shit Sherlock. Authorized to examine crime scenes and place
-              chronological pinboard deductions.
-            </p>
-          </div>
-
-          {/* Operative Signature Strip */}
-          <div className="relative z-10 bg-[#e7ddc8] text-ink p-2 rounded-xs border border-brass/60 my-1">
-            <span className="font-mono text-[8px] text-[#78716a] block uppercase">
-              OPERATIVE SIGNATURE
-            </span>
-            <span className="font-handwriting text-xl text-[#1e1b4b] italic block leading-none py-1">
-              {activeCallsign || "Sherlock Holmes"}
-            </span>
-          </div>
-
-          {/* Cryptographic Access Verification */}
-          <div className="relative z-10 bg-[#090807] border border-oxblood/80 p-2.5 rounded-xs text-left font-mono text-[9px] space-y-1">
-            <div className="text-evidence-red font-bold uppercase tracking-wider">
-              CRYPTOGRAPHIC CREDENTIAL HASH
-            </div>
-            <div className="text-paper truncate">HASH: [SHA-256::NSS-{displayTag}::993a4f8b]</div>
-            <div className="text-paper-muted truncate">TELEGRAPH: {activeEmail}</div>
-            <div className="text-brass">CLEARANCE: GRANTED FOR ALL DOSSIERS</div>
-          </div>
-
-          {/* Red Rubber Evidence Stamp */}
-          <div className="relative z-10 border-2 border-evidence-red text-evidence-red p-2 text-center rotate-[-4deg] bg-ink/60">
-            <div className="font-stamp text-xs font-bold uppercase tracking-widest">
-              NO SHIT SHERLOCK
-            </div>
-            <div className="font-mono text-[8px]">COLD CASE DIVISION • LONDON</div>
-          </div>
-
-          {/* Flip Hint */}
-          <div className="relative z-10 text-center font-mono text-[8px] text-smoke uppercase tracking-widest mt-1">
-            [ TAP OR CLICK TO FLIP TO FRONT ]
-          </div>
-        </div>
-      </button>
-    </div>
+        <CardMesh
+          {...props}
+          isFlipped={props.isFlipped ?? internalFlip}
+          onCardClick={handleToggleFlip}
+        />
+      </Canvas>
+    </button>
   );
 }

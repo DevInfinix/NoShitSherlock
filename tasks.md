@@ -152,19 +152,21 @@ This document tracks all project tasks across development milestones with granul
 - [x] ★ Server Actions for team UI: `createTeamAction`, `joinTeamAction`, `leaveTeamAction`, `getMyTeamsAction`, `getTeamRosterAction`.
 - [x] ★ Unit & integration tests for team authorization and legal consent rules (`tests/teams.test.ts`).
 
-### Interactive Detective Auth & Onboarding Revamp (Issue #5, #7, #9, #11, #13)
+### Interactive Detective Auth & Onboarding Revamp (Issue #5, #7, #9, #11, #13, #15)
 - [x] ★ Install and configure `@react-three/fiber`, `@react-three/drei`, `three`, and `@types/three`.
 - [x] ★ Integrate licensed detective fonts (TBJ Valmist, Charlea Demo, Gothica Modern, Harmera, ITC Garamond, Selnora, plus Google Caveat & Special Elite) with CSS font variables in `src/app/fonts.ts` and Tailwind `@theme`.
 - [x] ★ Database Schema Migration: added `agent_tag` (3-digit unique), `username` (unique), and `training_completed` (boolean) to `users` table via Drizzle migration `0001_mighty_thing.sql`.
 - [x] ★ 3D Interactive Detective Warrant Card (`src/components/auth/DetectiveIDCard3D.tsx`):
-  - [x] Re-architected with zero-latency tactile CSS 3D perspective (`preserve-3d`, `rotateY(180deg)`), eliminating WebGL bundle strain, mobile context crashes, and infinite loading spinners.
+  - [x] Restored realistic React Three Fiber (R3F) 3D badge with physical clearcoat shaders (`meshPhysicalMaterial`), laminated reflections, and golden rim lighting from the left (`directionalLight position={[-5, 0, 3.5]} color="#e5b85c"`).
+  - [x] Restored vibrant multi-stop provider hover gradient washes (sapphire blue for Google, imperial purple for GitHub, deep oxblood for Email).
+  - [x] Increased physical card dimensions (`2.75 x 3.86`) and framed camera frustum (`fov: 42`, `z: 6.2`) with generous margins to permanently eliminate boundary clipping.
   - [x] Smooth, lenient pointer and touch tilt tracking with zero jitter or wobble.
   - [x] Permanent hardware anchoring: brass swivel clip and D-ring directly mounted to card slot.
   - [x] Tap or click to flip 180° revealing magnetic stripe, microchip, and handwritten signature.
   - [x] Default initial unauthenticated badge tag to "AGENT ???" across both login and signup.
   - [x] Project-authentic branding: "No Shit Sherlock: Department of Unresolved Investigations".
   - [x] Real-time live synchronization as operative types email, callsign, and agent tag.
-  - [x] Dynamic hover effects reflecting Google, GitHub, and Email provider clearances in real time.
+  - [x] Configured `allowedDevOrigins` in `next.config.ts` to allow cross-origin LAN mobile device development testing (`192.168.1.34`).
 - [x] ★ Minimalist Noir Detective Sign In (`src/components/auth/LoginForm.tsx`):
   - [x] Viewport coverage scaled to 85-90% with full mobile touch responsiveness and scroll freedom.
   - [x] Dominant left typography in TBJ Valmist with clean copy and intuitive `SIGN IN` / `SIGN UP` mode switcher.
@@ -172,7 +174,7 @@ This document tracks all project tasks across development milestones with granul
   - [x] In-place email and password disclosure with large stylized inputs.
   - [x] Full-page slide-in "Welcome back, Agent [tag]" animation with alternating left/right trajectory.
 - [x] ★ Multi-Step Detective Registration & Onboarding (`src/components/auth/SignupForm.tsx`):
-  - [x] Matching 85-90% viewport layout with responsive columns and persistent tactile card.
+  - [x] Matching 85-90% viewport layout with responsive columns and persistent 3D R3F card.
   - [x] Live email synchronization onto the badge during registration.
   - [x] 3-digit numerical Agent Tag selection with real-time uniqueness validation and live card sync.
   - [x] Callsign / username assignment with live ID card signature engraving.
