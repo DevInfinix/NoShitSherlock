@@ -62,14 +62,14 @@
    - Added Statutory Compliance page in `src/app/(public)/legal/page.tsx`.
    - Created public routes at `/login`, `/signup`, and `/legal`.
    - Shipped via GitHub Issue #3, branch `feat/3-auth-shell`, and merged Pull Request #4.
-8. **Interactive 3D Detective Auth & Onboarding Revamp (Issue #5 & Issue #7)**:
+8. **Interactive 3D Detective Auth & Onboarding Revamp (Issue #5, #7, #9)**:
    - Integrated full detective font catalog (TBJ Valmist, Charlea Demo, Gothica Modern, Harmera, ITC Garamond, Selnora, plus Google Caveat & Special Elite) with CSS variables in `src/app/fonts.ts` and Tailwind CSS v4 `@theme`.
    - Added `agent_tag` (3-digit unique), `username` (unique), and `training_completed` (boolean) to the `users` table via Drizzle migration `0001_mighty_thing.sql`.
-   - Engineered 3D Detective ID Badge via React Three Fiber (`src/components/auth/DetectiveIDCard3D.tsx`) with real-time dynamic canvas texture updates, metallic clip, lanyard, tactile mouse tilt tracking, and 180° flip animation on direct card click.
-   - Refined camera framing to ensure zero clipping on all viewports, added dynamic provider hover highlights (Google, GitHub, Email), and updated all branding to "No Shit Sherlock: Department of Unresolved Investigations".
-   - Revamped `LoginForm` and `SignupForm` with cohesive split-screen layout (dominant left area ~67% with oversized TBJ Valmist typography, persistent unclipped 3D card on the right ~33%).
-   - Replaced horizontal blocks with a vertical expanding/shrinking options stack (Email, Google, GitHub) and in-place email/password input disclosures.
-   - Integrated minimal and bold mode switcher pill (SIGN IN / ENLIST) for fast navigation.
+   - Engineered 3D Detective ID Badge via React Three Fiber (`src/components/auth/DetectiveIDCard3D.tsx`) with real-time dynamic canvas texture updates, metal swivel clip, woven lanyard ribbon physics, mouse tilt tracking, and 180° flip animation on direct card click.
+   - Refined camera framing to ensure zero clipping on all viewports, eliminating invisible box cutoff boundaries, and updated branding to "No Shit Sherlock: Department of Unresolved Investigations".
+   - Scaled layout coverage to 85-90% of the viewport with oversized TBJ Valmist typography and an intuitive `SIGN IN` / `SIGN UP` switcher.
+   - Replaced horizontal blocks with a vertical expanding/shrinking options stack with prominent hover contrast and in-place email/password input disclosures.
+   - Fixed live email synchronization onto the 3D card during registration.
    - Preserved full multi-step registration flow: 3-digit tag, callsign engraving, welcome takeover, and parchment legal training document with rubber stamp certification.
 
 ---

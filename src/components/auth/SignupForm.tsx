@@ -20,7 +20,7 @@ const DetectiveIDCard3D = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-[520px] md:h-[620px] flex flex-col items-center justify-center border border-brass/20 bg-ink-raised/50 p-6">
+      <div className="w-full h-[620px] lg:h-[780px] flex flex-col items-center justify-center p-6">
         <div className="w-12 h-12 border-2 border-brass border-t-transparent rounded-full animate-spin mb-4" />
         <span className="font-mono text-xs text-brass uppercase tracking-widest text-center">
           Materializing Operative Dossier Identification...
@@ -43,7 +43,9 @@ export function SignupForm() {
   const [password, setPassword] = useState("");
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [hoveredOption, setHoveredOption] = useState<"email" | "google" | "github" | null>(null);
-  const [expandedOption, setExpandedOption] = useState<"email" | "google" | "github" | null>(null);
+  const [expandedOption, setExpandedOption] = useState<"email" | "google" | "github" | null>(
+    "email",
+  );
 
   // Step 1: Agent Tag (3 digits)
   const [agentTag, setAgentTag] = useState("");
@@ -72,7 +74,7 @@ export function SignupForm() {
     if (!email || !password || isLoading) return;
 
     if (password.length < 8) {
-      setErrorMessage("Passcode must contain at least 8 characters.");
+      setErrorMessage("Password must contain at least 8 characters.");
       return;
     }
 
@@ -95,7 +97,7 @@ export function SignupForm() {
       setIsLoading(false);
       setStep("agentTag");
     } catch {
-      setErrorMessage("Could not connect to Bureau registration server.");
+      setErrorMessage("Could not connect to registration server.");
       setIsLoading(false);
     }
   };
@@ -109,7 +111,7 @@ export function SignupForm() {
         callbackURL: "/signup?step=agentTag",
       });
     } catch {
-      setErrorMessage(`Failed to initiate ${provider} identity clearance.`);
+      setErrorMessage(`Failed to initiate ${provider} registration.`);
       setIsLoading(false);
     }
   };
@@ -147,7 +149,7 @@ export function SignupForm() {
     e.preventDefault();
     const cleanUsername = username.trim();
     if (cleanUsername.length < 2) {
-      setUsernameError("Callsign must be at least 2 characters.");
+      setUsernameError("Detective name must be at least 2 characters.");
       return;
     }
 
@@ -157,7 +159,7 @@ export function SignupForm() {
     const check = await checkUsernameAvailableAction(cleanUsername);
     if (!check.success || !check.available) {
       setIsUsernameChecking(false);
-      setUsernameError(check.error || `Callsign '${cleanUsername}' is already taken.`);
+      setUsernameError(check.error || `Username '${cleanUsername}' is already taken.`);
       return;
     }
 
@@ -214,14 +216,15 @@ export function SignupForm() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-ink text-paper flex items-center justify-center overflow-x-hidden">
+    <div className="relative w-full min-h-screen bg-ink text-paper flex items-center justify-center overflow-x-hidden p-4 sm:p-8 lg:p-12">
       {/* Background ambient lighting */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-oxblood/15 via-ink to-ink pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-10">
+      {/* Main Container: Covers 85-90% of viewport */}
+      <div className="relative z-10 w-full max-w-[94vw] min-h-[88vh] mx-auto flex flex-col justify-center">
         {/* STEP 0: CREDENTIALS INTAKE WITH SAME SPLIT LAYOUT */}
         {step === "credentials" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
             {/* LEFT COLUMN: Dominant Area (~67% on desktop) */}
             <div className="lg:col-span-8 flex flex-col justify-center text-left">
               {/* Top Switcher: Minimal & Bold */}
@@ -229,7 +232,7 @@ export function SignupForm() {
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 bg-brass rounded-full animate-pulse" />
                   <span className="font-mono text-xs uppercase tracking-[0.3em] text-brass">
-                    NSS {"//"} ENLISTMENT PROTOCOL
+                    NO SHIT SHERLOCK {"//"} REGISTRATION
                   </span>
                 </div>
 
@@ -237,26 +240,26 @@ export function SignupForm() {
                 <div className="inline-flex items-center border border-brass/40 bg-ink-raised p-1 rounded-sm font-mono text-xs tracking-wider">
                   <Link
                     href="/login"
-                    className="px-3 py-1 text-paper-muted hover:text-paper uppercase transition-colors"
+                    className="px-4 py-1.5 text-paper-muted hover:text-paper uppercase transition-colors"
                   >
                     SIGN IN
                   </Link>
-                  <span className="px-3 py-1 bg-evidence-red text-paper font-bold uppercase shadow-sm select-none">
-                    ENLIST
+                  <span className="px-4 py-1.5 bg-evidence-red text-paper font-bold uppercase shadow-sm select-none">
+                    SIGN UP
                   </span>
                 </div>
               </div>
 
               {/* Viewport-Dominating Main Typography */}
-              <h1 className="font-valmist font-extrabold text-6xl sm:text-7xl md:text-8xl lg:text-[7.5rem] tracking-tight text-paper uppercase leading-[0.88] select-none">
+              <h1 className="font-valmist font-extrabold text-6xl sm:text-7xl md:text-8xl lg:text-[7.8rem] xl:text-[8.5rem] tracking-tight text-paper uppercase leading-[0.88] select-none">
                 Detective
                 <br />
-                <span className="text-evidence-red">Enlistment</span>
+                <span className="text-evidence-red">Sign Up</span>
               </h1>
 
               <p className="mt-4 font-charlea text-xl sm:text-2xl text-paper-muted italic max-w-2xl">
                 Begin your appointment to the Department of Unresolved Investigations. Every recruit
-                receives an encrypted warrant badge and casebook.
+                receives an interactive warrant badge and evidence book.
               </p>
 
               {errorMessage && (
@@ -270,12 +273,16 @@ export function SignupForm() {
                 </motion.div>
               )}
 
-              {/* Vertical Stack: Email, Google, GitHub (Spanning from Left to Right) */}
+              {/* Vertical Stack: Noticeably expands on hover */}
               <div className="mt-8 border border-brass/40 bg-ink-raised/80 divide-y divide-brass/30 shadow-2xl transition-all duration-300">
-                {/* ROW 1: EMAIL ENLISTMENT */}
+                {/* ROW 1: EMAIL SIGN UP */}
                 <div
                   className={`transition-all duration-300 ease-out ${
-                    hoveredOption === "email" ? "bg-oxblood/20" : ""
+                    hoveredOption === "email"
+                      ? "bg-oxblood/25 border-l-4 border-l-brass"
+                      : hoveredOption !== null
+                        ? "opacity-55"
+                        : ""
                   } ${expandedOption === "email" ? "bg-ink-raised" : ""}`}
                 >
                   <button
@@ -283,8 +290,12 @@ export function SignupForm() {
                     onMouseEnter={() => setHoveredOption("email")}
                     onMouseLeave={() => setHoveredOption(null)}
                     onClick={() => setExpandedOption((prev) => (prev === "email" ? null : "email"))}
-                    className={`w-full px-6 py-5 flex items-center justify-between text-left cursor-pointer transition-all ${
-                      hoveredOption === "email" ? "py-6" : "py-5"
+                    className={`w-full px-6 sm:px-8 flex items-center justify-between text-left cursor-pointer transition-all duration-300 ${
+                      hoveredOption === "email"
+                        ? "py-8 md:py-10"
+                        : hoveredOption !== null
+                          ? "py-4 md:py-4.5"
+                          : "py-6"
                     }`}
                   >
                     <div className="flex items-center gap-4">
@@ -296,22 +307,17 @@ export function SignupForm() {
                         }`}
                       />
                       <div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs text-brass tracking-widest uppercase">
-                            OPTION 01
-                          </span>
-                          <span className="text-smoke text-xs font-mono">
-                            {"//"} TELEGRAPH WARRANT
-                          </span>
-                        </div>
+                        <span className="font-mono text-xs text-brass tracking-widest uppercase">
+                          OPTION 01
+                        </span>
                         <h2 className="font-valmist text-2xl md:text-3xl text-paper uppercase font-bold tracking-tight mt-0.5">
-                          Email Enlistment
+                          Email Sign Up
                         </h2>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 font-mono text-xs text-brass tracking-widest uppercase">
-                      <span>{expandedOption === "email" ? "COLLAPSE" : "ENLIST WITH EMAIL"}</span>
+                      <span>{expandedOption === "email" ? "COLLAPSE" : "OPEN INPUTS"}</span>
                       <ArrowRight
                         className={`w-4 h-4 transition-transform duration-300 ${
                           expandedOption === "email" ? "rotate-90" : ""
@@ -338,7 +344,7 @@ export function SignupForm() {
                                 className="font-mono text-xs text-brass tracking-widest uppercase flex items-center gap-2"
                               >
                                 <Mail className="w-3.5 h-3.5 text-brass" />
-                                TELEGRAPH ADDRESS (EMAIL)
+                                EMAIL ADDRESS
                               </label>
                               <input
                                 id="signup-email"
@@ -346,7 +352,7 @@ export function SignupForm() {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="ENTER YOUR OPERATIVE EMAIL..."
+                                placeholder="ENTER YOUR EMAIL..."
                                 className="w-full bg-transparent border-b-2 border-brass/40 focus:border-brass py-2.5 font-valmist text-xl sm:text-2xl text-paper placeholder:text-smoke/50 outline-none transition-colors tracking-wide"
                               />
                             </div>
@@ -357,7 +363,7 @@ export function SignupForm() {
                                 className="font-mono text-xs text-brass tracking-widest uppercase flex items-center gap-2"
                               >
                                 <Lock className="w-3.5 h-3.5 text-brass" />
-                                CONFIDENTIAL PASSCODE
+                                PASSWORD
                               </label>
                               <input
                                 id="signup-password"
@@ -376,14 +382,14 @@ export function SignupForm() {
 
                           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
                             <span className="font-mono text-xs text-paper-muted">
-                              Click ID badge anytime to inspect warrant reverse.
+                              Click ID badge anytime to inspect reverse.
                             </span>
                             <button
                               type="submit"
                               disabled={isLoading}
                               className="w-full sm:w-auto px-8 py-3.5 bg-oxblood hover:bg-evidence-red text-paper border-2 border-evidence-red font-valmist text-base font-bold uppercase tracking-widest shadow-xl transition-all cursor-pointer disabled:opacity-40"
                             >
-                              {isLoading ? "FILING..." : "PROCEED TO BADGE NUMBER &rarr;"}
+                              {isLoading ? "FILING..." : "PROCEED TO AGENT TAG &rarr;"}
                             </button>
                           </div>
                         </form>
@@ -392,18 +398,18 @@ export function SignupForm() {
                   </AnimatePresence>
                 </div>
 
-                {/* ROW 2: GOOGLE ENLISTMENT */}
+                {/* ROW 2: GOOGLE SIGN UP */}
                 <button
                   type="button"
                   onMouseEnter={() => setHoveredOption("google")}
                   onMouseLeave={() => setHoveredOption(null)}
                   onClick={() => handleSocialSignUp("google")}
-                  className={`w-full px-6 py-5 flex items-center justify-between text-left cursor-pointer transition-all duration-300 ease-out ${
+                  className={`w-full px-6 sm:px-8 flex items-center justify-between text-left cursor-pointer transition-all duration-300 ease-out ${
                     hoveredOption === "google"
-                      ? "py-6 bg-oxblood/20"
+                      ? "py-8 md:py-10 bg-oxblood/25 border-l-4 border-l-brass"
                       : hoveredOption !== null
-                        ? "opacity-75"
-                        : ""
+                        ? "py-4 md:py-4.5 opacity-55"
+                        : "py-6"
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -418,36 +424,33 @@ export function SignupForm() {
                       <path d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.345-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z" />
                     </svg>
                     <div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs text-brass tracking-widest uppercase">
-                          OPTION 02
-                        </span>
-                        <span className="text-smoke text-xs font-mono">{"//"} GOOGLE IDP</span>
-                      </div>
+                      <span className="font-mono text-xs text-brass tracking-widest uppercase">
+                        OPTION 02
+                      </span>
                       <h2 className="font-valmist text-2xl md:text-3xl text-paper uppercase font-bold tracking-tight mt-0.5">
-                        Google Enlistment
+                        Google Sign Up
                       </h2>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 font-mono text-xs text-brass tracking-widest uppercase">
-                    <span>ENLIST VIA GOOGLE</span>
+                    <span>CONTINUE WITH GOOGLE</span>
                     <ArrowRight className="w-4 h-4" />
                   </div>
                 </button>
 
-                {/* ROW 3: GITHUB ENLISTMENT */}
+                {/* ROW 3: GITHUB SIGN UP */}
                 <button
                   type="button"
                   onMouseEnter={() => setHoveredOption("github")}
                   onMouseLeave={() => setHoveredOption(null)}
                   onClick={() => handleSocialSignUp("github")}
-                  className={`w-full px-6 py-5 flex items-center justify-between text-left cursor-pointer transition-all duration-300 ease-out ${
+                  className={`w-full px-6 sm:px-8 flex items-center justify-between text-left cursor-pointer transition-all duration-300 ease-out ${
                     hoveredOption === "github"
-                      ? "py-6 bg-oxblood/20"
+                      ? "py-8 md:py-10 bg-oxblood/25 border-l-4 border-l-brass"
                       : hoveredOption !== null
-                        ? "opacity-75"
-                        : ""
+                        ? "py-4 md:py-4.5 opacity-55"
+                        : "py-6"
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -466,29 +469,24 @@ export function SignupForm() {
                       />
                     </svg>
                     <div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs text-brass tracking-widest uppercase">
-                          OPTION 03
-                        </span>
-                        <span className="text-smoke text-xs font-mono">
-                          {"//"} CRYPTOGRAPHIC CLEARANCE
-                        </span>
-                      </div>
+                      <span className="font-mono text-xs text-brass tracking-widest uppercase">
+                        OPTION 03
+                      </span>
                       <h2 className="font-valmist text-2xl md:text-3xl text-paper uppercase font-bold tracking-tight mt-0.5">
-                        GitHub Enlistment
+                        GitHub Sign Up
                       </h2>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 font-mono text-xs text-brass tracking-widest uppercase">
-                    <span>ENLIST VIA GITHUB</span>
+                    <span>CONTINUE WITH GITHUB</span>
                     <ArrowRight className="w-4 h-4" />
                   </div>
                 </button>
               </div>
             </div>
 
-            {/* RIGHT COLUMN: 3D Warrant Card (~33% width, Unclipped) */}
+            {/* RIGHT COLUMN: 3D Warrant Card (~33% width, Borderless Canvas) */}
             <div className="lg:col-span-4 flex items-center justify-center w-full">
               <DetectiveIDCard3D
                 email={email}
@@ -507,7 +505,7 @@ export function SignupForm() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center"
           >
             <div className="lg:col-span-8 flex flex-col justify-center text-left">
               <span className="font-mono text-xs uppercase tracking-[0.4em] text-brass block mb-3">
@@ -564,7 +562,7 @@ export function SignupForm() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center"
           >
             <div className="lg:col-span-8 flex flex-col justify-center text-left">
               <span className="font-mono text-xs uppercase tracking-[0.4em] text-brass block mb-3">
