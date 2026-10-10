@@ -247,6 +247,28 @@ This document tracks all project tasks across development milestones with granul
 
 ---
 
+## Phase M4.5: Cinematic Landing Page & Noir Interaction Engine (Issue #17)
+
+### Parallax Image Sequence & Canvas Frame Scrubbing
+- [x] ★ Batch-converted 150 frames (`ezgif-frame-*.png`) into optimized WebP images (`public/landing/frames/frame-[001..150].webp`), reducing weight from 109.12 MB down to 6.41 MB (94.1% reduction).
+- [x] ★ Implemented GSAP ScrollTrigger canvas frame-scrubbing engine with progressive 20-frame fast boot and background streaming.
+- [x] ★ Integrated Lenis smooth scrolling with GSAP ticker synchronization and `prefers-reduced-motion` detection.
+
+### Fluid Cursor & Visual Clearance HUD
+- [x] ★ Implemented spring-physics spotlight flashlight cursor (`src/components/ui/spotlight-cursor.tsx`) with brass reticle and dynamic target scaling.
+- [x] ★ Built vertical Scroll Progress HUD (`src/components/landing/ScrollProgressHud.tsx`) showing real-time 00%–100% progress and sector jumping.
+- [x] ★ Built Noir Sound Engine (`src/lib/audio/sound-engine.ts`) with synthetic Web Audio SFX (typewriter, paper rustle, stamp impact, vinyl ambient loop).
+
+### Component Suites (Motion-Primitives, Magic UI, Vengeance UI, Blobatar)
+- [x] ★ Motion-Primitives: `TextScramble`, `TextShimmer`, `ProgressiveBlur`, `SpotlightCard`.
+- [x] ★ Magic UI: `BorderBeam`, `Particles`, `PerspectiveMarquee`, `RadarRipple`.
+- [x] ★ Vengeance UI: `BooksShowcase` (3D interactive dossier cards with mouse tilt and briefing drawer), `CylinderCarousel` (3D rotating evidence artifact carousel), `TextMorph`.
+- [x] ★ Blobatar: `@blobatar/react` integration (`src/components/ui/blobatar-avatar.tsx`) wired into landing operative badges, signup agent tag/username selection, and login welcome screens.
+- [x] ★ Classified 404 Easter Egg (`src/app/not-found.tsx`): interactive crime scene barrier tape, warehouse flashlight beam, corrupted telegraph decoder, and hidden evidence tag.
+- [x] ★ Favicon Suite: integrated `favicon.ico`, standard PNG icons, Apple touch icons, and webmanifest in `public/` and `src/app/layout.tsx`.
+
+---
+
 ## Phase M5: Leaderboards, Multiplayer Sync & Production Hardening
 
 ### Leaderboard System (`src/app/(game)/leaderboard/page.tsx`)

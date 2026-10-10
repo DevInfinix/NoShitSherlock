@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { BlobatarAvatar } from "@/components/ui/blobatar-avatar";
 import { signIn, signUp } from "@/lib/auth-client";
 import {
   checkAgentTagAvailableAction,
@@ -505,18 +506,25 @@ export function SignupForm() {
               </p>
 
               <form onSubmit={handleConfirmTag} className="mt-8 space-y-6">
-                <div className="relative inline-block w-full max-w-md">
-                  <input
-                    type="text"
-                    maxLength={3}
-                    value={agentTag}
-                    onChange={handleTagInput}
-                    placeholder="004"
-                    className="w-full bg-transparent border-b-4 border-brass/60 focus:border-evidence-red text-left font-valmist font-extrabold text-7xl sm:text-9xl text-paper placeholder:text-smoke/30 outline-none tracking-widest py-3 transition-colors"
+                <div className="flex items-center gap-6 w-full max-w-lg">
+                  <div className="relative inline-block flex-1">
+                    <input
+                      type="text"
+                      maxLength={3}
+                      value={agentTag}
+                      onChange={handleTagInput}
+                      placeholder="004"
+                      className="w-full bg-transparent border-b-4 border-brass/60 focus:border-evidence-red text-left font-valmist font-extrabold text-7xl sm:text-9xl text-paper placeholder:text-smoke/30 outline-none tracking-widest py-3 transition-colors"
+                    />
+                    <span className="font-mono text-xs text-smoke block mt-2 uppercase tracking-widest">
+                      [ EXACTLY THREE DIGITS — E.G. 004 ]
+                    </span>
+                  </div>
+                  <BlobatarAvatar
+                    name={agentTag ? `agent-${agentTag}` : email || "recruit"}
+                    size={72}
+                    className="border-brass shrink-0 shadow-2xl"
                   />
-                  <span className="font-mono text-xs text-smoke block mt-2 uppercase tracking-widest">
-                    [ EXACTLY THREE DIGITS — E.G. 004 ]
-                  </span>
                 </div>
 
                 {tagError && (
@@ -566,17 +574,24 @@ export function SignupForm() {
               </p>
 
               <form onSubmit={handleConfirmUsername} className="mt-8 space-y-6">
-                <div className="relative inline-block w-full max-w-lg">
-                  <input
-                    type="text"
-                    maxLength={30}
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setUsernameError(null);
-                    }}
-                    placeholder="INSPECTOR VANCE"
-                    className="w-full bg-transparent border-b-4 border-brass/60 focus:border-evidence-red text-left font-valmist font-bold text-3xl sm:text-5xl text-paper placeholder:text-smoke/30 outline-none tracking-wide py-3 transition-colors uppercase"
+                <div className="flex items-center gap-6 w-full max-w-lg">
+                  <div className="relative inline-block flex-1">
+                    <input
+                      type="text"
+                      maxLength={30}
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setUsernameError(null);
+                      }}
+                      placeholder="INSPECTOR VANCE"
+                      className="w-full bg-transparent border-b-4 border-brass/60 focus:border-evidence-red text-left font-valmist font-bold text-3xl sm:text-5xl text-paper placeholder:text-smoke/30 outline-none tracking-wide py-3 transition-colors uppercase"
+                    />
+                  </div>
+                  <BlobatarAvatar
+                    name={username ? `operative-${username}` : agentTag || "recruit"}
+                    size={64}
+                    className="border-brass shrink-0 shadow-2xl"
                   />
                 </div>
 

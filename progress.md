@@ -74,10 +74,26 @@
    - Replaced horizontal blocks with a vertical expanding/shrinking options stack with prominent hover contrast and in-place email/password input disclosures.
    - Fixed live email synchronization onto the 3D card during registration.
    - Preserved full multi-step registration flow: 3-digit tag, callsign engraving, welcome takeover, and parchment legal training document with rubber stamp certification.
+9. **Phase M4.5 Cinematic Landing Page & Noir Interaction Engine (Issue #17)**:
+   - Optimized 150 image frames from 109.12 MB down to 6.41 MB WebP (94.1% reduction) in `public/landing/frames/`.
+   - Built hardware-accelerated GSAP ScrollTrigger canvas frame-scrubbing engine (`LandingFrameScrubber.tsx`) across 350vh pinned track with progressive loading.
+   - Synchronized Lenis smooth scroll provider (`SmoothScrollProvider.tsx`) with GSAP ticker.
+   - Built custom spring-physics noir spotlight flashlight cursor (`src/components/ui/spotlight-cursor.tsx`).
+   - Built vertical Scroll Progress HUD (`ScrollProgressHud.tsx`) tracking clearance sectors and progress.
+   - Implemented zero-latency procedural Noir Sound Engine (`src/lib/audio/sound-engine.ts`) with typewriter, paper rustle, rubber stamp impact, and ambient room tone loop alongside `AudioControlHud.tsx`.
+   - Added Motion-Primitives: `TextScramble`, `TextShimmer`, `ProgressiveBlur`, `SpotlightCard`.
+   - Added Magic UI: `BorderBeam`, `Particles`, `PerspectiveMarquee`, `RadarRipple`.
+   - Added Vengeance UI: `BooksShowcase` (3D interactive case books with mouse tilt), `CylinderCarousel` (3D rotating evidence artifact cylinder), `TextMorph`.
+   - Integrated `@blobatar/react` (`BlobatarAvatar.tsx`) across landing page operative badges, signup agent tag/username step, and login welcome screens.
+   - Built classified 404 easter egg page (`src/app/not-found.tsx` & `NotFoundView.tsx`) with crime scene tape, flashlight investigation cone, corrupted cipher decoder, and interactive evidence tag.
+   - Relocated favicon assets into `public/` and configured metadata in `src/app/layout.tsx`.
 
 ---
 
 ## 3. Pending Information & Next Steps
+
+1. **Phase M5 Execution**: Proceed with Leaderboard (individual & squad), periodic team sync polling hook, security headers, and accessibility audit.
+2. **Operational Quality**: 18 test suites passing, zero Biome lint errors, zero TypeScript errors.
 
 Phase M4 and Auth Shell are 100% complete.
 Next focus areas:

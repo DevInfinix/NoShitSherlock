@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { BlobatarAvatar } from "@/components/ui/blobatar-avatar";
 import { signIn } from "@/lib/auth-client";
 import { getAgentDetailsAction } from "@/server/actions/auth-actions";
 import { DetectiveIDCard3D } from "./DetectiveIDCard3D";
@@ -403,6 +404,20 @@ export function LoginForm() {
                 className="w-full text-7xl sm:text-9xl lg:text-[13rem] font-valmist font-extrabold uppercase tracking-tighter text-evidence-red leading-none"
               >
                 {welcomeAgentTag}
+              </motion.div>
+
+              {/* Blobatar Operative Badge */}
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.72, type: "spring" }}
+                className="mt-8 flex items-center justify-center"
+              >
+                <BlobatarAvatar
+                  name={`agent-${welcomeAgentTag}`}
+                  size={110}
+                  className="border-2 border-brass shadow-2xl"
+                />
               </motion.div>
             </div>
           </motion.div>
