@@ -1,0 +1,226 @@
+{
+  "slug": "case-01-missing-ledger",
+  "title": "The Missing Ledger",
+  "description": "An embezzlement audit turns into a homicide investigation when chief accountant Harold Finch is found dead at the Blackwood Exchange.",
+  "difficulty": 2,
+  "maxScore": 1000,
+  "assets": [
+    {
+      "assetKey": "ledger-crime-scene",
+      "assetType": "IMAGE",
+      "url": "/cases/case-01-missing-ledger/images/crime_scene.webp",
+      "mimeType": "image/webp",
+      "altText": "Crime scene photograph of the victim's mahogany desk with bloodstained blotter and open ledger"
+    },
+    {
+      "assetKey": "wiretap-audio",
+      "assetType": "AUDIO",
+      "url": "/cases/case-01-missing-ledger/audio/wiretap.mp3",
+      "mimeType": "audio/mpeg",
+      "altText": "Police recording of an intercepted telephone conversation from the exchange lobby"
+    }
+  ],
+  "sections": [
+    {
+      "sectionOrder": 1,
+      "title": "Section 1: The Scene of the Crime",
+      "narrative": "At 02:15 AM on October 8th, night watchman Thomas Crane found the accountant slumped over his desk. The room smelled of gunpowder and sour bourbon. The leather ledger was open to page 47, but three lines were heavily redacted with fresh fountain pen ink.",
+      "questions": [
+        {
+          "questionKey": "q1_ledger_word",
+          "questionType": "FILL_DASHES",
+          "prompt": "Inspect the margin of the ledger blotter. What six-letter surname is faintly scrawled in blue ink beneath the ledger binding?",
+          "placeholderText": "______",
+          "correctAnswer": "VANCE",
+          "points": 150,
+          "maxAttempts": 5,
+          "penaltyPerWrong": 15,
+          "sortOrder": 1,
+          "metadata": {
+            "acceptedVariants": ["Vance", "vance"]
+          },
+          "assetKeys": ["ledger-crime-scene"],
+          "hints": [
+            {
+              "hintText": "Look closely at the bottom-left corner of the mahogany blotter.",
+              "costPoints": 25,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": ["clue_bloodstained_blotter"]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 2,
+      "title": "Section 2: The Interrogations",
+      "narrative": "Detectives detained the three partners who held master keys to the exchange vault: senior partner Julian Sterling, junior accountant Arthur Vance, and shipping broker Elena Rostova.",
+      "questions": [
+        {
+          "questionKey": "q2_suspect_alibi",
+          "questionType": "MCQ",
+          "prompt": "Cross-reference the lobby sign-in log with the bar receipts. Which suspect claims to have been at the docks but was clocked leaving the Exchange alleyway at 01:48 AM?",
+          "correctAnswer": null,
+          "points": 200,
+          "maxAttempts": 3,
+          "penaltyPerWrong": 30,
+          "sortOrder": 1,
+          "metadata": {},
+          "assetKeys": [],
+          "options": [
+            {
+              "optionText": "Julian Sterling — Claims he was hosting dinner at the Carlton Club",
+              "isCorrect": false,
+              "sortOrder": 1
+            },
+            {
+              "optionText": "Arthur Vance — Sighted departing through the rear alleyway",
+              "isCorrect": true,
+              "sortOrder": 2
+            },
+            {
+              "optionText": "Elena Rostova — Verified loading freight manifests until 03:00 AM",
+              "isCorrect": false,
+              "sortOrder": 3
+            }
+          ],
+          "hints": [
+            {
+              "hintText": "Compare the alleyway rain boots mud marks with the office footprints.",
+              "costPoints": 30,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": ["clue_muddy_footprints"]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 3,
+      "title": "Section 3: Forensics & Autopsy",
+      "narrative": "Dr. Gallagher's preliminary post-mortem examination establishes key physical timeline constraints that rule out initial theories of an accidental struggle.",
+      "questions": [
+        {
+          "questionKey": "q3_autopsy_assertion",
+          "questionType": "TRUE_FALSE",
+          "prompt": "Forensic ballistics confirm the fatal .32 caliber round was fired from point-blank range, proving the victim knew and willingly admitted the assailant into the office.",
+          "correctAnswer": "true",
+          "points": 150,
+          "maxAttempts": 2,
+          "penaltyPerWrong": 25,
+          "sortOrder": 1,
+          "metadata": {},
+          "assetKeys": [],
+          "hints": [
+            {
+              "hintText": "Notice the absence of forced entry on the spring-latch deadbolt.",
+              "costPoints": 20,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": ["clue_intact_deadbolt"]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 4,
+      "title": "Section 4: The Wiretapped Exchange",
+      "narrative": "A wiretap recording intercepted by the precinct operator captures a frantic two-minute phone call originating from the public telephone booth across the avenue at 02:05 AM.",
+      "questions": [
+        {
+          "questionKey": "q4_wiretap_destination",
+          "questionType": "VOICEMAIL_TRANSCRIPT",
+          "prompt": "Listen to the intercepted audio tape. To which port city does the caller request the morning cargo steamer ticket be dispatched?",
+          "correctAnswer": "Rotterdam",
+          "points": 250,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 35,
+          "sortOrder": 1,
+          "metadata": {
+            "acceptedVariants": ["rotterdam", "ROTTERDAM"]
+          },
+          "assetKeys": ["wiretap-audio"],
+          "hints": [
+            {
+              "hintText": "The speaker mentions the North Sea cargo line arriving Thursday dawn.",
+              "costPoints": 40,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": ["clue_steamer_manifest"]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 5,
+      "title": "Section 5: The Cipher in the Safe",
+      "narrative": "Inside Finch's brass lockbox, detectives recover an encoded telegraph slip detailing the routing number of the misappropriated maritime funds.",
+      "questions": [
+        {
+          "questionKey": "q5_vault_cipher",
+          "questionType": "CRYPTIC",
+          "prompt": "The slip reads: 'SHIFT THREE LETTERS WEST: PHULVK'. Decrypt the keyword.",
+          "correctAnswer": "MERLSH",
+          "points": 250,
+          "maxAttempts": 5,
+          "penaltyPerWrong": 40,
+          "sortOrder": 1,
+          "metadata": {
+            "acceptedVariants": ["merlsh", "MERLSH"]
+          },
+          "assetKeys": [],
+          "hints": [
+            {
+              "hintText": "A classic Caesar shift backwards by 3 positions: P->M, H->E, U->R, L->I... wait: P(-3)=M, H(-3)=E, U(-3)=R, L(-3)=I, V(-3)=S, K(-3)=H -> MERISH.",
+              "costPoints": 50,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": []
+        }
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "clueKey": "clue_bloodstained_blotter",
+      "title": "Bloodstained Blotter Note",
+      "clueText": "Harold Finch jotted Arthur Vance's name at 01:15 AM prior to the meeting.",
+      "chronologicalOrder": 1,
+      "metadata": {
+        "pinboardStyle": "aged-paper"
+      },
+      "assetKeys": ["ledger-crime-scene"]
+    },
+    {
+      "clueKey": "clue_intact_deadbolt",
+      "title": "Unforced Office Latch",
+      "clueText": "At 01:30 AM Finch admitted the visitor through the double-locked entrance without struggle.",
+      "chronologicalOrder": 2,
+      "metadata": {
+        "pinboardStyle": "brass-key"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_muddy_footprints",
+      "title": "Alleyway Exit Footprints",
+      "clueText": "At 01:48 AM Arthur Vance was observed fleeing into Blackwood Alleyway.",
+      "chronologicalOrder": 3,
+      "metadata": {
+        "pinboardStyle": "photo-fragment"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_steamer_manifest",
+      "title": "Interrupted Phone Wiretap",
+      "clueText": "At 02:05 AM Vance booked emergency steamship passage to Rotterdam.",
+      "chronologicalOrder": 4,
+      "metadata": {
+        "pinboardStyle": "telegram"
+      },
+      "assetKeys": ["wiretap-audio"]
+    }
+  ]
+}
