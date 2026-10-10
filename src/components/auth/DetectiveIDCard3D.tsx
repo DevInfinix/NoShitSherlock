@@ -23,8 +23,17 @@ function CardMesh({
   hoveredProvider = null,
   onCardClick,
 }: DetectiveCardProps) {
-  const meshRef = useRef<THREE.Group>(null);
-  const targetRotation = useRef({ x: 0, y: 0, z: 0 });
+  const cardGroupRef = useRef<THREE.Group>(null);
+  const clipRef = useRef<THREE.Group>(null);
+  const lanyardLeftRef = useRef<THREE.Mesh>(null);
+  const lanyardRightRef = useRef<THREE.Mesh>(null);
+
+  // Pendulum spring physics state
+  const rotVel = useRef({ x: 0, y: 0, z: 0 });
+  const currentRot = useRef({ x: 0, y: 0, z: 0 });
+  const posVel = useRef({ x: 0, y: 0 });
+  const currentPos = useRef({ x: 0, y: -0.2 });
+
   const { pointer } = useThree();
 
   // Create high-res canvas textures for front and back
@@ -54,7 +63,14 @@ function CardMesh({
     };
   }, []);
 
-  // Redraw front texture with project-authentic branding
+  // Compute live display names and email
+  const cleanEmail = email.trim();
+  const rawUsername = codename && codename !== "RECRUIT" ? codename.trim() : "";
+  const rawEmailPrefix = cleanEmail ? cleanEmail.split("@")[0] : "";
+  const activeCallsign = (rawUsername || rawEmailPrefix || "RECRUIT").toUpperCase();
+  const activeEmail = cleanEmail ? cleanEmail.toLowerCase() : "PENDING CLEARANCE";
+
+  // Redraw front texture with dynamic live updates
   useEffect(() => {
     const ctx = frontTexture.image.getContext("2d");
     if (!ctx) return;
@@ -69,18 +85,18 @@ function CardMesh({
     ctx.fillStyle = "#181412";
     ctx.fillRect(24, 24, w - 48, h - 48);
 
-    // Subtle weathered gradient
+    // Weathered ambient gradient reflecting hovered provider
     const grad = ctx.createLinearGradient(0, 0, w, h);
     if (hoveredProvider === "google") {
-      grad.addColorStop(0, "rgba(59, 130, 246, 0.15)");
+      grad.addColorStop(0, "rgba(59, 130, 246, 0.2)");
       grad.addColorStop(0.5, "rgba(169, 135, 74, 0.08)");
       grad.addColorStop(1, "rgba(9, 8, 7, 0.5)");
     } else if (hoveredProvider === "github") {
-      grad.addColorStop(0, "rgba(168, 85, 247, 0.15)");
+      grad.addColorStop(0, "rgba(168, 85, 247, 0.2)");
       grad.addColorStop(0.5, "rgba(100, 27, 27, 0.12)");
       grad.addColorStop(1, "rgba(9, 8, 7, 0.5)");
     } else if (hoveredProvider === "email") {
-      grad.addColorStop(0, "rgba(169, 42, 40, 0.18)");
+      grad.addColorStop(0, "rgba(169, 42, 40, 0.22)");
       grad.addColorStop(0.5, "rgba(169, 135, 74, 0.08)");
       grad.addColorStop(1, "rgba(9, 8, 7, 0.5)");
     } else {
@@ -99,7 +115,7 @@ function CardMesh({
     ctx.strokeStyle = "#a9874a";
     ctx.strokeRect(48, 48, w - 96, h - 96);
 
-    // Clip Slot cutout at top center
+    // Clip slot cutout at top center
     ctx.fillStyle = "#090807";
     ctx.beginPath();
     ctx.roundRect(w / 2 - 120, 56, 240, 24, 12);
@@ -181,62 +197,63 @@ function CardMesh({
     ctx.fillText("VERIFIED", 0, 8);
     ctx.restore();
 
-    // Right Column: Operative Details (Dynamic)
+    // Right Column: Operative Details (LIVE UPDATING)
     ctx.textAlign = "left";
     ctx.letterSpacing = "2px";
 
     ctx.fillStyle = "#78716a";
-    ctx.font = "bold 18px monospace";
-    ctx.fillText("OPERATIVE NO.", 460, 266);
+    ctx.font = "bold 17px monospace";
+    ctx.fillText("OPERATIVE NO.", 460, 264);
 
     ctx.fillStyle = "#e7ddc8";
     ctx.font = "bold 64px 'TBJ Valmist', Georgia, serif";
-    ctx.fillText(`AGENT ${agentTag || "004"}`, 460, 335);
+    ctx.fillText(`AGENT ${agentTag || "004"}`, 460, 330);
 
     ctx.fillStyle = "#78716a";
-    ctx.font = "bold 18px monospace";
-    ctx.fillText("CALLSIGN / TELEGRAPH", 460, 405);
+    ctx.font = "bold 17px monospace";
+    ctx.fillText("CALLSIGN", 460, 395);
 
     ctx.fillStyle = "#e7ddc8";
-    ctx.font = "bold 24px monospace";
-    const displayName = codename || email.split("@")[0] || "UNIDENTIFIED";
+    ctx.font = "bold 26px monospace";
     const truncatedName =
-      displayName.length > 18 ? `${displayName.substring(0, 16)}..` : displayName;
-    ctx.fillText(truncatedName.toUpperCase(), 460, 440);
+      activeCallsign.length > 17 ? `${activeCallsign.substring(0, 15)}..` : activeCallsign;
+    ctx.fillText(truncatedName, 460, 428);
 
     ctx.fillStyle = "#78716a";
-    ctx.font = "bold 18px monospace";
-    ctx.fillText("CLEARANCE LEVEL", 460, 510);
+    ctx.font = "bold 17px monospace";
+    ctx.fillText("OPERATIVE TELEGRAPH", 460, 485);
 
-    ctx.fillStyle = "#a9874a";
-    ctx.font = "bold 24px monospace";
-    ctx.fillText("DOSSIER & PINBOARD V", 460, 545);
+    ctx.fillStyle = "#b8ad98";
+    ctx.font = "20px monospace";
+    const truncatedEmail =
+      activeEmail.length > 22 ? `${activeEmail.substring(0, 20)}..` : activeEmail;
+    ctx.fillText(truncatedEmail, 460, 516);
 
     ctx.fillStyle = "#78716a";
-    ctx.font = "bold 18px monospace";
-    ctx.fillText("ACCESS PROTOCOL", 460, 615);
+    ctx.font = "bold 17px monospace";
+    ctx.fillText("STATUS", 460, 580);
 
     // Dynamic Hover Indicator on front
     if (hoveredProvider === "google") {
       ctx.fillStyle = "#60a5fa";
       ctx.font = "bold 20px monospace";
-      ctx.fillText("● GOOGLE FEDERATED CLEARANCE", 460, 650);
+      ctx.fillText("● GOOGLE OAUTH CLEARANCE", 460, 615);
     } else if (hoveredProvider === "github") {
       ctx.fillStyle = "#c084fc";
       ctx.font = "bold 20px monospace";
-      ctx.fillText("● GITHUB CRYPTOGRAPHIC KEY", 460, 650);
+      ctx.fillText("● GITHUB KEY CLEARANCE", 460, 615);
     } else if (hoveredProvider === "email") {
       ctx.fillStyle = "#f87171";
       ctx.font = "bold 20px monospace";
-      ctx.fillText("● LOCAL TELEGRAPH CIPHER", 460, 650);
+      ctx.fillText("● TELEGRAPH PASSCODE CLEARANCE", 460, 615);
     } else if (isPasswordFocused) {
       ctx.fillStyle = "#a92a28";
       ctx.font = "bold 20px monospace";
-      ctx.fillText("● VERIFYING CIPHER PASSCODE", 460, 650);
+      ctx.fillText("● VERIFYING CREDENTIALS", 460, 615);
     } else {
       ctx.fillStyle = "#4ade80";
       ctx.font = "bold 20px monospace";
-      ctx.fillText("● READY FOR ASSIGNMENT", 460, 650);
+      ctx.fillText("● ACTIVE INVESTIGATOR", 460, 615);
     }
 
     // Divider Line
@@ -276,7 +293,7 @@ function CardMesh({
     ctx.textAlign = "center";
     ctx.fillText("NO SHIT SHERLOCK", 0, -25);
     ctx.font = "13px monospace";
-    ctx.fillText("DOSSIER INVESTIGATOR", 0, 5);
+    ctx.fillText("COLD CASE INVESTIGATOR", 0, 5);
     ctx.fillText("LONDON DISTRICT", 0, 35);
     ctx.restore();
 
@@ -309,7 +326,7 @@ function CardMesh({
     ctx.fillText("AUTHORIZED WARRANT • DEPARTMENT OF UNRESOLVED INVESTIGATIONS", w / 2, 1335);
 
     frontTexture.needsUpdate = true;
-  }, [email, agentTag, codename, isPasswordFocused, hoveredProvider, frontTexture]);
+  }, [agentTag, activeCallsign, activeEmail, isPasswordFocused, hoveredProvider, frontTexture]);
 
   // Redraw back texture
   useEffect(() => {
@@ -329,7 +346,7 @@ function CardMesh({
     ctx.lineWidth = 4;
     ctx.strokeRect(36, 36, w - 72, h - 72);
 
-    // Magnetic Stripe across the top
+    // Magnetic Stripe across top
     ctx.fillStyle = "#080706";
     ctx.fillRect(24, 120, w - 48, 180);
     ctx.strokeStyle = "rgba(169, 135, 74, 0.4)";
@@ -387,10 +404,10 @@ function CardMesh({
     ctx.font = "bold 16px monospace";
     ctx.fillText("AUTHORIZED OPERATIVE SIGNATURE", 95, 670);
 
+    // Handwritten cursive signature
     ctx.fillStyle = "#1e1b4b";
     ctx.font = "italic 48px 'Caveat', cursive, serif";
-    const sigName = codename || email.split("@")[0] || "Sherlock Holmes";
-    ctx.fillText(sigName, 120, 740);
+    ctx.fillText(activeCallsign || "Sherlock Holmes", 120, 740);
 
     // Cryptographic Access Block
     ctx.fillStyle = "#090807";
@@ -402,14 +419,14 @@ function CardMesh({
     ctx.fillStyle = "#a92a28";
     ctx.font = "bold 22px monospace";
     ctx.letterSpacing = "3px";
-    ctx.fillText("CRYPTOGRAPHIC VAULT CIPHER", 110, 910);
+    ctx.fillText("AUTHENTICATION CREDENTIALS", 110, 910);
 
     ctx.fillStyle = "#e7ddc8";
     ctx.font = "20px monospace";
-    ctx.fillText(`HASH: [SHA-256::NSS-${agentTag || "004"}::993a4f8b012]`, 110, 960);
-    ctx.fillText("GATEWAY: NSS_AUTH_DISPATCH_v1", 110, 1000);
+    ctx.fillText(`HASH: [SHA-256::NSS-${agentTag || "004"}::993a4f8b]`, 110, 960);
+    ctx.fillText(`TELEGRAPH: ${activeEmail}`, 110, 1000);
     ctx.fillStyle = "#a9874a";
-    ctx.fillText("CLEARANCE: FULL DOSSIER & PINBOARD ACCESS", 110, 1050);
+    ctx.fillText("CLEARANCE: GRANTED FOR ALL ACTIVE DOSSIERS", 110, 1050);
 
     // Red Evidence Stamp
     ctx.save();
@@ -428,75 +445,134 @@ function CardMesh({
     ctx.restore();
 
     backTexture.needsUpdate = true;
-  }, [email, agentTag, codename, backTexture]);
+  }, [agentTag, activeCallsign, activeEmail, backTexture]);
 
-  // Interactive mouse tilt & flip animation
+  // Realistic Lanyard & Pendulum Physics Simulation
   useFrame((_, delta) => {
-    if (!meshRef.current) return;
+    if (!cardGroupRef.current) return;
 
+    // Flip target: 180 degrees (Math.PI)
     const shouldFlip = isFlipped || isPasswordFocused;
     const targetYRot = shouldFlip ? Math.PI : 0;
 
-    targetRotation.current.x = -pointer.y * 0.3;
-    targetRotation.current.y = targetYRot + pointer.x * 0.3;
+    // Realistic pendulum physics with mouse inertia and damping
+    const targetRotX = -pointer.y * 0.28;
+    const targetRotY = targetYRot + pointer.x * 0.32;
+    const targetRotZ = -pointer.x * 0.12; // Pendulum lateral sway
 
-    const lerpFactor = Math.min(delta * 7, 1);
-    meshRef.current.rotation.x = THREE.MathUtils.lerp(
-      meshRef.current.rotation.x,
-      targetRotation.current.x,
-      lerpFactor,
-    );
-    meshRef.current.rotation.y = THREE.MathUtils.lerp(
-      meshRef.current.rotation.y,
-      targetRotation.current.y,
-      lerpFactor,
-    );
+    // Spring-mass acceleration
+    const springK = 8.5;
+    const damping = 0.85;
+
+    rotVel.current.x += (targetRotX - currentRot.current.x) * springK * delta;
+    rotVel.current.x *= damping;
+    currentRot.current.x += rotVel.current.x;
+
+    rotVel.current.y += (targetRotY - currentRot.current.y) * springK * delta;
+    rotVel.current.y *= damping;
+    currentRot.current.y += rotVel.current.y;
+
+    rotVel.current.z += (targetRotZ - currentRot.current.z) * springK * delta;
+    rotVel.current.z *= damping;
+    currentRot.current.z += rotVel.current.z;
+
+    // Apply rotation to card group
+    cardGroupRef.current.rotation.x = currentRot.current.x;
+    cardGroupRef.current.rotation.y = currentRot.current.y;
+    cardGroupRef.current.rotation.z = currentRot.current.z;
+
+    // Lateral displacement physics (badge swings on a pendulum)
+    const targetPosX = pointer.x * 0.25;
+    const targetPosY = -0.35 + Math.abs(pointer.x) * -0.06;
+
+    posVel.current.x += (targetPosX - currentPos.current.x) * springK * delta;
+    posVel.current.x *= damping;
+    currentPos.current.x += posVel.current.x;
+
+    posVel.current.y += (targetPosY - currentPos.current.y) * springK * delta;
+    posVel.current.y *= damping;
+    currentPos.current.y += posVel.current.y;
+
+    cardGroupRef.current.position.x = currentPos.current.x;
+    cardGroupRef.current.position.y = currentPos.current.y;
+
+    // Swivel clip rotates with the card
+    if (clipRef.current) {
+      clipRef.current.rotation.y = currentRot.current.y * 0.4;
+      clipRef.current.rotation.z = currentRot.current.z * 0.6;
+    }
   });
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: R3F 3D Canvas group element
-    <group ref={meshRef} onClick={onCardClick} scale={0.92} position={[0, -0.15, 0]}>
-      {/* Front Face */}
-      <mesh position={[0, 0, 0.012]}>
-        <planeGeometry args={[2.5, 3.52]} />
-        <meshPhysicalMaterial
-          map={frontTexture}
-          roughness={0.25}
-          metalness={0.15}
-          clearcoat={0.6}
-          clearcoatRoughness={0.2}
-        />
-      </mesh>
+    <group>
+      {/* Upper Lanyard Strap (Two dark woven fabric ribbons descending from offscreen) */}
+      <group position={[0, 1.8, 0]}>
+        {/* Left strap */}
+        <mesh ref={lanyardLeftRef} position={[-0.18, 1.3, 0]} rotation={[0, 0, 0.08]}>
+          <boxGeometry args={[0.22, 2.8, 0.015]} />
+          <meshStandardMaterial color="#1a1512" roughness={0.92} metalness={0.08} />
+        </mesh>
 
-      {/* Back Face */}
-      <mesh position={[0, 0, -0.012]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[2.5, 3.52]} />
-        <meshPhysicalMaterial
-          map={backTexture}
-          roughness={0.25}
-          metalness={0.15}
-          clearcoat={0.6}
-          clearcoatRoughness={0.2}
-        />
-      </mesh>
+        {/* Right strap */}
+        <mesh ref={lanyardRightRef} position={[0.18, 1.3, 0]} rotation={[0, 0, -0.08]}>
+          <boxGeometry args={[0.22, 2.8, 0.015]} />
+          <meshStandardMaterial color="#1a1512" roughness={0.92} metalness={0.08} />
+        </mesh>
 
-      {/* Rim */}
-      <mesh>
-        <boxGeometry args={[2.52, 3.54, 0.022]} />
-        <meshStandardMaterial color="#090807" roughness={0.7} metalness={0.3} />
-      </mesh>
+        {/* Metal Swivel Clasp / D-Ring at anchor point */}
+        <mesh position={[0, -0.05, 0.02]}>
+          <torusGeometry args={[0.12, 0.03, 16, 24]} />
+          <meshStandardMaterial color="#a9874a" roughness={0.25} metalness={0.85} />
+        </mesh>
+      </group>
 
-      {/* Metallic Brass Clip at Top */}
-      <mesh position={[0, 1.82, 0.03]}>
-        <boxGeometry args={[0.7, 0.22, 0.08]} />
-        <meshStandardMaterial color="#a9874a" roughness={0.3} metalness={0.8} />
-      </mesh>
+      {/* Hanging Badge Group (Pivoting from the lanyard clip) */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: R3F Canvas group element */}
+      <group ref={cardGroupRef} onClick={onCardClick} scale={0.95} position={[0, -0.35, 0]}>
+        {/* Metal Swivel Clip */}
+        <group ref={clipRef} position={[0, 1.84, 0.03]}>
+          {/* Swivel body */}
+          <mesh position={[0, 0.08, 0]}>
+            <cylinderGeometry args={[0.06, 0.06, 0.16, 16]} />
+            <meshStandardMaterial color="#c5a059" roughness={0.25} metalness={0.9} />
+          </mesh>
+          {/* Bulldog clamp gripping through card slot */}
+          <mesh position={[0, -0.08, 0]}>
+            <boxGeometry args={[0.62, 0.22, 0.09]} />
+            <meshStandardMaterial color="#a9874a" roughness={0.3} metalness={0.85} />
+          </mesh>
+        </group>
 
-      {/* Lanyard Strap Loop */}
-      <mesh position={[0, 2.2, 0.02]}>
-        <cylinderGeometry args={[0.07, 0.07, 0.7, 16]} />
-        <meshStandardMaterial color="#1f1814" roughness={0.9} />
-      </mesh>
+        {/* Front Face */}
+        <mesh position={[0, 0, 0.012]}>
+          <planeGeometry args={[2.5, 3.52]} />
+          <meshPhysicalMaterial
+            map={frontTexture}
+            roughness={0.22}
+            metalness={0.12}
+            clearcoat={0.65}
+            clearcoatRoughness={0.18}
+          />
+        </mesh>
+
+        {/* Back Face */}
+        <mesh position={[0, 0, -0.012]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[2.5, 3.52]} />
+          <meshPhysicalMaterial
+            map={backTexture}
+            roughness={0.22}
+            metalness={0.12}
+            clearcoat={0.65}
+            clearcoatRoughness={0.18}
+          />
+        </mesh>
+
+        {/* Laminated Card Rim */}
+        <mesh>
+          <boxGeometry args={[2.52, 3.54, 0.022]} />
+          <meshStandardMaterial color="#090807" roughness={0.6} metalness={0.25} />
+        </mesh>
+      </group>
     </group>
   );
 }
@@ -512,16 +588,16 @@ export function DetectiveIDCard3D(props: DetectiveCardProps) {
   return (
     <button
       type="button"
-      aria-label="Interactive 3D Operative Warrant Badge. Click to flip."
+      aria-label="Interactive 3D Detective ID Badge. Click card to flip."
       onClick={handleToggleFlip}
-      className="relative w-full h-[520px] md:h-[620px] lg:h-[680px] flex items-center justify-center cursor-pointer select-none bg-transparent border-0 p-0 outline-none focus-visible:ring-1 focus-visible:ring-brass"
+      className="relative w-full h-[620px] lg:h-[780px] xl:h-[840px] flex items-center justify-center cursor-pointer select-none bg-transparent border-none p-0 outline-none"
     >
-      {/* 3D Canvas with camera framed to prevent ANY clipping */}
-      <Canvas camera={{ position: [0, 0, 5.8], fov: 38 }} gl={{ antialias: true, alpha: true }}>
-        <ambientLight intensity={1.3} />
-        <directionalLight position={[4, 5, 4]} intensity={2.2} color="#fbf4e8" />
-        <directionalLight position={[-4, -3, 2]} intensity={0.9} color="#a9874a" />
-        <pointLight position={[0, 2, 3]} intensity={1.6} color="#e7ddc8" />
+      {/* 3D Canvas with generous viewport framing preventing ANY boundary cutoff */}
+      <Canvas camera={{ position: [0, 0.2, 6.4], fov: 40 }} gl={{ antialias: true, alpha: true }}>
+        <ambientLight intensity={1.4} />
+        <directionalLight position={[4, 6, 4]} intensity={2.4} color="#fbf4e8" />
+        <directionalLight position={[-4, -3, 3]} intensity={1.1} color="#a9874a" />
+        <pointLight position={[0, 2, 3.2]} intensity={1.8} color="#e7ddc8" />
 
         <CardMesh
           {...props}
