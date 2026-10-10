@@ -8,6 +8,13 @@
       "when": 1791595194705,
       "tag": "0000_steep_lenny_balinger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791633387489,
+      "tag": "0001_mighty_thing",
+      "breakpoints": true
     }
   ]
 }
