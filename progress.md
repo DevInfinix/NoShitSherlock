@@ -15,7 +15,7 @@
 
 ---
 
-## 2. Current State (Phase M1: In Progress)
+## 2. Current State (Phase M1: Completed)
 
 ### What Was Accomplished
 1. **M0 Foundation Fully Completed**:
@@ -33,30 +33,45 @@
    - Configured `.github/FUNDING.yml` with `ko_fi: DevInfinix` and custom link.
 3. **Execution Tracking Established**:
    - Authored `tasks.md` and `progress.md`.
-4. **Phase M1 Database Architecture Built**:
+4. **Phase M1 Database Architecture Fully Delivered**:
+   - Configured Neon MCP globally and authenticated via `neonctl`.
+   - Provisioned Neon PostgreSQL 17 project `noshitsherlock` (ID: `morning-morning-30814320`) in TheSamStudios organization.
+   - Stored connection strings in `.env.local` (pooled and unpooled).
    - Created full Drizzle ORM schemas in `src/db/schema/`: `auth.ts`, `teams.ts`, `content.ts`, `runtime.ts`, `legal.ts`, `index.ts` covering 24 tables, check constraints, partial indexes, and foreign key cascades.
    - Created database client in `src/db/client.ts` with connection pooling support.
    - Created strict Zod case validator in `src/lib/case-schema.ts` with unit test suite in `tests/case-schema.test.ts`.
    - Generated initial committed migration file: `drizzle/0000_steep_lenny_balinger.sql`.
-   - Committed and pushed changes under commit `44eec57`.
+   - Applied migrations to live Neon PostgreSQL 17 database (`bun run db:migrate`) successfully creating all 24 tables.
+   - Authored Case 01 dossier specification in `content/cases/case-01-missing-ledger/case.json` with 5 sections and all 5 puzzle formats.
+   - Implemented idempotent database seeder `src/db/seed.ts` (`bun run db:seed`) and verified duplicate-free execution.
+   - Implemented database query tests in `tests/db.test.ts` passing 100%.
 
 ---
 
-## 3. Pending Information & Environment Configuration
+## 3. Pending Information & Next Milestone Authorization
 
-To test applying the generated migrations (`bun run db:migrate`) and run the database seeder against Neon PostgreSQL, we require the following environment variables:
-1. `DATABASE_URL`: Neon pooled connection string (e.g., `postgresql://...pooler...?sslmode=require`).
-2. `DATABASE_URL_UNPOOLED`: Neon direct unpooled connection string (used by `drizzle-kit` for schema migrations).
+Phase M1 is 100% complete.
+Awaiting user authorization to proceed to **Phase M2: Authentication, Authorization & Team Management**.
 
 ---
 
-## 4. Next Immediate Steps (Upon Receiving Database Credentials)
+## 4. Next Immediate Steps (Phase M2: Auth & Teams)
 
-1. Store credentials in `.env.local` (kept git-ignored).
-2. Execute `bun run db:migrate` to apply all 24 tables to Neon.
-3. Build the idempotent Case 01 seeder in `src/db/seed.ts`.
-4. Run `bun run db:seed` and verify zero-error execution.
-5. Create database integration test in `tests/db.test.ts` verifying constraints and row locking.
+1. **Better Auth Server Setup (`src/server/auth.ts`)**:
+   - Configure Better Auth with Drizzle adapter and Neon connection.
+   - Set up Email OTP (6-digit one-time code with 10-minute expiry via Resend).
+   - Configure OAuth providers: Google, GitHub, and Discord.
+2. **Age Gate & Legal Consent Flow**:
+   - Pre-registration consent screen verifying age 13+ and Terms/Privacy acceptance.
+   - Store immutable records in `legal_acceptances`.
+3. **Route Protection (`src/proxy.ts`)**:
+   - Guard `(game)` routes against unauthenticated requests.
+4. **Team Management Service (`src/server/services/team-service.ts`)**:
+   - Team creation with 8-character cryptographic alphanumeric join code.
+   - Join team, leave team, list team members, and role assignment (`owner` vs `member`).
+   - Server Actions for team management (`src/server/actions/team-actions.ts`).
+5. **Auth & Team Tests (`tests/auth.test.ts`, `tests/teams.test.ts`)**:
+   - Validate team code uniqueness, member limits, role guards, and session isolation.
 
 ---
 

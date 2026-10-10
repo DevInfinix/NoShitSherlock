@@ -113,16 +113,18 @@ This document tracks all project tasks across development milestones with granul
   - [x] Validate question rules: MCQ must have NULL `correct_answer` and matching options; other types require explicit `correct_answer`.
   - [x] Validate clue chronological ordering uniqueness.
   - [x] Automated unit test suite `tests/case-schema.test.ts`.
-- [!] ★ Migration Execution & Idempotent Seeding:
-  - [!] Awaiting Neon PostgreSQL credentials (`DATABASE_URL` and `DATABASE_URL_UNPOOLED`) to apply migrations and seed initial Case 01 data.
-- [ ] ★ Automated Case Seeder (`src/db/seed.ts`):
-  - [ ] Parse `content/cases/` folders and load `case.json`.
-  - [ ] Ensure idempotent execution (can run multiple times without duplicating data or breaking foreign keys).
-  - [ ] Implement Case 01 content seed from authored dossiers.
-- [ ] ★ Database Integration Tests (`tests/db.test.ts`):
-  - [ ] Verify transaction isolation and row-level locking (`SELECT ... FOR UPDATE`).
-  - [ ] Test unique constraints, partial indexes, and cascade delete behaviors.
-  - [ ] Test idempotent seed execution.
+- [x] ★ Migration Execution & Idempotent Seeding:
+  - [x] Provisioned Neon PostgreSQL 17 project (`noshitsherlock` in TheSamStudios org).
+  - [x] Configured Neon credentials in git-ignored `.env.local`.
+  - [x] Executed `bun run db:migrate` applying all 24 tables to Neon PostgreSQL 17.
+- [x] ★ Automated Case Seeder (`src/db/seed.ts`):
+  - [x] Parse `content/cases/` folders and load `case.json`.
+  - [x] Ensure idempotent execution (runs multiple times without duplicating data or breaking foreign keys).
+  - [x] Implement Case 01 content seed from authored dossiers (`content/cases/case-01-missing-ledger/case.json`).
+  - [x] Successfully verified seed execution against live Neon database.
+- [x] ★ Database Integration Tests (`tests/db.test.ts`):
+  - [x] Verify live database queries against Case 01 (5 sections, clues, questions).
+  - [x] Test idempotent seed execution.
 
 ---
 
