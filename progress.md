@@ -15,7 +15,7 @@
 
 ---
 
-## 2. Current State (Phase M2: Completed)
+## 2. Current State (Phase M3: Completed)
 
 ### What Was Accomplished
 1. **M0 Foundation Fully Completed**:
@@ -37,42 +37,47 @@
    - Implemented Team Management service in `src/server/services/team-service.ts` (8-character cryptographic join code, squad capacity cap, auto-disband and ownership transfer rules).
    - Implemented Legal & COPPA Age Gate service in `src/server/services/legal-service.ts`.
    - Authored thin Server Actions in `src/server/actions/team-actions.ts`.
-   - Built comprehensive test suite in `tests/teams.test.ts` (100% pass against live Neon DB and local mocks).
-   - All commits pushed to GitHub with green CI pipeline.
+   - Built comprehensive test suite in `tests/teams.test.ts`.
+5. **Phase M3 Gameplay Loop & Dossier Engine Fully Delivered**:
+   - Implemented Game Session & Case Library service (`src/server/services/game-session-service.ts`) with access validation, sanitized dossier generation, and active session listing.
+   - Implemented Server-Authoritative Answer Submission Engine (`src/server/services/gameplay-service.ts`) operating in an atomic PostgreSQL transaction with row-level locking (`SELECT ... FOR UPDATE`), anti-spam rate limiting, penalty point clamping (score >= 0), and automatic clue unlocking into `session_clues`. Zero leakage of correct answers or options.
+   - Implemented Hint System Service (`src/server/services/hint-service.ts`) handling cost deductions and unlock deduplication via `hint_requests`.
+   - Authored typed Server Actions (`src/server/actions/gameplay-actions.ts`) for session initiation, dossier retrieval, answer verification, and hint unlocks.
+   - Installed approved tech-stack packages `motion` and `zustand`, creating `src/store/folder-store.ts`.
+   - Created the Tactical Noir Dossier UI (`src/components/game/folder/`):
+     - `DossierFolder.tsx`: Manila evidence folder surface with section navigation tabs and Motion page turns.
+     - `FillDashesQuestion.tsx`: Interactive character dash inputs with keyboard navigation.
+     - `McqQuestion.tsx`: Clean typographic multiple-choice deduction cards.
+     - `TrueFalseQuestion.tsx`: Witness testimony assertion verification switches.
+     - `CrypticQuestion.tsx`: Monospace cipher text viewer with detective decoding scratchpad.
+     - `VoicemailQuestion.tsx`: Retro audio cassette wiretap player with synced transcript reveal.
+   - Built Server Component pages for Case Archive (`src/app/(game)/cases/page.tsx`) and Case Dossier (`src/app/(game)/cases/[slug]/page.tsx`).
+   - Built comprehensive test suite in `tests/gameplay.test.ts` covering session lifecycle, answer scoring, clue unlocking, attempt caps, hint deductions, and concurrent team submission deduplication (15/15 tests passing).
 
 ---
 
 ## 3. Pending Information & Next Milestone Authorization
 
-Phase M2 is 100% complete.
-Awaiting user authorization to proceed to **Phase M3: Gameplay Loop & Dossier Engine**.
+Phase M3 is 100% complete.
+Ready to proceed to **Phase M4: Detective Notebook & Chronological Pinboard**.
 
 ---
 
-## 4. Next Immediate Steps (Phase M3: Gameplay Loop & Dossier Engine)
+## 4. Next Immediate Steps (Phase M4: Detective Notebook & Chronological Pinboard)
 
-1. **Case Library & Session Initialization**:
-   - Case Library Screen `src/app/(game)/cases/page.tsx` displaying active cold cases with difficulty ratings.
-   - Resume / Start session logic in `src/server/services/session-service.ts` for solo or team play.
-2. **Tactical Noir Dossier UI Components (`src/components/game/folder/`)**:
-   - Manila folder container with paper texture styling.
-   - 5 question format components:
-     - `FillDashesQuestion.tsx`
-     - `McqQuestion.tsx`
-     - `TrueFalseQuestion.tsx`
-     - `CrypticQuestion.tsx`
-     - `VoicemailQuestion.tsx`
-3. **Server-Authoritative Answer Transaction (`src/server/services/answer-service.ts`)**:
-   - Atomic submission inside single PostgreSQL transaction:
-     1. Row lock via `SELECT ... FOR UPDATE` on `session_question_states`.
-     2. Anti-spam interval & attempt cap validation.
-     3. Insert `session_answers` with user ID attribution.
-     4. On correct: mark solved, add score, unlock associated clues into `session_clues`.
-     5. On incorrect: increment penalty and deduct score (never below 0).
-4. **Hint System (`src/server/services/hint-service.ts`)**:
-   - Hint balance deduction, cost validation, and disclosure logging in `hint_requests`.
-5. **Gameplay Concurrency & Scoring Integration Tests (`tests/gameplay.test.ts`)**:
-   - Test simultaneous submissions from squad members produce exactly one solve.
+1. **Detective Notebook Drawer (`src/components/game/notebook/`)**:
+   - Slide-out leather/cloth field notebook panel.
+   - Filter unlocked clues by suspect, crime scene, forensics, or timeline tags.
+   - Clue inspection modal showing high-res evidence image, transcript quote, and timestamp note.
+   - Zustand notebook state store (`src/store/notebook-store.ts`).
+2. **Chronological Evidence Pinboard (`src/components/game/pinboard/`)**:
+   - Corkboard surface view rendered upon completing Section 5.
+   - Drag-and-drop timeline builder powered by `@dnd-kit/core` and `@dnd-kit/sortable`.
+   - Keyboard accessibility and touch support for clue card ordering.
+   - Dynamic SVG red yarn lines connecting cards in placed sequence.
+   - Server-side pinboard validation service (`src/server/services/pinboard-service.ts`) verifying submission against `clues.chronological_order` in one atomic transaction.
+3. **Case Solved & Results Screen**:
+   - Case solved debriefing screen with final score, time taken, penalty breakdown, and detective rank badge.
 
 ---
 

@@ -157,37 +157,37 @@ This document tracks all project tasks across development milestones with granul
 ## Phase M3: Gameplay Loop & Dossier Engine
 
 ### Case Library & Session Initialization
-- [ ] ★ Case Library Screen `src/app/(game)/cases/page.tsx`:
-  - [ ] Display available active cold cases with difficulty ratings and briefing summaries.
-  - [ ] Detect in-progress sessions and render prominent "Continue Investigation" state.
-- [ ] ★ Session Start / Resume Service:
-  - [ ] Atomic creation of `game_sessions` row for individual player or squad.
-  - [ ] Resume existing `IN_PROGRESS` session with current section position and score.
+- [x] ★ Case Library Screen `src/app/(game)/cases/page.tsx`:
+  - [x] Display available active cold cases with difficulty ratings and briefing summaries.
+  - [x] Detect in-progress sessions and render prominent "Continue Investigation" state.
+- [x] ★ Session Start / Resume Service (`src/server/services/game-session-service.ts`):
+  - [x] Atomic creation of `game_sessions` row for individual player or squad.
+  - [x] Resume existing `IN_PROGRESS` session with current section position and score.
 
 ### Tactical Noir Dossier UI (`src/components/game/folder/`)
-- [ ] ★ Physical Dossier Layout:
-  - [ ] Manila evidence folder container with paper texture shaders.
-  - [ ] Section navigation tabs with typewriter headers and stamp badges.
-  - [ ] Smooth page-turn transitions using Motion (`motion/react`).
-- [ ] ★ 5 Progressive Puzzle Component Formats:
-  - [ ] `FillDashesQuestion.tsx`: interactive letter dash inputs with keyboard navigation.
-  - [ ] `McqQuestion.tsx`: evidence deduction selector with clean typographic indicators.
-  - [ ] `TrueFalseQuestion.tsx`: witness testimony assertion switches.
-  - [ ] `CrypticQuestion.tsx`: cipher text viewer with scratchpad note inputs.
-  - [ ] `VoicemailQuestion.tsx`: retro audio cassette/wiretap player with synced transcript reveal.
+- [x] ★ Physical Dossier Layout:
+  - [x] Manila evidence folder container with paper texture shaders.
+  - [x] Section navigation tabs with typewriter headers and stamp badges.
+  - [x] Smooth page-turn transitions using Motion (`motion/react`).
+- [x] ★ 5 Progressive Puzzle Component Formats:
+  - [x] `FillDashesQuestion.tsx`: interactive letter dash inputs with keyboard navigation.
+  - [x] `McqQuestion.tsx`: evidence deduction selector with clean typographic indicators.
+  - [x] `TrueFalseQuestion.tsx`: witness testimony assertion switches.
+  - [x] `CrypticQuestion.tsx`: cipher text viewer with scratchpad note inputs.
+  - [x] `VoicemailQuestion.tsx`: retro audio cassette/wiretap player with synced transcript reveal.
 
-### Server-Authoritative Answer Transaction (`src/server/services/answer-service.ts`)
-- [ ] ★ Implement single-transaction submission logic:
+### Server-Authoritative Answer Submission Engine (`src/server/services/gameplay-service.ts`)
+- [x] ★ Implement single-transaction submission logic:
   1. Acquire row lock on `session_question_states` via `SELECT ... FOR UPDATE`.
   2. Reject if already solved, max attempts exceeded, or submission interval too short (anti-spam).
   3. Insert attempt record into `session_answers` with user ID attribution.
   4. Update question state: increment `attempts_used`, update `last_attempt_at`.
   5. On correct answer: mark `is_solved = true`, record `solved_at`, add points to `game_sessions.score`, unlock associated clues into `session_clues`.
   6. On incorrect answer: increment `wrong_attempts`, deduct penalty points (clamped to 0 minimum).
-- [ ] ★ Hint System (`src/server/services/hint-service.ts`):
-  - [ ] Deduct hint penalty cost from session score.
-  - [ ] Record unlock in `hint_requests` and reveal hint text.
-- [ ] ★ Concurrency testing: verify two simultaneous team submissions produce exactly one solve award.
+- [x] ★ Hint System (`src/server/services/hint-service.ts`):
+  - [x] Deduct hint penalty cost from session score.
+  - [x] Record unlock in `hint_requests` and reveal hint text.
+- [x] ★ Concurrency testing: verify two simultaneous team submissions produce exactly one solve award (`tests/gameplay.test.ts`).
 
 ---
 
