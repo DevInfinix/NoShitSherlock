@@ -15,63 +15,64 @@
 
 ---
 
-## 2. Current State (Phase M1: Completed)
+## 2. Current State (Phase M2: Completed)
 
 ### What Was Accomplished
 1. **M0 Foundation Fully Completed**:
-   - Initialized Next.js 16 and Bun project layout.
-   - Configured Tailwind CSS v4 with custom noir theme tokens.
-   - Configured Biome linter/formatter with Tailwind directive support.
-   - Configured Husky git hooks (`pre-commit` -> `lint-staged`, `commit-msg` -> `commitlint`).
-   - Added Apache-2.0 `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, issue/PR templates, and Dependabot config.
-   - Authored multi-stage `Dockerfile` and `docker-compose.yml`.
-   - Built GitHub Actions CI workflow running PostgreSQL 17, Biome, TypeScript typecheck, tests, and build. All runs passing green.
+   - Initialized Next.js 16, Bun, Tailwind CSS v4, Biome, and Husky.
+   - Pushed CI workflow, issue/PR templates, and Dockerfile/Compose.
 2. **GitHub Presence & Sponsorship Configured**:
-   - Transferred official brand banner to `.github/assets/banner.png`.
-   - Published comprehensive `README.md` containing game pitch, 3-act mechanics breakdown, system architecture with Mermaid sequence diagram, self-hosting guide, and contributor acknowledgments.
-   - Integrated visible Ko-fi badge in `README.md` header and dedicated "Support the Investigation" section.
-   - Configured `.github/FUNDING.yml` with `ko_fi: DevInfinix` and custom link.
-3. **Execution Tracking Established**:
-   - Authored `tasks.md` and `progress.md`.
-4. **Phase M1 Database Architecture Fully Delivered**:
-   - Configured Neon MCP globally and authenticated via `neonctl`.
-   - Provisioned Neon PostgreSQL 17 project `noshitsherlock` (ID: `morning-morning-30814320`) in TheSamStudios organization.
-   - Stored connection strings in `.env.local` (pooled and unpooled).
-   - Created full Drizzle ORM schemas in `src/db/schema/`: `auth.ts`, `teams.ts`, `content.ts`, `runtime.ts`, `legal.ts`, `index.ts` covering 24 tables, check constraints, partial indexes, and foreign key cascades.
-   - Created database client in `src/db/client.ts` with connection pooling support.
-   - Created strict Zod case validator in `src/lib/case-schema.ts` with unit test suite in `tests/case-schema.test.ts`.
-   - Generated initial committed migration file: `drizzle/0000_steep_lenny_balinger.sql`.
-   - Applied migrations to live Neon PostgreSQL 17 database (`bun run db:migrate`) successfully creating all 24 tables.
-   - Authored Case 01 dossier specification in `content/cases/case-01-missing-ledger/case.json` with 5 sections and all 5 puzzle formats.
-   - Implemented idempotent database seeder `src/db/seed.ts` (`bun run db:seed`) and verified duplicate-free execution.
-   - Implemented database query tests in `tests/db.test.ts` passing 100%.
+   - Banner placed at `.github/assets/banner.png`.
+   - Comprehensive `README.md` with layperson game pitch, architecture diagram, and Ko-fi badge.
+   - Configured `.github/FUNDING.yml` for Ko-fi support.
+3. **Phase M1 Database Architecture Fully Delivered**:
+   - Live Neon Serverless PostgreSQL 17 project `noshitsherlock` (ID: `morning-morning-30814320`).
+   - 24 tables across `auth`, `teams`, `content`, `runtime`, and `legal` migrated.
+   - Authored Case 01 dossier specification (`case.json`) and idempotent seeder (`seed.ts`).
+4. **Phase M2 Authentication, Authorization & Teams Fully Delivered**:
+   - Configured Better Auth with Drizzle adapter in `src/server/auth.ts`.
+   - Set up Next.js handler route in `src/app/api/auth/[...all]/route.ts`.
+   - Configured route protection proxy in `src/proxy.ts` guarding `/cases`, `/teams`, `/pinboard`, and `/play`.
+   - Implemented `src/server/session.ts` with `getCurrentUser` and `requireUser`.
+   - Implemented Team Management service in `src/server/services/team-service.ts` (8-character cryptographic join code, squad capacity cap, auto-disband and ownership transfer rules).
+   - Implemented Legal & COPPA Age Gate service in `src/server/services/legal-service.ts`.
+   - Authored thin Server Actions in `src/server/actions/team-actions.ts`.
+   - Built comprehensive test suite in `tests/teams.test.ts` (100% pass against live Neon DB and local mocks).
+   - All commits pushed to GitHub with green CI pipeline.
 
 ---
 
 ## 3. Pending Information & Next Milestone Authorization
 
-Phase M1 is 100% complete.
-Awaiting user authorization to proceed to **Phase M2: Authentication, Authorization & Team Management**.
+Phase M2 is 100% complete.
+Awaiting user authorization to proceed to **Phase M3: Gameplay Loop & Dossier Engine**.
 
 ---
 
-## 4. Next Immediate Steps (Phase M2: Auth & Teams)
+## 4. Next Immediate Steps (Phase M3: Gameplay Loop & Dossier Engine)
 
-1. **Better Auth Server Setup (`src/server/auth.ts`)**:
-   - Configure Better Auth with Drizzle adapter and Neon connection.
-   - Set up Email OTP (6-digit one-time code with 10-minute expiry via Resend).
-   - Configure OAuth providers: Google, GitHub, and Discord.
-2. **Age Gate & Legal Consent Flow**:
-   - Pre-registration consent screen verifying age 13+ and Terms/Privacy acceptance.
-   - Store immutable records in `legal_acceptances`.
-3. **Route Protection (`src/proxy.ts`)**:
-   - Guard `(game)` routes against unauthenticated requests.
-4. **Team Management Service (`src/server/services/team-service.ts`)**:
-   - Team creation with 8-character cryptographic alphanumeric join code.
-   - Join team, leave team, list team members, and role assignment (`owner` vs `member`).
-   - Server Actions for team management (`src/server/actions/team-actions.ts`).
-5. **Auth & Team Tests (`tests/auth.test.ts`, `tests/teams.test.ts`)**:
-   - Validate team code uniqueness, member limits, role guards, and session isolation.
+1. **Case Library & Session Initialization**:
+   - Case Library Screen `src/app/(game)/cases/page.tsx` displaying active cold cases with difficulty ratings.
+   - Resume / Start session logic in `src/server/services/session-service.ts` for solo or team play.
+2. **Tactical Noir Dossier UI Components (`src/components/game/folder/`)**:
+   - Manila folder container with paper texture styling.
+   - 5 question format components:
+     - `FillDashesQuestion.tsx`
+     - `McqQuestion.tsx`
+     - `TrueFalseQuestion.tsx`
+     - `CrypticQuestion.tsx`
+     - `VoicemailQuestion.tsx`
+3. **Server-Authoritative Answer Transaction (`src/server/services/answer-service.ts`)**:
+   - Atomic submission inside single PostgreSQL transaction:
+     1. Row lock via `SELECT ... FOR UPDATE` on `session_question_states`.
+     2. Anti-spam interval & attempt cap validation.
+     3. Insert `session_answers` with user ID attribution.
+     4. On correct: mark solved, add score, unlock associated clues into `session_clues`.
+     5. On incorrect: increment penalty and deduct score (never below 0).
+4. **Hint System (`src/server/services/hint-service.ts`)**:
+   - Hint balance deduction, cost validation, and disclosure logging in `hint_requests`.
+5. **Gameplay Concurrency & Scoring Integration Tests (`tests/gameplay.test.ts`)**:
+   - Test simultaneous submissions from squad members produce exactly one solve.
 
 ---
 

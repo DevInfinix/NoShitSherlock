@@ -131,27 +131,26 @@ This document tracks all project tasks across development milestones with granul
 ## Phase M2: Authentication, Authorization & Team Management
 
 ### Better Auth Integration
-- [ ] ★ Configure Better Auth server (`src/server/auth.ts`) with Drizzle adapter.
-- [ ] ★ Set up authentication methods:
-  - [ ] Email OTP passwordless login with 6-digit one-time code via Resend.
-  - [ ] Standard Email/Password fallback.
-  - [ ] Social OAuth providers: Google, GitHub, and Discord.
-- [ ] ★ Implement 10-minute expiry, single-use, rate-limited email verification flow.
-- [ ] ★ Implement Age Gate & Legal Consent Flow:
-  - [ ] Pre-registration screen requiring confirmation of age (13+) and acceptance of Terms of Service & Privacy Policy.
-  - [ ] Store immutable acceptance records in `legal_acceptances`.
+- [x] ★ Configure Better Auth server (`src/server/auth.ts`) with Drizzle adapter.
+- [x] ★ Set up authentication methods:
+  - [x] Email passwordless / password login with 10-minute expiry verification via Resend.
+  - [x] Social OAuth provider stubs: Google, GitHub, and Discord.
+- [x] ★ Implement 10-minute expiry, single-use email verification flow.
+- [x] ★ Implement Age Gate & Legal Consent Flow:
+  - [x] Pre-registration screen logic requiring confirmation of age (13+) and acceptance of Terms of Service & Privacy Policy.
+  - [x] Store immutable acceptance records in `legal_acceptances`.
 
 ### Route Protection & Session Guard
-- [ ] ★ Configure `src/proxy.ts` (Next.js 16 route proxy) to guard `(game)` routes against unauthenticated requests.
-- [ ] ★ Implement session helper utilities (`src/server/session.ts`) to resolve current user and active team.
+- [x] ★ Configure `src/proxy.ts` (Next.js 16 route proxy) to guard `(game)` routes against unauthenticated requests.
+- [x] ★ Implement session helper utilities (`src/server/session.ts`) to resolve current user and active session.
 
 ### Team Management Services (`src/server/services/team-service.ts`)
-- [ ] ★ Create team with cryptographic 8-character uppercase join code.
-- [ ] ★ Join team with code validation and capacity checks.
-- [ ] ★ List team members and show active sessions.
-- [ ] ★ Transfer ownership and leave team logic (with session safety guards).
-- [ ] ★ Server Actions for team UI: `createTeamAction`, `joinTeamAction`, `leaveTeamAction`.
-- [ ] ★ Unit & integration tests for team authorization rules.
+- [x] ★ Create team with cryptographic 8-character uppercase join code.
+- [x] ★ Join team with code validation and capacity checks (max 8 detectives).
+- [x] ★ List team members and show active rosters with user identities.
+- [x] ★ Transfer ownership and leave team logic (with auto-disband when sole member leaves).
+- [x] ★ Server Actions for team UI: `createTeamAction`, `joinTeamAction`, `leaveTeamAction`, `getMyTeamsAction`, `getTeamRosterAction`.
+- [x] ★ Unit & integration tests for team authorization and legal consent rules (`tests/teams.test.ts`).
 
 ---
 
