@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #090807;
+  --color-ink-raised: #15110f;
+  --color-oxblood: #641b1b;
+  --color-evidence-red: #a92a28;
+  --color-paper: #e7ddc8;
+  --color-paper-muted: #b8ad98;
+  --color-brass: #a9874a;
+  --color-smoke: #78716a;
+}
+
+:root {
+  --background: var(--color-ink);
+  --foreground: var(--color-paper);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+}
