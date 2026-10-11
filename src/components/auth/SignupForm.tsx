@@ -195,6 +195,7 @@ export function SignupForm() {
     const regRes = await registerAgentDetailsAction({
       agentTag,
       username: cleanUsername,
+      email: email.trim(),
     });
     setIsUsernameChecking(false);
 
@@ -232,8 +233,9 @@ export function SignupForm() {
         termsAccepted: true,
         privacyAccepted: true,
         marketingOptIn,
+        email: email.trim(),
       });
-      await completeTrainingAction();
+      await completeTrainingAction({ email: email.trim() });
 
       setTimeout(() => {
         router.push("/cases");

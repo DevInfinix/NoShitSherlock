@@ -4,22 +4,21 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { db } from "@/db/client";
-import { users } from "@/db/schema";
+import { users, verifications } from "@/db/schema";
 import { LegalError, recordLegalConsent } from "@/server/services/legal-service";
-import { requireUser } from "@/server/session";
+import { getCurrentUser, requireUser } from "@/server/session";
 
 const consentSchema = z.object({
   isOver13: z.boolean(),
   termsAccepted: z.boolean(),
   privacyAccepted: z.boolean(),
   marketingOptIn: z.boolean().optional(),
+  email: z.string().email().optional(),
 });
 
 export async function recordLegalConsentAction(input: z.infer<typeof consentSchema>) {
   try {
     const headerList = await headers();
-    const user = await requireUser(headerList);
-
     const parsed = consentSchema.safeParse(input);
     if (!parsed.success) {
       return {
@@ -28,8 +27,27 @@ export async function recordLegalConsentAction(input: z.infer<typeof consentSche
       };
     }
 
+    let targetUserId: string | null = null;
+    const sessionUser = await getCurrentUser(headerList);
+    if (sessionUser) {
+      targetUserId = sessionUser.id;
+    } else if (parsed.data.email) {
+      const [byEmail] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, parsed.data.email.trim().toLowerCase()))
+        .limit(1);
+      if (byEmail) {
+        targetUserId = byEmail.id;
+      }
+    }
+
+    if (!targetUserId) {
+      return { success: false, error: "You must be logged in to confirm directives." };
+    }
+
     const record = await recordLegalConsent({
-      userId: user.id,
+      userId: targetUserId,
       isOver13: parsed.data.isOver13,
       termsAccepted: parsed.data.termsAccepted,
       privacyAccepted: parsed.data.privacyAccepted,
@@ -149,19 +167,37 @@ export async function checkUsernameAvailableAction(username: string) {
 const registerDetailsSchema = z.object({
   agentTag: z.string().regex(/^\d{3}$/, "Agent tag must be 3 digits"),
   username: z.string().min(2).max(30),
+  email: z.string().email().optional(),
 });
 
 export async function registerAgentDetailsAction(input: z.infer<typeof registerDetailsSchema>) {
   try {
     const headerList = await headers();
-    const user = await requireUser(headerList);
-
     const parsed = registerDetailsSchema.safeParse(input);
     if (!parsed.success) {
       return {
         success: false,
         error: parsed.error.issues[0]?.message ?? "Invalid operative credentials.",
       };
+    }
+
+    let targetUserId: string | null = null;
+    const sessionUser = await getCurrentUser(headerList);
+    if (sessionUser) {
+      targetUserId = sessionUser.id;
+    } else if (parsed.data.email) {
+      const [byEmail] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, parsed.data.email.trim().toLowerCase()))
+        .limit(1);
+      if (byEmail) {
+        targetUserId = byEmail.id;
+      }
+    }
+
+    if (!targetUserId) {
+      return { success: false, error: "You must be logged in to perform this action." };
     }
 
     // Check unique tag
@@ -171,7 +207,7 @@ export async function registerAgentDetailsAction(input: z.infer<typeof registerD
       .where(eq(users.agentTag, parsed.data.agentTag))
       .limit(1);
 
-    if (tagConflict && tagConflict.id !== user.id) {
+    if (tagConflict && tagConflict.id !== targetUserId) {
       return {
         success: false,
         error: `Agent Tag ${parsed.data.agentTag} is already claimed by another operative.`,
@@ -185,7 +221,7 @@ export async function registerAgentDetailsAction(input: z.infer<typeof registerD
       .where(eq(users.username, parsed.data.username))
       .limit(1);
 
-    if (nameConflict && nameConflict.id !== user.id) {
+    if (nameConflict && nameConflict.id !== targetUserId) {
       return { success: false, error: `Callsign '${parsed.data.username}' is already registered.` };
     }
 
@@ -196,7 +232,7 @@ export async function registerAgentDetailsAction(input: z.infer<typeof registerD
         username: parsed.data.username,
         name: parsed.data.username,
       })
-      .where(eq(users.id, user.id));
+      .where(eq(users.id, targetUserId));
 
     return { success: true };
   } catch (error) {
@@ -207,17 +243,35 @@ export async function registerAgentDetailsAction(input: z.infer<typeof registerD
   }
 }
 
-export async function completeTrainingAction() {
+export async function completeTrainingAction(input?: { email?: string }) {
   try {
     const headerList = await headers();
-    const user = await requireUser(headerList);
+    let targetUserId: string | null = null;
+    const sessionUser = await getCurrentUser(headerList);
+
+    if (sessionUser) {
+      targetUserId = sessionUser.id;
+    } else if (input?.email) {
+      const [byEmail] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, input.email.trim().toLowerCase()))
+        .limit(1);
+      if (byEmail) {
+        targetUserId = byEmail.id;
+      }
+    }
+
+    if (!targetUserId) {
+      return { success: false, error: "You must be logged in to finalize training." };
+    }
 
     await db
       .update(users)
       .set({
         trainingCompleted: true,
       })
-      .where(eq(users.id, user.id));
+      .where(eq(users.id, targetUserId));
 
     return { success: true };
   } catch (error) {
@@ -225,5 +279,38 @@ export async function completeTrainingAction() {
       success: false,
       error: error instanceof Error ? error.message : "Failed to finalize training completion.",
     };
+  }
+}
+
+export async function verifyEmailTokenAction(token: string) {
+  try {
+    const cleanToken = token.trim();
+    const [record] = await db
+      .select()
+      .from(verifications)
+      .where(eq(verifications.value, cleanToken))
+      .limit(1);
+
+    if (!record) {
+      return { success: false, error: "Invalid or expired verification code." };
+    }
+
+    if (new Date() > record.expiresAt) {
+      await db.delete(verifications).where(eq(verifications.id, record.id));
+      return {
+        success: false,
+        error: "This verification code has expired. Please request a new one.",
+      };
+    }
+
+    // Mark user verified
+    await db.update(users).set({ emailVerified: true }).where(eq(users.email, record.identifier));
+
+    // Remove consumed verification token
+    await db.delete(verifications).where(eq(verifications.id, record.id));
+
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to verify email code." };
   }
 }
