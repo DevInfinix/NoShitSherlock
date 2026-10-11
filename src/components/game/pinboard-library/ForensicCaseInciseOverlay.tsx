@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
+import { useState } from "react";
 import { soundEngine } from "@/lib/audio/sound-engine";
 import type { ActiveCaseListing } from "@/server/services/game-session-service";
 
@@ -11,6 +12,8 @@ interface ForensicCaseInciseOverlayProps {
 }
 
 export function ForensicCaseInciseOverlay({ activeCase, onClose }: ForensicCaseInciseOverlayProps) {
+  const [imgFailed, setImgFailed] = useState(false);
+
   if (!activeCase) return null;
 
   const previewImage = `/cases/${activeCase.slug}/images/image_1.webp`;
@@ -62,14 +65,29 @@ export function ForensicCaseInciseOverlay({ activeCase, onClose }: ForensicCaseI
           {/* Polaroid Crime Scene Exhibit Photo */}
           <div className="md:col-span-5 flex flex-col items-center">
             <div className="relative w-full aspect-4/3 border-4 border-white bg-[#100D0D] p-1.5 shadow-xl rotate-[-1.5deg]">
-              {/* Actual Case Image */}
+              {/* Actual Case Image with Procedural Fallback */}
               <div className="relative w-full h-full overflow-hidden bg-[#15110F]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={previewImage}
-                  alt={activeCase.title}
-                  className="w-full h-full object-cover filter contrast-105"
-                />
+                {!imgFailed ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={previewImage}
+                    alt={activeCase.title}
+                    onError={() => setImgFailed(true)}
+                    className="w-full h-full object-cover filter contrast-105"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-[#15110F] p-4 text-center border border-[#79604A]/30">
+                    <span className="font-mono text-[11px] uppercase tracking-widest text-[#A7192D] font-bold">
+                      [CLASSIFIED EVIDENCE]
+                    </span>
+                    <span className="font-serif text-xs text-[#E8DCC8] mt-1 font-semibold">
+                      {activeCase.title}
+                    </span>
+                    <span className="font-mono text-[9px] text-[#79604A] mt-2 uppercase">
+                      CRIME SCENE RECONSTRUCTION STILL
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Red Evidence Tape Label */}

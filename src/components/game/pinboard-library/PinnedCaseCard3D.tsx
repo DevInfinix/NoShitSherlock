@@ -10,6 +10,7 @@ interface PinnedCaseCard3DProps {
   caseItem: ActiveCaseListing;
   position: [number, number, number];
   baseRotationZ?: number;
+  scale?: number;
   isHovered: boolean;
   isDimmed: boolean;
   onHover: (item: ActiveCaseListing | null) => void;
@@ -20,6 +21,7 @@ export function PinnedCaseCard3D({
   caseItem,
   position,
   baseRotationZ = 0,
+  scale = 1.0,
   isHovered,
   isDimmed,
   onHover,
@@ -106,8 +108,8 @@ export function PinnedCaseCard3D({
       delta,
     );
 
-    // Scale dampening for tactile spring pop
-    const targetScale = isHovered ? 1.08 : 1.0;
+    // Scale dampening for tactile spring pop with responsive scale multiplier
+    const targetScale = (isHovered ? 1.08 : 1.0) * scale;
     meshRef.current.scale.setScalar(
       THREE.MathUtils.damp(meshRef.current.scale.x, targetScale, 6.0, delta),
     );

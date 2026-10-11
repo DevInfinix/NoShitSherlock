@@ -10,42 +10,17 @@ import { createProceduralCorkTexture } from "./textures";
 
 interface PinboardLibrary3DProps {
   cases: ActiveCaseListing[];
-  activeCase: ActiveCaseListing | null;
+  hoveredCase: ActiveCaseListing | null;
+  selectedCase: ActiveCaseListing | null;
   onHoverCase: (c: ActiveCaseListing | null) => void;
   onSelectCase: (c: ActiveCaseListing) => void;
 }
 
 /**
- * Venetian Blind Slats Shadow Caster.
- * Geometry positioned in front of the key spotlight to cast
- * authentic noir chiaroscuro horizontal blind slats across the corkboard.
- */
-function VenetianBlindSlatShadows() {
-  const slats = useMemo(() => {
-    const list: Array<[number, number, number]> = [];
-    for (let i = -8; i <= 8; i++) {
-      list.push([0, i * 0.45, 3.2]);
-    }
-    return list;
-  }, []);
-
-  return (
-    <group>
-      {slats.map((pos) => (
-        <mesh key={`slat-${pos[1]}`} position={pos} rotation={[-0.35, 0, 0]} castShadow>
-          <boxGeometry args={[16, 0.18, 0.02]} />
-          <meshBasicMaterial color="#000000" />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-/**
  * Procedural Desk Ledge Props at the bottom of the pinboard:
- * Brass lamp neck, glass ashtray, magnifying glass, evidence envelope.
+ * Brass lamp base, glass ashtray, magnifying glass.
  */
-function DeskLedgeProps() {
+function DeskLedgeProps({ yPos }: { yPos: number }) {
   const brassMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -78,22 +53,22 @@ function DeskLedgeProps() {
   );
 
   return (
-    <group position={[0, -3.7, 0.4]}>
+    <group position={[0, yPos, 0.4]}>
       {/* Heavy Walnut Desk Ledge */}
       <mesh position={[0, -0.4, 0]} material={woodMaterial} receiveShadow>
-        <boxGeometry args={[16, 0.6, 2.5]} />
+        <boxGeometry args={[22, 0.6, 2.5]} />
       </mesh>
 
       {/* Brass Lamp Base at bottom left */}
-      <mesh position={[-4.8, 0.08, 0.4]} material={brassMaterial} castShadow>
+      <mesh position={[-5.5, 0.08, 0.4]} material={brassMaterial} castShadow>
         <cylinderGeometry args={[0.55, 0.7, 0.16, 24]} />
       </mesh>
-      <mesh position={[-4.8, 0.6, 0.4]} material={brassMaterial} castShadow>
+      <mesh position={[-5.5, 0.6, 0.4]} material={brassMaterial} castShadow>
         <cylinderGeometry args={[0.06, 0.06, 1.0, 16]} />
       </mesh>
 
       {/* Vintage Magnifying Glass at bottom right */}
-      <group position={[4.5, 0.06, 0.4]} rotation={[-Math.PI / 2, 0, -0.4]}>
+      <group position={[5.2, 0.06, 0.4]} rotation={[-Math.PI / 2, 0, -0.4]}>
         <mesh material={brassMaterial} castShadow>
           <torusGeometry args={[0.42, 0.035, 12, 24]} />
         </mesh>
@@ -106,7 +81,7 @@ function DeskLedgeProps() {
       </group>
 
       {/* Heavy Glass Ashtray */}
-      <mesh position={[-2.4, 0.08, 0.6]} material={glassMaterial} castShadow receiveShadow>
+      <mesh position={[-2.8, 0.08, 0.6]} material={glassMaterial} castShadow receiveShadow>
         <cylinderGeometry args={[0.5, 0.58, 0.14, 8]} />
       </mesh>
     </group>
@@ -114,61 +89,46 @@ function DeskLedgeProps() {
 }
 
 /**
- * Camera Rig providing cursor parallax and smooth focus camera panning onto hovered case.
+ * Dynamic Camera Rig with Mouse Parallax & Focus Pan.
  */
-function CameraRig({ activeCase }: { activeCase: ActiveCaseListing | null }) {
+function CameraRig({ focusedCasePos }: { focusedCasePos: [number, number] | null }) {
   const { camera, pointer } = useThree();
 
-  const casePositions = useMemo<Record<string, [number, number]>>(() => {
-    return {
-      "case-01-missing-ledger": [-4.2, 1.1],
-      "case-02-static-on-the-line": [-2.1, -0.6],
-      "case-03-the-vanishing-bride": [0.0, 1.2],
-      "case-04-the-last-reservation": [2.1, -0.5],
-      "case-05-flat-4b": [4.2, 1.0],
-    };
-  }, []);
-
   useFrame((_, delta) => {
-    // Parallax sway
-    const parallaxX = pointer.x * 0.45;
-    const parallaxY = pointer.y * 0.3;
+    const parallaxX = pointer.x * 0.4;
+    const parallaxY = pointer.y * 0.25;
 
-    // If a case is hovered, gently pull camera toward it
     let targetX = parallaxX;
     let targetY = parallaxY;
     let targetZ = 6.4;
 
-    if (activeCase && casePositions[activeCase.slug]) {
-      const pos = casePositions[activeCase.slug];
-      if (pos) {
-        targetX = pos[0] * 0.35 + parallaxX * 0.2;
-        targetY = pos[1] * 0.35 + parallaxY * 0.2;
-        targetZ = 5.8; // Subtle zoom
-      }
+    if (focusedCasePos) {
+      targetX = focusedCasePos[0] * 0.4 + parallaxX * 0.15;
+      targetY = focusedCasePos[1] * 0.4 + parallaxY * 0.15;
+      targetZ = 5.9; // Subtle smooth zoom on focus
     }
 
     camera.position.x = THREE.MathUtils.damp(camera.position.x, targetX, 3.5, delta);
     camera.position.y = THREE.MathUtils.damp(camera.position.y, targetY, 3.5, delta);
     camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ, 3.5, delta);
 
-    camera.lookAt(targetX * 0.4, targetY * 0.4, 0);
+    camera.lookAt(targetX * 0.35, targetY * 0.35, 0);
   });
 
   return null;
 }
 
-export function PinboardLibrary3D({
+/**
+ * Internal Scene Component adapting layout dynamically to viewport dimensions.
+ */
+function PinboardScene({
   cases,
-  activeCase,
+  hoveredCase,
+  selectedCase,
   onHoverCase,
   onSelectCase,
 }: PinboardLibrary3DProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const { viewport } = useThree();
 
   // 1. Procedural Corkboard Textures
   const { diffuse, bump } = useMemo(() => createProceduralCorkTexture(512), []);
@@ -180,32 +140,144 @@ export function PinboardLibrary3D({
     };
   }, [diffuse, bump]);
 
-  // 2. Fixed layout coordinates for the 5 cases across the pinboard
-  const cardLayouts = useMemo<Array<{ pos: [number, number, number]; rotZ: number }>>(
-    () => [
-      { pos: [-4.2, 1.15, 0.05], rotZ: -0.035 },
-      { pos: [-2.1, -0.65, 0.05], rotZ: 0.03 },
-      { pos: [0.0, 1.25, 0.05], rotZ: -0.015 },
-      { pos: [2.1, -0.55, 0.05], rotZ: 0.035 },
-      { pos: [4.2, 1.05, 0.05], rotZ: -0.025 },
-    ],
-    [],
-  );
+  // 2. Responsive 3D Card Layout Coordinates ensuring zero viewport clipping
+  const { cardLayouts, yarnPoints, cardScale } = useMemo(() => {
+    const isUltraNarrow = viewport.width < 6.5; // Mobile portrait
+    const isNarrow = viewport.width < 9.5; // Tablet / medium screen
 
-  // 3. Sequential Red Yarn Connecting Points (aligned to each card's pushpin coordinate)
-  const yarnPoints = useMemo<Array<[number, number, number]>>(() => {
-    return [
-      [-4.2, 2.3, 0.12],
-      [-2.1, 0.5, 0.12],
-      [0.0, 2.4, 0.12],
-      [2.1, 0.6, 0.12],
-      [4.2, 2.2, 0.12],
+    if (isUltraNarrow) {
+      const scale = 0.72;
+      const positions: Array<{ pos: [number, number, number]; rotZ: number }> = [
+        { pos: [-1.15, 2.6, 0.05], rotZ: -0.04 },
+        { pos: [1.15, 1.35, 0.05], rotZ: 0.03 },
+        { pos: [-1.15, 0.05, 0.05], rotZ: -0.02 },
+        { pos: [1.15, -1.35, 0.05], rotZ: 0.04 },
+        { pos: [0.0, -2.7, 0.05], rotZ: -0.03 },
+      ];
+      const yarn: Array<[number, number, number]> = positions.map((p) => [
+        p.pos[0],
+        p.pos[1] + 1.15 * scale,
+        0.12,
+      ]);
+      return { cardLayouts: positions, yarnPoints: yarn, cardScale: scale };
+    }
+
+    if (isNarrow) {
+      const scale = 0.82;
+      const positions: Array<{ pos: [number, number, number]; rotZ: number }> = [
+        { pos: [-2.6, 1.4, 0.05], rotZ: -0.035 },
+        { pos: [0.0, 1.6, 0.05], rotZ: 0.02 },
+        { pos: [2.6, 1.3, 0.05], rotZ: -0.025 },
+        { pos: [-1.4, -1.3, 0.05], rotZ: 0.03 },
+        { pos: [1.4, -1.4, 0.05], rotZ: -0.03 },
+      ];
+      const yarn: Array<[number, number, number]> = positions.map((p) => [
+        p.pos[0],
+        p.pos[1] + 1.15 * scale,
+        0.12,
+      ]);
+      return { cardLayouts: positions, yarnPoints: yarn, cardScale: scale };
+    }
+
+    // Wide Desktop: Responsive horizontal spread
+    const spread = Math.min(1.0, viewport.width / 13.5);
+    const scale = Math.max(0.85, Math.min(1.0, viewport.width / 12));
+    const positions: Array<{ pos: [number, number, number]; rotZ: number }> = [
+      { pos: [-4.6 * spread, 1.05, 0.05], rotZ: -0.035 },
+      { pos: [-2.3 * spread, -0.65, 0.05], rotZ: 0.03 },
+      { pos: [0.0, 1.25, 0.05], rotZ: -0.015 },
+      { pos: [2.3 * spread, -0.6, 0.05], rotZ: 0.035 },
+      { pos: [4.6 * spread, 0.95, 0.05], rotZ: -0.025 },
     ];
+    const yarn: Array<[number, number, number]> = positions.map((p) => [
+      p.pos[0],
+      p.pos[1] + 1.15 * scale,
+      0.12,
+    ]);
+    return { cardLayouts: positions, yarnPoints: yarn, cardScale: scale };
+  }, [viewport.width]);
+
+  // Active focused case position for camera tracking
+  const activeItem = selectedCase ?? hoveredCase;
+  const focusedCasePos = useMemo<[number, number] | null>(() => {
+    if (!activeItem) return null;
+    const idx = cases.findIndex((c) => c.slug === activeItem.slug);
+    if (idx === -1 || !cardLayouts[idx]) return null;
+    const l = cardLayouts[idx];
+    return l ? [l.pos[0], l.pos[1]] : null;
+  }, [activeItem, cases, cardLayouts]);
+
+  const boardWidth = Math.max(18, viewport.width * 1.35);
+  const boardHeight = Math.max(12, viewport.height * 1.35);
+
+  return (
+    <>
+      {/* 1. Large Portuguese Corkboard Surface Covering Viewport */}
+      <mesh position={[0, 0, 0]} receiveShadow>
+        <planeGeometry args={[boardWidth, boardHeight]} />
+        <meshStandardMaterial
+          map={diffuse}
+          bumpMap={bump}
+          bumpScale={0.06}
+          roughness={0.85}
+          metalness={0.02}
+        />
+      </mesh>
+
+      {/* 2. Procedural Red Yarn Connecting the Cases */}
+      <Catenary3DYarn points={yarnPoints} isHovered={hoveredCase !== null} />
+
+      {/* 3. The 5 Pinned 3D Case Dossier Cards */}
+      {cases.map((caseItem, index) => {
+        const layout = cardLayouts[index] ?? {
+          pos: [index * 2 - 4, 0, 0.05],
+          rotZ: 0,
+        };
+        const isHovered = hoveredCase?.slug === caseItem.slug;
+        const isSelected = selectedCase?.slug === caseItem.slug;
+        const isDimmed =
+          (hoveredCase !== null && !isHovered) || (selectedCase !== null && !isSelected);
+
+        return (
+          <PinnedCaseCard3D
+            key={caseItem.slug}
+            caseItem={caseItem}
+            position={layout.pos}
+            baseRotationZ={layout.rotZ}
+            scale={cardScale}
+            isHovered={isHovered || isSelected}
+            isDimmed={isDimmed}
+            onHover={onHoverCase}
+            onSelect={onSelectCase}
+          />
+        );
+      })}
+
+      {/* 4. Base Desk Ledge Props */}
+      <DeskLedgeProps yPos={-viewport.height / 2 - 0.25} />
+
+      {/* 5. Dynamic Camera Rig with Mouse Parallax & Focus Pan */}
+      <CameraRig focusedCasePos={focusedCasePos} />
+    </>
+  );
+}
+
+export function PinboardLibrary3D({
+  cases,
+  hoveredCase,
+  selectedCase,
+  onHoverCase,
+  onSelectCase,
+}: PinboardLibrary3DProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
   if (!mounted) {
     return (
-      <div className="w-full h-full min-h-[640px] bg-[#0E0B09] flex items-center justify-center">
+      <div className="w-full h-full min-h-screen bg-[#0C0907] flex items-center justify-center">
         <span className="font-mono text-xs tracking-widest text-[#A9874A] uppercase animate-pulse">
           ASSEMBLING INVESTIGATION PINBOARD...
         </span>
@@ -214,105 +286,43 @@ export function PinboardLibrary3D({
   }
 
   return (
-    <div className="relative w-full h-full min-h-[650px] select-none">
+    <div className="relative w-full h-full min-h-screen select-none overflow-hidden">
       <Canvas
         shadows
         gl={{ antialias: true, alpha: false }}
         camera={{ position: [0, 0, 6.4], fov: 48 }}
         className="w-full h-full cursor-grab active:cursor-grabbing"
       >
-        <color attach="background" args={["#0A0806"]} />
+        <color attach="background" args={["#0C0907"]} />
 
-        {/* Ambient Dark Noir Tone */}
-        <ambientLight color="#241B14" intensity={0.45} />
+        {/* 1. Warm Natural Ambient Light ensuring high clarity on all cards */}
+        <ambientLight color="#FFF3DC" intensity={1.3} />
 
-        {/* Venetian Blind Key Spotlight (casts horizontal shadow slats across pinboard) */}
-        <spotLight
-          position={[0, 4.5, 5.5]}
-          target-position={[0, 0, 0]}
-          color="#FFF2D4"
-          intensity={3.8}
-          angle={Math.PI / 2.8}
-          penumbra={0.65}
+        {/* 2. Key Directional Studio Sun/Desk Light casting crisp soft shadows */}
+        <directionalLight
+          position={[4.5, 7.5, 5.5]}
+          color="#FFF8EC"
+          intensity={2.1}
           castShadow
           shadow-mapSize-width={1024}
           shadow-mapSize-height={1024}
           shadow-bias={-0.0001}
         />
 
-        {/* Soft Cool Moonlight Fill Light from right window */}
-        <directionalLight position={[6, 3, 2]} color="#7F9AB5" intensity={0.35} />
+        {/* 3. Soft Cool Window Backlight from left */}
+        <directionalLight position={[-6.0, 3.5, 3.0]} color="#8DAECF" intensity={0.65} />
 
-        {/* Venetian Blind Geometry Casting Chiaroscuro Slats */}
-        <VenetianBlindSlatShadows />
+        {/* 4. Front Fill Light to illuminate details */}
+        <directionalLight position={[0, -2, 4]} color="#FFE8C2" intensity={0.5} />
 
-        {/* 1. Large Portuguese Corkboard Surface */}
-        <mesh position={[0, 0, 0]} receiveShadow>
-          <planeGeometry args={[14.2, 8.2]} />
-          <meshStandardMaterial
-            map={diffuse}
-            bumpMap={bump}
-            bumpScale={0.06}
-            roughness={0.85}
-            metalness={0.02}
-          />
-        </mesh>
-
-        {/* 2. Heavy Dark Walnut Wooden Border Frame */}
-        <group position={[0, 0, 0.03]}>
-          {/* Top Frame */}
-          <mesh position={[0, 4.15, 0]} castShadow receiveShadow>
-            <boxGeometry args={[14.4, 0.35, 0.1]} />
-            <meshStandardMaterial color="#1E140D" roughness={0.7} />
-          </mesh>
-          {/* Bottom Frame */}
-          <mesh position={[0, -4.15, 0]} castShadow receiveShadow>
-            <boxGeometry args={[14.4, 0.35, 0.1]} />
-            <meshStandardMaterial color="#1E140D" roughness={0.7} />
-          </mesh>
-          {/* Left Frame */}
-          <mesh position={[-7.15, 0, 0]} castShadow receiveShadow>
-            <boxGeometry args={[0.35, 8.4, 0.1]} />
-            <meshStandardMaterial color="#1E140D" roughness={0.7} />
-          </mesh>
-          {/* Right Frame */}
-          <mesh position={[7.15, 0, 0]} castShadow receiveShadow>
-            <boxGeometry args={[0.35, 8.4, 0.1]} />
-            <meshStandardMaterial color="#1E140D" roughness={0.7} />
-          </mesh>
-        </group>
-
-        {/* 3. Procedural Red Yarn Connecting the 5 Cases */}
-        <Catenary3DYarn points={yarnPoints} isHovered={activeCase !== null} />
-
-        {/* 4. The 5 Pinned 3D Case Dossier Cards */}
-        {cases.map((caseItem, index) => {
-          const layout = cardLayouts[index] ?? {
-            pos: [index * 2 - 4, 0, 0.05],
-            rotZ: 0,
-          };
-          const isHovered = activeCase?.slug === caseItem.slug;
-          const isDimmed = activeCase !== null && !isHovered;
-
-          return (
-            <PinnedCaseCard3D
-              key={caseItem.slug}
-              caseItem={caseItem}
-              position={layout.pos}
-              baseRotationZ={layout.rotZ}
-              isHovered={isHovered}
-              isDimmed={isDimmed}
-              onHover={onHoverCase}
-              onSelect={onSelectCase}
-            />
-          );
-        })}
-
-        {/* 5. Base Desk Ledge Props */}
-        <DeskLedgeProps />
-
-        {/* 6. Dynamic Camera Rig with Mouse Parallax & Focus Pan */}
-        <CameraRig activeCase={activeCase} />
+        {/* The Responsive 3D Scene */}
+        <PinboardScene
+          cases={cases}
+          hoveredCase={hoveredCase}
+          selectedCase={selectedCase}
+          onHoverCase={onHoverCase}
+          onSelectCase={onSelectCase}
+        />
       </Canvas>
     </div>
   );
