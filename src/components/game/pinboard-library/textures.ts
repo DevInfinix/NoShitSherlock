@@ -26,8 +26,8 @@ export function createProceduralGreenFeltTexture(size = 1024): {
   const bCtx = bCanvas.getContext("2d");
 
   if (dCtx && bCtx) {
-    // 1. British Police Dark Forest Green Baize Base (#0F2417)
-    dCtx.fillStyle = "#112619";
+    // 1. British Police Forest Green Baize Base (Rich, visible racing green)
+    dCtx.fillStyle = "#224A32";
     dCtx.fillRect(0, 0, size, size);
 
     bCtx.fillStyle = "#808080";
@@ -42,14 +42,14 @@ export function createProceduralGreenFeltTexture(size = 1024): {
     for (let i = 0; i < dPixels.length; i += 4) {
       // Perlin-style micro-grain
       const grain = (Math.random() - 0.5) * 32;
-      const isFiber = Math.random() < 0.08 ? 22 : 0; // stray felt wool fiber
+      const isFiber = Math.random() < 0.08 ? 24 : 0; // stray felt wool fiber
 
-      dPixels[i] = Math.min(255, Math.max(0, 16 + grain * 0.35)); // Deep earthy tone
-      dPixels[i + 1] = Math.min(255, Math.max(0, 36 + grain + isFiber)); // Forest green
-      dPixels[i + 2] = Math.min(255, Math.max(0, 24 + grain * 0.45)); // Slate undertone
+      dPixels[i] = Math.min(255, Math.max(0, 34 + grain * 0.4)); // Earthy undertone
+      dPixels[i + 1] = Math.min(255, Math.max(0, 74 + grain + isFiber)); // Vibrant forest green
+      dPixels[i + 2] = Math.min(255, Math.max(0, 50 + grain * 0.5)); // Slate undertone
       dPixels[i + 3] = 255;
 
-      const bumpHeight = Math.min(255, Math.max(0, 128 + grain * 2.2 + isFiber * 2.5));
+      const bumpHeight = Math.min(255, Math.max(0, 128 + grain * 2.0 + isFiber * 2.2));
       bPixels[i] = bumpHeight;
       bPixels[i + 1] = bumpHeight;
       bPixels[i + 2] = bumpHeight;

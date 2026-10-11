@@ -29,16 +29,6 @@ export function PinboardLibraryContainer({
   const [hoveredCase, setHoveredCase] = useState<ActiveCaseListing | null>(null);
   const [selectedCase, setSelectedCase] = useState<ActiveCaseListing | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: -300, y: -300 });
-
-  // Track cursor position for custom detective flashlight beam
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
 
   // Close inspection modal on Escape key
   useEffect(() => {
@@ -76,7 +66,7 @@ export function PinboardLibraryContainer({
   };
 
   return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-[#080605] text-[#E7DDC8] select-none cursor-none">
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-[#080605] text-[#E7DDC8] select-none cursor-default">
       {/* 1. Fullscreen 3D WebGL / R3F Canvas Layer */}
       <div className="absolute inset-0 z-0">
         <PinboardLibrary3D
@@ -87,21 +77,6 @@ export function PinboardLibraryContainer({
           onSelectCase={handleSelectCase}
         />
       </div>
-
-      {/* 2. Soft Atmospheric Vignette */}
-      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(8,6,5,0.7)_80%,rgba(8,6,5,0.98)_100%)]" />
-
-      {/* 3. Detective Flashlight Cursor Beam: Tight Forensic Spotlight with Crisp Core */}
-      <div
-        className="pointer-events-none fixed z-20 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full transition-transform duration-75 ease-out"
-        style={{
-          left: `${mousePos.x}px`,
-          top: `${mousePos.y}px`,
-          background:
-            "radial-gradient(circle, rgba(255,245,228,0.26) 0%, rgba(255,240,210,0.12) 32%, rgba(255,235,195,0.03) 60%, transparent 72%)",
-          boxShadow: "0 0 45px 10px rgba(255, 240, 200, 0.08)",
-        }}
-      />
 
       {/* 4. Top Immersive Floating HUD Bar */}
       <div className="absolute top-4 inset-x-4 sm:inset-x-8 z-20 pointer-events-none flex flex-wrap items-center justify-between gap-4">

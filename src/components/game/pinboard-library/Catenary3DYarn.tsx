@@ -28,14 +28,14 @@ export function Catenary3DYarn({ points, isHovered = false }: Catenary3DYarnProp
 
   const woolBumpMap = useMemo(() => createWoolYarnBumpTexture(256), []);
 
-  // Wool yarn PBR material: matte, thick crimson wool (#9E1A22)
+  // Wool yarn PBR material: matte, thick crimson wool (#BA1E28)
   const woolMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#9E1A22"),
+        color: new THREE.Color("#BA1E28"),
         bumpMap: woolBumpMap,
         bumpScale: 0.055,
-        roughness: 0.96,
+        roughness: 0.92,
         metalness: 0.0,
       }),
     [woolBumpMap],

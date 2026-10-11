@@ -140,9 +140,9 @@ export function PinnedCaseCard3D({
       delta,
     );
 
-    // Smooth radial atmospheric dimming: when another card is hovered, fade to 60% dimming smoothly
+    // Subtle soft focus: when another card is hovered, gently de-emphasize by only 15% so cards stay 100% visible
     if (dimPlaneRef.current) {
-      const targetDimOpacity = isDimmed && !isHovered ? 0.58 : 0;
+      const targetDimOpacity = isDimmed && !isHovered ? 0.15 : 0;
       const mat = dimPlaneRef.current.material as THREE.MeshBasicMaterial;
       mat.opacity = THREE.MathUtils.damp(mat.opacity, targetDimOpacity, 9.0, delta);
       dimPlaneRef.current.visible = mat.opacity > 0.01;

@@ -6,11 +6,7 @@ import * as THREE from "three";
 import type { ActiveCaseListing } from "@/server/services/game-session-service";
 import { Catenary3DYarn } from "./Catenary3DYarn";
 import { PinnedCaseCard3D } from "./PinnedCaseCard3D";
-import {
-  createDarkWalnutWoodTexture,
-  createProceduralGreenFeltTexture,
-  createSoftWindowBlindGoBoTexture,
-} from "./textures";
+import { createDarkWalnutWoodTexture, createProceduralGreenFeltTexture } from "./textures";
 
 interface PinboardLibrary3DProps {
   cases: ActiveCaseListing[];
@@ -78,7 +74,7 @@ function AshtraySmokeParticles({ position }: { position: [number, number, number
 }
 
 /**
- * Classic Detective Clutter Desk Ledge Props at the bottom of the pinboard:
+ * Tangible Detective Desk Ledge Props at the bottom of the pinboard:
  * Antique Banker's lamp, crystal ashtray with smoldering cigarette, magnifying glass, fountain pen.
  */
 function DeskLedgeProps({ yPos }: { yPos: number }) {
@@ -95,9 +91,9 @@ function DeskLedgeProps({ yPos }: { yPos: number }) {
   const woodMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#180F0A"),
-        roughness: 0.72,
-        metalness: 0.04,
+        color: new THREE.Color("#24160E"),
+        roughness: 0.65,
+        metalness: 0.05,
       }),
     [],
   );
@@ -161,7 +157,7 @@ function DeskLedgeProps({ yPos }: { yPos: number }) {
           <cylinderGeometry args={[0.2, 0.2, 0.72, 24, 1, false, 0, Math.PI]} />
         </mesh>
         {/* Soft warm lamp glow */}
-        <pointLight position={[0, 0.75, 0.1]} color="#FFE8B0" intensity={0.9} distance={2.5} />
+        <pointLight position={[0, 0.75, 0.1]} color="#FFE8B0" intensity={1.1} distance={3.0} />
       </group>
 
       {/* 2. Antique Black Lacquer Fountain Pen on Brass Rest */}
@@ -218,46 +214,6 @@ function DeskLedgeProps({ yPos }: { yPos: number }) {
 }
 
 /**
- * Dynamic Detective Flashlight Spotlight tracking mouse pointer coordinates.
- * Tight, sharp forensic beam with crisp penumbra.
- */
-function CursorFlashlight() {
-  const spotRef = useRef<THREE.SpotLight>(null);
-  const targetRef = useRef<THREE.Object3D>(null);
-  const { pointer, viewport } = useThree();
-
-  useFrame(() => {
-    if (!spotRef.current || !targetRef.current) return;
-    const targetX = (pointer.x * viewport.width) / 2;
-    const targetY = (pointer.y * viewport.height) / 2;
-
-    targetRef.current.position.set(targetX, targetY, 0);
-    spotRef.current.position.set(targetX * 0.85, targetY * 0.85, 4.8);
-  });
-
-  return (
-    <>
-      <object3D ref={targetRef} position={[0, 0, 0]} />
-      <spotLight
-        ref={spotRef}
-        target={targetRef.current || undefined}
-        position={[0, 0, 4.8]}
-        color="#FFF5E4"
-        intensity={3.8}
-        distance={12}
-        angle={0.34}
-        penumbra={0.42}
-        decay={1.8}
-        castShadow
-        shadow-mapSize-width={512}
-        shadow-mapSize-height={512}
-        shadow-bias={-0.0002}
-      />
-    </>
-  );
-}
-
-/**
  * Smooth Fluid Camera Rig with low-pass damping to prevent micro-jitter.
  */
 function CameraRig({ focusedCasePos }: { focusedCasePos: [number, number] | null }) {
@@ -265,16 +221,16 @@ function CameraRig({ focusedCasePos }: { focusedCasePos: [number, number] | null
 
   useFrame((_, delta) => {
     const clampedDelta = Math.min(delta, 0.05);
-    const parallaxX = pointer.x * 0.22;
-    const parallaxY = pointer.y * 0.16;
+    const parallaxX = pointer.x * 0.2;
+    const parallaxY = pointer.y * 0.14;
 
     let targetX = parallaxX;
     let targetY = parallaxY;
     let targetZ = 6.8;
 
     if (focusedCasePos) {
-      targetX = focusedCasePos[0] * 0.25 + parallaxX * 0.06;
-      targetY = focusedCasePos[1] * 0.25 + parallaxY * 0.06;
+      targetX = focusedCasePos[0] * 0.22 + parallaxX * 0.05;
+      targetY = focusedCasePos[1] * 0.22 + parallaxY * 0.05;
       targetZ = 6.2; // Smooth fluid focus zoom
     }
 
@@ -410,7 +366,7 @@ function WalnutNoticeboardFrame({ width, height }: { width: number; height: numb
 
 /**
  * Internal Responsive 3D Pinboard Scene with Green Baize felt,
- * cold stormy moonlight, horizontal venetian blinds, and procedural wool yarn.
+ * studio lighting clarity, and procedural wool yarn.
  */
 function PinboardScene({
   cases,
@@ -420,30 +376,16 @@ function PinboardScene({
   onSelectCase,
 }: PinboardLibrary3DProps) {
   const { viewport } = useThree();
-  const windowLightRef = useRef<THREE.DirectionalLight>(null);
 
   // 1. Procedural British Police Green Felt Baize Textures
   const { diffuse, bump } = useMemo(() => createProceduralGreenFeltTexture(1024), []);
-  const goboShadowTexture = useMemo(() => createSoftWindowBlindGoBoTexture(512), []);
 
   useEffect(() => {
     return () => {
       diffuse.dispose();
       bump.dispose();
-      goboShadowTexture.dispose();
     };
-  }, [diffuse, bump, goboShadowTexture]);
-
-  // Stormy rain lighting flicker from the right window in useFrame
-  useFrame((state) => {
-    if (windowLightRef.current) {
-      const time = state.clock.getElapsedTime();
-      // Cold stormy moonlight subtle flicker (#5A738E)
-      const stormFlicker = Math.sin(time * 3.4) * 0.08 + Math.cos(time * 7.1) * 0.04;
-      const thunder = Math.sin(time * 0.22) > 0.985 ? 0.35 : 0;
-      windowLightRef.current.intensity = 1.25 + stormFlicker + thunder;
-    }
-  });
+  }, [diffuse, bump]);
 
   // Calculate layout for cases based on responsive viewport
   const { cardLayouts, yarnPoints, cardScale } = useMemo(() => {
@@ -517,37 +459,33 @@ function PinboardScene({
 
   return (
     <>
-      {/* 1. Stormy Blue-Gray Moonlight (#5A738E) from the Right Window */}
+      {/* 1. Main Studio Key Light casting crisp soft shadows */}
       <directionalLight
-        ref={windowLightRef}
-        position={[7.5, 3.8, 3.6]}
-        color="#5A738E"
-        intensity={1.25}
+        position={[4.5, 7.5, 5.5]}
+        color="#FFF8EC"
+        intensity={2.0}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
         shadow-bias={-0.0001}
       />
 
-      {/* 2. Soft Blue Moonlight Fill Light from the Left */}
-      <directionalLight position={[-7.0, 3.0, 2.5]} color="#3B4E5F" intensity={0.4} />
+      {/* 2. Soft Cool Window Fill Light from Left */}
+      <directionalLight position={[-6.0, 3.5, 3.0]} color="#8DAECF" intensity={0.65} />
 
-      {/* 3. British Police Green Felt Baize Noticeboard Surface */}
+      {/* 3. Front Fill Light to illuminate card details evenly */}
+      <directionalLight position={[0, -2, 4]} color="#FFE8C2" intensity={0.5} />
+
+      {/* 4. British Police Green Felt Baize Noticeboard Surface */}
       <mesh position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[boardWidth, boardHeight]} />
         <meshStandardMaterial
           map={diffuse}
           bumpMap={bump}
-          bumpScale={0.045}
-          roughness={0.92}
+          bumpScale={0.035}
+          roughness={0.9}
           metalness={0.01}
         />
-      </mesh>
-
-      {/* 4. Horizontal Venetian Blind Shadows Projection (Clean premultiplied alpha, zero WebGL warnings) */}
-      <mesh position={[0, 0, 0.005]} receiveShadow>
-        <planeGeometry args={[boardWidth, boardHeight]} />
-        <meshBasicMaterial map={goboShadowTexture} transparent opacity={0.34} depthWrite={false} />
       </mesh>
 
       {/* 5. 3D Dark Walnut Wood Frame encasing the board */}
@@ -583,13 +521,10 @@ function PinboardScene({
         );
       })}
 
-      {/* 8. Forensic Spotlight tracking mouse cursor */}
-      <CursorFlashlight />
-
-      {/* 9. Tangible Detective Props on the Bottom Desk Ledge */}
+      {/* 8. Tangible Detective Props on the Bottom Desk Ledge */}
       <DeskLedgeProps yPos={-boardHeight / 2 + 0.35} />
 
-      {/* 10. Smooth Steady-Cam Rig */}
+      {/* 9. Smooth Steady-Cam Rig */}
       <CameraRig focusedCasePos={focusedCasePos} />
     </>
   );
@@ -621,13 +556,14 @@ export function PinboardLibrary3D(props: PinboardLibrary3DProps) {
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 0.95,
+          toneMappingExposure: 1.05,
         }}
         shadows
         className="w-full h-full"
       >
-        <color attach="background" args={["#060504"]} />
-        <ambientLight color="#18130E" intensity={0.7} />
+        <color attach="background" args={["#0D0B09"]} />
+        {/* Warm Natural Ambient Light ensuring high clarity across the entire board */}
+        <ambientLight color="#FFF3DC" intensity={1.4} />
         <PinboardScene {...props} />
       </Canvas>
     </div>
