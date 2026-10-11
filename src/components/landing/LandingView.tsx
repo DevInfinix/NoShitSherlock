@@ -302,9 +302,9 @@ export function LandingView({ user }: LandingViewProps) {
         </svg>
 
         {/* =========================================================================
-            NAVBAR: HIGH-CONTRAST, MINIMAL GLASS, "STAR ON GITHUB" & DISCREET CREDITS
+            NAVBAR: MINIMAL, PURE TRANSPARENT (NO BACKGROUND BLUR), "STAR ON GITHUB"
            ========================================================================= */}
-        <header className="fixed top-0 inset-x-0 z-50 flex items-center justify-between bg-[#100D0D]/60 backdrop-blur-md border-b border-[#79604A]/25 px-6 sm:px-12 py-4 pointer-events-auto shadow-md">
+        <header className="fixed top-0 inset-x-0 z-50 flex items-center justify-between bg-transparent border-none px-6 sm:px-12 py-5 pointer-events-auto">
           {/* Left Branding: Favicon Logo + noshitsherlock + The Sam Studios credit */}
           <div className="flex items-center gap-4">
             <Link href="/" className="group flex items-center gap-3 select-none">
@@ -791,10 +791,15 @@ export function LandingView({ user }: LandingViewProps) {
             </div>
           </section>
 
+          {/* Atmospheric Soft Gradient Break (Zero harsh straight lines) */}
+          <div className="relative w-full h-12 pointer-events-none select-none">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#A7192D]/10 to-transparent" />
+          </div>
+
           {/* =========================================================================
               SECTION 3: PLAY SOLO OR WITH FRIENDS (MULTIPLAYER CO-OP)
              ========================================================================= */}
-          <section className="relative z-10 px-6 sm:px-12 lg:px-16 py-28 border-t border-[#79604A]/30 bg-gradient-to-b from-[#100D0D]/80 via-[#181414]/90 to-[#100D0D]/80 backdrop-blur-sm">
+          <section className="relative z-10 px-6 sm:px-12 lg:px-16 py-28 bg-gradient-to-b from-transparent via-[#181414]/90 to-[#100D0D]/80 backdrop-blur-sm">
             <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
                 <span className="font-mono text-xs uppercase tracking-[0.25em] text-[#A7192D]">
@@ -902,10 +907,15 @@ export function LandingView({ user }: LandingViewProps) {
             </div>
           </section>
 
+          {/* Soft Organic Police Tape Break (Zero harsh straight lines) */}
+          <div className="relative my-6">
+            <CrimeSceneTape rotate="rotate-1" className="opacity-80" />
+          </div>
+
           {/* =========================================================================
               SECTION 4: THE CHRONOLOGICAL RED-YARN PINBOARD FINALE
              ========================================================================= */}
-          <section className="relative z-10 px-6 sm:px-12 lg:px-16 py-28 border-t border-[#79604A]/30 bg-[#100D0D]/80 backdrop-blur-sm">
+          <section className="relative z-10 px-6 sm:px-12 lg:px-16 py-28 bg-[#100D0D]/85 backdrop-blur-sm">
             <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Visual Cork Pinboard Representation */}
               <div className="relative border-2 border-[#79604A] bg-[#181414]/95 p-8 sm:p-12 shadow-2xl space-y-6 backdrop-blur-md">
@@ -995,7 +1005,7 @@ export function LandingView({ user }: LandingViewProps) {
           {/* =========================================================================
               SECTION 5: READY TO PLAY CALL TO ACTION
              ========================================================================= */}
-          <section className="relative z-10 px-6 sm:px-12 lg:px-16 py-28 border-t border-[#79604A]/30 bg-gradient-to-b from-[#100D0D]/80 via-[#260D10]/70 to-[#100D0D]/90 backdrop-blur-sm">
+          <section className="relative z-10 px-6 sm:px-12 lg:px-16 py-28 bg-gradient-to-b from-transparent via-[#260D10]/50 to-[#100D0D] backdrop-blur-sm">
             <div className="mx-auto max-w-4xl border-2 border-[#79604A] bg-[#181414]/95 p-8 sm:p-14 text-center space-y-8 shadow-2xl relative overflow-hidden backdrop-blur-md">
               <BorderBeam
                 size={200}
@@ -1033,7 +1043,9 @@ export function LandingView({ user }: LandingViewProps) {
         {/* =========================================================================
             SECTION 6: MINIMALIST NOIR FOOTER WITH PROMINENT THE SAM STUDIOS PROMOTION
            ========================================================================= */}
-        <footer className="relative z-30 border-t border-[#79604A]/30 bg-[#100D0D] px-6 sm:px-12 lg:px-16 py-14">
+        <footer className="relative z-30 bg-[#100D0D] px-6 sm:px-12 lg:px-16 py-14">
+          {/* Subtle top edge fade into footer */}
+          <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-transparent to-[#100D0D] pointer-events-none" />
           <div className="mx-auto max-w-6xl space-y-10">
             {/* The Sam Studios Feature Redirect Card */}
             <div className="border border-[#79604A]/40 bg-[#181414] p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">

@@ -9,21 +9,22 @@ interface NoirCloudSeparatorProps {
 
 export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const frameIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    const canvas = canvasRef.current;
+    if (!container || !canvas) return;
 
     // Detect reduced motion preference
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const width = container.clientWidth || window.innerWidth || 1280;
-    const height = container.clientHeight || 280;
+    const height = container.clientHeight || 400;
 
-    // Safely pre-acquire 2D-only WebGL context with zero depth/stencil buffer requirements
-    const canvas = document.createElement("canvas");
+    // Direct WebGL2 / WebGL context acquisition with low-power profile to avoid driver context loss
     let gl: RenderingContext | null = null;
     try {
       gl =
@@ -45,12 +46,8 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
       gl = null;
     }
 
-    if (!gl) {
-      // Graceful fallback: CSS cloud layers provide seamless volumetric visual
-      return;
-    }
+    if (!gl) return;
 
-    // Scene & Orthographic Camera for a 2D full-width volumetric smoke quad
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
@@ -78,19 +75,17 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
     rendererRef.current = renderer;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setSize(width, height);
-    container.appendChild(canvas);
 
-    // Uniforms for the procedural volumetric smoke / cloud shader with cursor tracking
+    // Uniforms with cursor coordinates and scroll parallax
     const uniforms = {
       uTime: { value: 0 },
-      uResolution: {
-        value: new THREE.Vector2(width, height),
-      },
+      uResolution: { value: new THREE.Vector2(width, height) },
       uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-      uSpeed: { value: prefersReducedMotion ? 0.02 : 0.12 },
+      uScroll: { value: 0 },
+      uSpeed: { value: prefersReducedMotion ? 0.03 : 0.15 },
     };
 
-    // Vertex Shader: full-screen quad passing UV coordinates
+    // Vertex Shader
     const vertexShader = `
       varying vec2 vUv;
       void main() {
@@ -99,13 +94,14 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
       }
     `;
 
-    // Fragment Shader: Multi-octave domain-warped FBM with glassy refractive highlights & cursor disturbance
+    // Fragment Shader: Inigo Quilez Domain-Warped FBM with Glassy Refraction & Cursor Caustics
     const fragmentShader = `
       precision highp float;
       varying vec2 vUv;
       uniform float uTime;
       uniform vec2 uResolution;
       uniform vec2 uMouse;
+      uniform float uScroll;
 
       // Pseudo-random noise functions
       float hash(vec2 p) {
@@ -124,7 +120,7 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
         );
       }
 
-      // Fractional Brownian Motion with 4 octaves
+      // Fractional Brownian Motion
       float fbm(vec2 p) {
         float f = 0.0;
         float amp = 0.5;
@@ -140,54 +136,62 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
       void main() {
         vec2 uv = vUv;
         float aspect = uResolution.x / max(uResolution.y, 1.0);
-        vec2 p = uv * vec2(aspect * 2.0, 2.0);
+        vec2 p = uv * vec2(aspect * 2.2, 2.2);
 
         float t = uTime * 0.16;
 
-        // Interactive mouse curl & glassy distortion following cursor
+        // Interactive mouse curl & liquid glass disturbance
         vec2 mouseDist = uv - uMouse;
-        float mouseEffect = exp(-dot(mouseDist, mouseDist) * 14.0) * 0.45;
+        float mouseEffect = exp(-dot(mouseDist, mouseDist) * 12.0) * 0.5;
 
-        // Domain warping for organic, billowing cloud/smoke tendrils
+        // Scroll parallax displacement
+        p.y += uScroll * 0.8;
+
+        // Inigo Quilez Domain Warping for liquid glass smoke tendrils
         vec2 q = vec2(
-          fbm(p + vec2(0.0, t * 0.55) + mouseEffect),
-          fbm(p + vec2(5.2, t * 0.38))
+          fbm(p + vec2(0.0, t * 0.6) + mouseEffect),
+          fbm(p + vec2(5.2, t * 0.4))
         );
 
         vec2 r = vec2(
-          fbm(p + 3.2 * q + vec2(1.7 - t * 0.22, 9.2 + t * 0.28)),
-          fbm(p + 3.2 * q + vec2(8.3 + t * 0.18, 2.8 - t * 0.12))
+          fbm(p + 3.4 * q + vec2(1.7 - t * 0.25, 9.2 + t * 0.3)),
+          fbm(p + 3.4 * q + vec2(8.3 + t * 0.2, 2.8 - t * 0.15))
         );
 
-        float f = fbm(p + 3.6 * r + vec2(t * 0.1, t * 0.16));
-        f = clamp((f + 0.28) * 1.5, 0.0, 1.0);
+        float f = fbm(p + 3.8 * r + vec2(t * 0.12, t * 0.18));
+        f = clamp((f + 0.3) * 1.5, 0.0, 1.0);
 
-        // Noir palette tokens:
-        // Rolling Smoke: #261D1A (0.149, 0.114, 0.102)
-        // Deep Oxblood / Burgundy: #3D1016 (0.239, 0.063, 0.086)
-        // Vivid Crimson: #A7192D (0.655, 0.098, 0.176)
+        // Estimate normal gradient for liquid glass specular caustics
+        float eps = 0.02;
+        float fx = fbm(p + vec2(eps, 0.0) + 3.4 * q) - fbm(p - vec2(eps, 0.0) + 3.4 * q);
+        float fy = fbm(p + vec2(0.0, eps) + 3.4 * q) - fbm(p - vec2(0.0, eps) + 3.4 * q);
+        vec3 normal = normalize(vec3(fx, fy, 0.18));
+
+        // Light vector derived from cursor coordinates
+        vec3 lightDir = normalize(vec3(uMouse.x - uv.x, (uMouse.y - uv.y) * 0.6, 0.4));
+        float spec = pow(max(dot(reflect(-lightDir, normal), vec3(0.0, 0.0, 1.0)), 0.0), 10.0);
+
+        // Volumetric Noir Palette:
+        // Deep Oxblood / Burgundy: #2D0D12 (0.176, 0.051, 0.071)
+        // Rich Crimson: #A7192D (0.655, 0.098, 0.176)
         // Warm Ivory Fog: #E8DCC8 (0.910, 0.863, 0.784)
-        vec3 colSmoke    = vec3(0.149, 0.114, 0.102);
-        vec3 colBurgundy = vec3(0.239, 0.063, 0.086);
-        vec3 colCrimson  = vec3(0.72, 0.11, 0.19);
-        vec3 colIvory    = vec3(0.910, 0.863, 0.784);
+        vec3 colBurgundy = vec3(0.24, 0.06, 0.09);
+        vec3 colCrimson  = vec3(0.75, 0.13, 0.22);
+        vec3 colIvory    = vec3(0.92, 0.87, 0.79);
 
-        // Mix colors based on smoke density and warping
-        vec3 color = mix(colBurgundy, colSmoke, clamp(q.x * 1.3, 0.0, 1.0));
-        color = mix(color, colCrimson, clamp(length(r.x) * 1.0, 0.0, 1.0) * 0.6);
-        color = mix(color, colIvory, pow(f, 2.2) * 0.45);
+        // Layered cloud color mixing
+        vec3 color = mix(colBurgundy, colCrimson, clamp(length(r.x) * 1.2, 0.0, 1.0) * 0.7);
+        color = mix(color, colIvory, pow(f, 2.0) * 0.55);
 
-        // Glassy specular shimmer along cloud ridges
-        float sheen = pow(clamp(f * 1.2, 0.0, 1.0), 3.0) * 0.35;
-        color += colIvory * sheen;
+        // Liquid glass caustic specular reflection (moves with cursor)
+        vec3 colGlassSheen = vec3(1.0, 0.95, 0.88) * spec * 0.85;
+        color += colGlassSheen;
 
-        // Flawless vertical edge feathering:
-        // Top fades out to 0 alpha towards y=1.0
-        // Bottom fades out to 0 alpha towards y=0.0
+        // Smooth vertical edge feathering so top and bottom melt into #100D0D
         float verticalMask = smoothstep(0.0, 0.22, uv.y) * smoothstep(1.0, 0.78, uv.y);
 
-        // Cloud density mask
-        float alpha = clamp(f * 1.4, 0.0, 1.0) * verticalMask * 0.90;
+        // Dense, billowing volumetric alpha
+        float alpha = clamp(f * 1.5 + spec * 0.4, 0.0, 1.0) * verticalMask * 0.95;
 
         gl_FragColor = vec4(color, alpha);
       }
@@ -206,7 +210,7 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    // Pointer move listener for atmospheric smoke disturbance following cursor
+    // Track mouse coordinates for liquid glass caustics
     const handlePointerMove = (e: PointerEvent) => {
       const rect = container.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
@@ -215,6 +219,14 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
     };
 
     window.addEventListener("pointermove", handlePointerMove);
+
+    // Track scroll for 3D parallax cloud billowing
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      uniforms.uScroll.value = scrollY * 0.0004;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     // Resize handler
     const handleResize = () => {
@@ -240,19 +252,17 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
 
     frameIdRef.current = requestAnimationFrame(animate);
 
-    // Clean up
+    // Teardown
     return () => {
       if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
       window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
 
       geometry.dispose();
       material.dispose();
 
       canvas.removeEventListener("webglcontextlost", handleContextLost);
-      if (canvas.parentElement) {
-        canvas.parentElement.removeChild(canvas);
-      }
       try {
         renderer.forceContextLoss();
       } catch {
@@ -266,34 +276,39 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-60 sm:h-72 md:h-80 pointer-events-none overflow-hidden select-none z-20 ${className}`}
+      className={`relative w-full h-80 sm:h-96 md:h-[450px] pointer-events-none overflow-hidden select-none z-20 ${className}`}
       aria-hidden="true"
     >
-      {/* High-fidelity CSS Volumetric Fog Layers */}
+      {/* Foundational WebGL Canvas (Full dimensions directly bound) */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full block pointer-events-none z-10"
+      />
+
+      {/* Layered CSS Volumetric Fog Gradient Behind WebGL */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-75"
+        className="absolute inset-0 pointer-events-none opacity-85 z-0"
         style={{
           background: `
-            radial-gradient(ellipse 900px 300px at 25% 50%, rgba(167, 25, 45, 0.28) 0%, rgba(38, 13, 16, 0.55) 45%, transparent 75%),
-            radial-gradient(ellipse 1000px 320px at 75% 50%, rgba(232, 220, 200, 0.14) 0%, rgba(38, 13, 16, 0.45) 45%, transparent 75%)
+            radial-gradient(ellipse 900px 320px at 20% 50%, rgba(167, 25, 45, 0.32) 0%, rgba(38, 13, 16, 0.6) 45%, transparent 75%),
+            radial-gradient(ellipse 1000px 350px at 80% 50%, rgba(232, 220, 200, 0.18) 0%, rgba(38, 13, 16, 0.5) 45%, transparent 75%)
           `,
         }}
       />
 
-      {/* Top and bottom edge blend gradients */}
-      <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#100D0D] to-transparent z-10 pointer-events-none" />
-      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#100D0D] to-transparent z-10 pointer-events-none" />
+      {/* Seamless Top & Bottom Edge Fade Gradients */}
+      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#100D0D] to-transparent z-20 pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#100D0D] to-transparent z-20 pointer-events-none" />
 
-      {/* Distinctive Brass Atmospheric Metadata Rule */}
-      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center pointer-events-none px-6 sm:px-12">
-        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#79604A]/60 to-transparent" />
-        <div className="mx-4 flex items-center gap-2.5 border border-[#79604A]/70 bg-[#100D0D]/85 px-4 py-1.5 backdrop-blur-md shadow-2xl">
+      {/* Floating 3D Glassmorphism Evidence Capsule (Organic, curved 3D pill with NO harsh straight lines) */}
+      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-30 flex items-center justify-center pointer-events-none px-6 sm:px-12">
+        <div className="relative group flex items-center gap-3 rounded-full border border-[#A7192D]/70 bg-[#181414]/85 px-6 py-2 backdrop-blur-xl shadow-[0_0_35px_rgba(167,25,45,0.4)] transition-all">
           <span className="h-2 w-2 rounded-full bg-[#A7192D] animate-ping" />
-          <span className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.3em] text-[#E8DCC8] font-bold">
+          <span className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.28em] text-[#E8DCC8] font-bold">
             NO SHIT SHERLOCK {"//"} EVIDENCE VAULT ARCHIVE
           </span>
+          <span className="h-1.5 w-1.5 rounded-full bg-[#E8DCC8] opacity-75" />
         </div>
-        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#79604A]/60 to-transparent" />
       </div>
     </div>
   );
