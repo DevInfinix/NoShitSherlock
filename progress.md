@@ -85,11 +85,16 @@
 10. **Cinematic Landing Page Complete Redesign (PR #18 update)**:
     - Delivered full-viewport cinematic noir experience with unified GSAP ScrollTrigger choreography.
     - Master title treatment: "NO" and "SHIT" in heavy `TBJ Valmist` ExtraBold, "Sherlock" in substantial `Charlea Demo` SemiBold Italic with negative tracking. Title smoothly scales down from massive initial viewport presence into an anchored brand mark in top-left.
-    - Detective canvas: initial enlarged framing (`scale: 1.2`, `x: +8vw`), smoothly centering and scaling down (`scale: 1.0`, `x: 0vw`) as 150 frames scrub to lift magnifying glass towards viewer.
+    - Detective canvas: initial enlarged framing (`scale: 1.18`, `x: +7vw`), smoothly centering and scaling down (`scale: 1.0`, `x: 0vw`) as 150 frames scrub to lift magnifying glass towards viewer.
     - Purged all artificial clutter, dummy departments, fake timelines, and carousels.
-    - Right-side content choreographed across 3 organic beats: Beat 1 (The Premise), Beat 2 (The Investigation Loop: Dossier, Notebook, Pinboard), Beat 3 (Case 01: The Blackwood Protocol & Enlistment CTAs: "Register as detective", "Log as detective").
-    - Refined spotlight cursor: hides default OS cursor on desktop and casts a soft, controlled cinematic flashlight beam with fluid spring damping.
-    - Seamless dark noir environment with procedural film grain noise, radial crimson rim lighting, and subtle vignettes.
+11. **Landing Page Repair, Full Content Restoration & Color Calibration**:
+    - Restored full visual hierarchy across three distinct desktop zones: Left (Oversized title), Center (Detective with layered burgundy/crimson ambient backlight), and Right (Legible, well-spaced game briefing with prominent action buttons).
+    - Fixed palette and color contrast: Near-black charcoal (`#100D0D`), deep burgundy (`#260D10`), rich crimson red (`#A7192D`), bright crimson accent (`#C52A3B`), warm ivory (`#E8DCC8`), muted warm gray (`#A69A8C`), antique bronze (`#79604A`).
+    - Fixed title contrasting colors: "NO" and "SHIT" in warm ivory (`#E8DCC8`); "Sherlock" in rich crimson red (`#A7192D`).
+    - Restored prominent, visible fixed top navbar with brand mark, active navigation links (Cases, Investigation, Dossier 01, Directives), audio toggle HUD, and auth action buttons ("Register as detective", "Log as detective").
+    - Removed `cursor-none`, restoring standard OS mouse pointer functionality while keeping the ambient spotlight beam following fluidly in the background.
+    - Restored subsequent full sections below the hero: Section 2 (Investigation Mechanics: Evidence Folder, Notebook, Yarn Pinboard), Section 3 (Case Dossier Archives: The Blackwood Protocol), Section 4 (Enlistment Clearance), Section 5 (Complete Noir Footer).
+    - Verified with `bun run check` (0 lint errors, 0 type errors, 18/18 tests pass) and successful Next.js 16 production build.
 
 ---
 
