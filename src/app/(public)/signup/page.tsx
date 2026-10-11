@@ -7,7 +7,7 @@ export default function SignupPage() {
       <Suspense
         fallback={
           <div className="min-h-screen flex items-center justify-center font-mono text-xs text-brass uppercase tracking-widest text-center p-8">
-            Opening Scotland Yard Roster Protocol...
+            Opening Detective Registration Protocol...
           </div>
         }
       >

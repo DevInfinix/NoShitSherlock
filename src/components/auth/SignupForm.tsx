@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { BlobatarAvatar } from "@/components/ui/blobatar-avatar";
 import { signIn, signUp } from "@/lib/auth-client";
 import {
   checkAgentTagAvailableAction,
@@ -500,23 +501,30 @@ export function SignupForm() {
                 Choose Your <span className="text-brass">Agent Tag</span>
               </h2>
               <p className="mt-4 font-charlea text-xl sm:text-2xl text-paper-muted italic max-w-xl">
-                Type your permanent 3-digit badge number. This code will seal your dossiers and
-                appears live on your warrant badge.
+                Type your permanent 3-digit badge number. This code will seal your cases and appears
+                live on your warrant badge.
               </p>
 
               <form onSubmit={handleConfirmTag} className="mt-8 space-y-6">
-                <div className="relative inline-block w-full max-w-md">
-                  <input
-                    type="text"
-                    maxLength={3}
-                    value={agentTag}
-                    onChange={handleTagInput}
-                    placeholder="004"
-                    className="w-full bg-transparent border-b-4 border-brass/60 focus:border-evidence-red text-left font-valmist font-extrabold text-7xl sm:text-9xl text-paper placeholder:text-smoke/30 outline-none tracking-widest py-3 transition-colors"
+                <div className="flex items-center gap-6 w-full max-w-lg">
+                  <div className="relative inline-block flex-1">
+                    <input
+                      type="text"
+                      maxLength={3}
+                      value={agentTag}
+                      onChange={handleTagInput}
+                      placeholder="004"
+                      className="w-full bg-transparent border-b-4 border-brass/60 focus:border-evidence-red text-left font-valmist font-extrabold text-7xl sm:text-9xl text-paper placeholder:text-smoke/30 outline-none tracking-widest py-3 transition-colors"
+                    />
+                    <span className="font-mono text-xs text-smoke block mt-2 uppercase tracking-widest">
+                      [ EXACTLY THREE DIGITS — E.G. 004 ]
+                    </span>
+                  </div>
+                  <BlobatarAvatar
+                    name={agentTag ? `agent-${agentTag}` : email || "recruit"}
+                    size={72}
+                    className="border-brass shrink-0 shadow-2xl"
                   />
-                  <span className="font-mono text-xs text-smoke block mt-2 uppercase tracking-widest">
-                    [ EXACTLY THREE DIGITS — E.G. 004 ]
-                  </span>
                 </div>
 
                 {tagError && (
@@ -566,17 +574,24 @@ export function SignupForm() {
               </p>
 
               <form onSubmit={handleConfirmUsername} className="mt-8 space-y-6">
-                <div className="relative inline-block w-full max-w-lg">
-                  <input
-                    type="text"
-                    maxLength={30}
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setUsernameError(null);
-                    }}
-                    placeholder="INSPECTOR VANCE"
-                    className="w-full bg-transparent border-b-4 border-brass/60 focus:border-evidence-red text-left font-valmist font-bold text-3xl sm:text-5xl text-paper placeholder:text-smoke/30 outline-none tracking-wide py-3 transition-colors uppercase"
+                <div className="flex items-center gap-6 w-full max-w-lg">
+                  <div className="relative inline-block flex-1">
+                    <input
+                      type="text"
+                      maxLength={30}
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setUsernameError(null);
+                      }}
+                      placeholder="INSPECTOR VANCE"
+                      className="w-full bg-transparent border-b-4 border-brass/60 focus:border-evidence-red text-left font-valmist font-bold text-3xl sm:text-5xl text-paper placeholder:text-smoke/30 outline-none tracking-wide py-3 transition-colors uppercase"
+                    />
+                  </div>
+                  <BlobatarAvatar
+                    name={username ? `operative-${username}` : agentTag || "recruit"}
+                    size={64}
+                    className="border-brass shrink-0 shadow-2xl"
                   />
                 </div>
 
@@ -703,7 +718,7 @@ export function SignupForm() {
               {/* Rubber Stamp Target */}
               <div className="mt-12 pt-6 border-t border-[#120f0d]/20 flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="font-mono text-xs text-[#78716a]">
-                  Affix official rubber stamp below to certify readiness and unlock case dossiers.
+                  Affix official rubber stamp below to certify readiness and unlock case files.
                 </div>
 
                 <div className="relative">

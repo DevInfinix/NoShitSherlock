@@ -74,10 +74,49 @@
    - Replaced horizontal blocks with a vertical expanding/shrinking options stack with prominent hover contrast and in-place email/password input disclosures.
    - Fixed live email synchronization onto the 3D card during registration.
    - Preserved full multi-step registration flow: 3-digit tag, callsign engraving, welcome takeover, and parchment legal training document with rubber stamp certification.
+9. **Phase M4.5 Cinematic Landing Page & Noir Interaction Engine (Issue #17)**:
+   - Optimized 150 image frames from 109.12 MB down to 6.41 MB WebP (94.1% reduction) in `public/landing/frames/`.
+   - Built hardware-accelerated GSAP ScrollTrigger canvas frame-scrubbing engine across pinned track with progressive loading.
+   - Synchronized Lenis smooth scroll provider (`SmoothScrollProvider.tsx`) with GSAP ticker.
+   - Implemented zero-latency procedural Noir Sound Engine (`src/lib/audio/sound-engine.ts`) with typewriter, paper rustle, rubber stamp impact, and ambient room tone loop alongside `AudioControlHud.tsx`.
+   - Integrated `@blobatar/react` (`BlobatarAvatar.tsx`) into signup agent tag/username step, and login welcome screens.
+   - Built classified 404 easter egg page (`src/app/not-found.tsx` & `NotFoundView.tsx`) with crime scene tape, flashlight investigation cone, corrupted cipher decoder, and interactive evidence tag.
+   - Relocated favicon assets into `public/` and configured metadata in `src/app/layout.tsx`.
+10. **Cinematic Landing Page Complete Redesign (PR #18 update)**:
+    - Delivered full-viewport cinematic noir experience with unified GSAP ScrollTrigger choreography.
+    - Master title treatment: "NO" and "SHIT" in heavy `TBJ Valmist` ExtraBold, "Sherlock" in substantial `Charlea Demo` SemiBold Italic with negative tracking. Title smoothly scales down from massive initial viewport presence into an anchored brand mark in top-left.
+    - Detective canvas: initial enlarged framing (`scale: 1.18`, `x: +7vw`), smoothly centering and scaling down (`scale: 1.0`, `x: 0vw`) as 150 frames scrub to lift magnifying glass towards viewer.
+    - Purged all artificial clutter, dummy departments, fake timelines, and carousels.
+11. **Landing Page Repair, Full Content Restoration & Color Calibration**:
+    - Restored full visual hierarchy across three distinct desktop zones: Left (Oversized title), Center (Detective with layered burgundy/crimson ambient backlight), and Right (Legible, well-spaced game briefing with prominent action buttons).
+    - Fixed palette and color contrast: Near-black charcoal (`#100D0D`), deep burgundy (`#260D10`), rich crimson red (`#A7192D`), bright crimson accent (`#C52A3B`), warm ivory (`#E8DCC8`), muted warm gray (`#A69A8C`), antique bronze (`#79604A`).
+    - Fixed title contrasting colors: "NO" and "SHIT" in warm ivory (`#E8DCC8`); "Sherlock" in rich crimson red (`#A7192D`).
+    - Restored prominent, visible fixed top navbar with brand mark, active navigation links (Cases, Investigation, Dossier 01, Directives), audio toggle HUD, and auth action buttons ("Register as detective", "Log as detective").
+    - Removed `cursor-none`, restoring standard OS mouse pointer functionality while keeping the ambient spotlight beam following fluidly in the background.
+    - Restored subsequent full sections below the hero: Section 2 (Investigation Mechanics: Evidence Folder, Notebook, Yarn Pinboard), Section 3 (Case Dossier Archives: The Blackwood Protocol), Section 4 (Enlistment Clearance), Section 5 (Complete Noir Footer).
+    - Verified with `bun run check` (0 lint errors, 0 type errors, 18/18 tests pass) and successful Next.js 16 production build.
+12. **Landing Page Minimalist & Impeccable Overhaul**:
+    - Redesigned top navbar: high-contrast minimal glass styling (`bg-[#100D0D]/60 backdrop-blur-md`), directory favicon (`/favicon-32x32.png`), lowercase `noshitsherlock` in `fontGothica`, bold `STAR ON GITHUB` button with live GitHub icon, discreet The Sam Studios credit (`by The Sam Studios` linking to `https://thesamstudios.in`), and dual non-solid "Login as Detective" and "Sign up as Detective" actions.
+    - Globally removed default browser scrollbars across WebKit, Firefox, and IE/Edge via `globals.css` rules.
+    - Completely removed all audio controls, sound effects, and `AudioControlHud` from the landing page.
+    - Upgraded hero branding scale: "NO" and "SHIT" in massive `TBJ Valmist ExtraBold` (`clamp(6.8rem, 15vw, 17rem)`), "Sherlock" in `Charlea Demo SemiBold Italic` (`clamp(7.8rem, 17vw, 19.5rem)`), with chromatic drop shadow depth.
+    - Watermark crop protection: lengthened hero track to `400vh`, zoomed canvas by 1.16x and offset upward by 5% in `drawFrame`, and calibrated GSAP scale (`1.28` -> `1.14`) so bottom AI image watermarks are permanently clipped.
+    - Unboxed right-hand hero presentation: liberated elements from rigid bordered containers into an asymmetric, layered editorial dossier layout with live detective dispatch telemetry, tactile file tabs (`01 ABOUT`, `02 CASES & RANKS`, `03 GITHUB`), and smooth `motion` transitions.
+    - Built interactive Vertical Detective Timeline Meter (`VerticalInvestigateTimeline.tsx`) positioned alongside right-hand content with dynamic red thread scrubbing, evidence ruler tick marks, and scrub percentage readout.
+    - Restored and enhanced Three.js Procedural Volumetric Cloud Separator (`NoirCloudSeparator.tsx`): pre-acquires dedicated 2D-only WebGL context with `depth: false, stencil: false, antialias: false` to permanently eliminate `Initializing WebGL backbuffer failed` errors. Features interactive cursor-following smoke curl disturbance, glassy specular sheen highlights, and dual-layer CSS volumetric fog fallback.
+    - Optimized lower-section scene (`FloatingDetectiveScene.tsx`) with hardware-accelerated CSS 3D transforms (`translate3d` & `rotate`), preventing secondary WebGL context contention while retaining floating Manila folders, exhibit Polaroids, and desk lamp light cones.
+    - Added animated police evidence barrier tape ticker (`CrimeSceneTape.tsx`).
+    - Purged the term "dossier" across user-facing pages and components, replacing it with "case", "case file", and "investigation".
+    - Added prominent The Sam Studios production redirect card in the footer linking to `https://thesamstudios.in`.
+    - Overhauled legal page (`src/app/(public)/legal/page.tsx`): replaced Scotland Yard parody and 1947 references with professional 2026 Terms of Service & Privacy Policy clauses, and added "Return to Home" button.
+    - Validated with `bun run check` (0 lint errors, 0 type errors, 18/18 tests pass) and multi-viewport Playwright headless browser testing (desktop 1440x900, tablet 768x1024, mobile 390x844).
 
 ---
 
 ## 3. Pending Information & Next Steps
+
+1. **Phase M5 Execution**: Proceed with Leaderboard (individual & squad), periodic team sync polling hook, security headers, and accessibility audit.
+2. **Operational Quality**: 18 test suites passing, zero Biome lint errors, zero TypeScript errors.
 
 Phase M4 and Auth Shell are 100% complete.
 Next focus areas:

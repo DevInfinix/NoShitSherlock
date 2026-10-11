@@ -247,6 +247,43 @@ This document tracks all project tasks across development milestones with granul
 
 ---
 
+## Phase M4.5: Cinematic Landing Page & Noir Interaction Engine (Issue #17)
+
+### Parallax Image Sequence & Canvas Frame Scrubbing
+- [x] ★ Batch-converted 150 frames (`ezgif-frame-*.png`) into optimized WebP images (`public/landing/frames/frame-[001..150].webp`), reducing weight from 109.12 MB down to 6.41 MB (94.1% reduction).
+- [x] ★ Implemented GSAP ScrollTrigger canvas frame-scrubbing engine with progressive 20-frame fast boot and background streaming.
+- [x] ★ Integrated Lenis smooth scrolling with GSAP ticker synchronization and `prefers-reduced-motion` detection.
+
+### Fluid Cursor & Visual Clearance HUD
+- [x] ★ Implemented spring-physics spotlight flashlight cursor (`src/components/ui/spotlight-cursor.tsx`) with brass reticle and dynamic target scaling.
+- [x] ★ Built vertical Scroll Progress HUD (`src/components/landing/ScrollProgressHud.tsx`) showing real-time 00%–100% progress and sector jumping.
+- [x] ★ Built Noir Sound Engine (`src/lib/audio/sound-engine.ts`) with synthetic Web Audio SFX (typewriter, paper rustle, stamp impact, vinyl ambient loop).
+
+### Component Suites (Motion-Primitives, Magic UI, Vengeance UI, Blobatar)
+- [x] ★ Motion-Primitives: `TextScramble`, `TextShimmer`, `ProgressiveBlur`, `SpotlightCard`.
+- [x] ★ Magic UI: `BorderBeam`, `Particles`, `PerspectiveMarquee`, `RadarRipple`.
+- [x] ★ Vengeance UI: `BooksShowcase` (3D interactive dossier cards with mouse tilt and briefing drawer), `CylinderCarousel` (3D rotating evidence artifact carousel), `TextMorph`.
+- [x] ★ Blobatar: `@blobatar/react` integration (`src/components/ui/blobatar-avatar.tsx`) wired into landing operative badges, signup agent tag/username selection, and login welcome screens.
+- [x] ★ Classified 404 Easter Egg (`src/app/not-found.tsx`): interactive crime scene barrier tape, warehouse flashlight beam, corrupted telegraph decoder, and hidden evidence tag.
+- [x] ★ Favicon Suite: integrated `favicon.ico`, standard PNG icons, Apple touch icons, and webmanifest in `public/` and `src/app/layout.tsx`.
+
+### Landing Page Revisions & Impeccable Noir Overhaul
+- [x] ★ Background-free minimalist navbar with `/favicon-32x32.png` logo, lowercase `noshitsherlock` branding in `fontGothica`, high-contrast `STAR ON GITHUB` button with live GitHub icon, subtle The Sam Studios credit (`by The Sam Studios` linking to `https://thesamstudios.in`), and dual "Login as Detective" / "Sign up as Detective" actions.
+- [x] ★ Complete removal of all audio controls, sound triggers, and `AudioControlHud` from the landing page.
+- [x] ★ Hidden default browser scrollbars globally across Chrome, Safari, Firefox, and Edge via `globals.css`.
+- [x] ★ Oversized monumental hero branding: "NO" and "SHIT" in `TBJ Valmist ExtraBold` (`clamp(6.8rem, 15vw, 17rem)` in Warm Ivory), "Sherlock" in `Charlea Demo SemiBold Italic` (`clamp(7.8rem, 17vw, 19.5rem)` in Rich Crimson) with chromatic shadow depth, scaling down subtly by only ~15% on scroll.
+- [x] ★ Canvas watermark protection & extended tactile scroll: lengthened hero track to `400vh`, applied intrinsic 1.16x zoom and upward offset in `drawFrame`, and calibrated GSAP timeline (`scale: 1.28` -> `scale: 1.14`) to permanently crop out bottom AI image watermarks.
+- [x] ★ Dynamic cursor-following spotlight illumination & custom detective reticle: mouse coordinates dynamically steer the radial flashlight glow, while default OS cursor is hidden in favor of a focused spotlight beam and expanding crosshair reticle.
+- [x] ★ Unboxed, organic editorial right-hand hero layout: liberated content from rigid bordered containers into an asymmetric, layered presentation featuring live detective telemetry, incident report markers, and smooth `motion` tab transitions.
+- [x] ★ Interactive Vertical Detective Timeline Meter (`VerticalInvestigateTimeline.tsx`): tactile vertical rail with dynamic red thread scrubbing, tick marks, stage nodes (`01 ABOUT`, `02 CASES`, `03 SOURCE`), and scrub percentage readout.
+- [x] ★ Procedural Three.js Volumetric Smoke/Cloud Separator (`NoirCloudSeparator.tsx`): restored and enhanced with 2D-only WebGL context pre-acquisition (`depth: false, stencil: false, antialias: false`) to permanently resolve `Initializing WebGL backbuffer failed` errors. Features interactive cursor-following smoke curl disturbance, glassy specular sheen highlights, and dual-layer CSS volumetric fog fallback.
+- [x] ★ Floating Detective Scene Optimization (`FloatingDetectiveScene.tsx`): re-engineered with hardware-accelerated CSS 3D transforms (`translate3d` & `rotate`) and volumetric lighting cones, eliminating secondary WebGL context contention while delivering smooth mouse parallax.
+- [x] ★ Complete purge of the term "dossier" across user-facing pages and components, replaced with "case", "case file", and "investigation".
+- [x] ★ Prominent The Sam Studios studio archive redirect card in the footer linking to `https://thesamstudios.in`.
+- [x] ★ Legal page overhaul (`src/app/(public)/legal/page.tsx`): removed parody Scotland Yard 1947 references, instituted professional 2026 Terms of Service & Privacy Policy clauses, and added "Return to Home" navigation.
+
+---
+
 ## Phase M5: Leaderboards, Multiplayer Sync & Production Hardening
 
 ### Leaderboard System (`src/app/(game)/leaderboard/page.tsx`)

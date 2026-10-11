@@ -6,7 +6,8 @@ const protectedPrefixes = ["/cases", "/teams", "/pinboard", "/play"];
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
+  const isProtected =
+    protectedPrefixes.some((prefix) => pathname.startsWith(prefix)) && pathname !== "/cases";
   if (isProtected) {
     const sessionCookie =
       request.cookies.get("better-auth.session_token") ||

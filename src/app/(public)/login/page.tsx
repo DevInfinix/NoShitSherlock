@@ -7,7 +7,7 @@ export default function LoginPage() {
       <Suspense
         fallback={
           <div className="min-h-screen flex items-center justify-center font-mono text-xs text-brass uppercase tracking-widest text-center p-8">
-            Accessing Scotland Yard Identity Vault...
+            Accessing Detective Identity Vault...
           </div>
         }
       >

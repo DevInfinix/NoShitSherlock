@@ -12,6 +12,8 @@ node_modules/
 
 # Case inbox (raw PDFs, original high-res assets from Google Drive - see docs/content-pipeline.md)
 content/inbox/
+landing-frames/
+favicon/
 
 # Operating System files
 .DS_Store
