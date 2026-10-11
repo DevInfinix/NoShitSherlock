@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { PinboardCorkboard } from "@/components/game/pinboard/PinboardCorkboard";
-import { startOrResumeSession } from "@/server/services/game-session-service";
+import { GameSessionError, startOrResumeSession } from "@/server/services/game-session-service";
 import { getPinboardCaseFile, PinboardError } from "@/server/services/pinboard-service";
 import { requireUser } from "@/server/session";
 
@@ -28,6 +28,12 @@ export default async function CasePinboardPage({ params }: { params: Promise<{ s
       </main>
     );
   } catch (error) {
+    if (error instanceof GameSessionError && error.statusCode === 403) {
+      if (error.message.includes("onboarding incomplete")) {
+        redirect("/signup");
+      }
+      redirect("/cases");
+    }
     if (error instanceof PinboardError && error.statusCode === 404) {
       notFound();
     }

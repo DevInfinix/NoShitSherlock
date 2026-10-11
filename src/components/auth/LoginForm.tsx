@@ -26,7 +26,17 @@ export function LoginForm() {
   // Auto-redirect if already signed in via OAuth or active session
   useEffect(() => {
     if (sessionData?.user) {
-      router.replace(callbackUrl);
+      const u = sessionData.user as typeof sessionData.user & {
+        trainingCompleted?: boolean | null;
+        username?: string | null;
+        agentTag?: string | null;
+      };
+
+      if (!u.trainingCompleted || !u.username || !u.agentTag) {
+        router.replace("/signup");
+      } else {
+        router.replace(callbackUrl);
+      }
     }
   }, [sessionData, router, callbackUrl]);
 
@@ -64,7 +74,11 @@ export function LoginForm() {
       setWelcomeAgentTag(tag);
 
       setTimeout(() => {
-        router.push(callbackUrl);
+        if (!details.trainingCompleted || !details.agentTag || !details.username) {
+          router.push("/signup");
+        } else {
+          router.push(callbackUrl);
+        }
       }, 2600);
     } catch {
       setErrorMessage("Authentication server unreachable. Please retry.");

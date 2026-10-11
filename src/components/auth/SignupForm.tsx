@@ -40,31 +40,6 @@ export function SignupForm() {
     "email",
   );
 
-  // If user authenticated via OAuth callback, advance onboarding wizard appropriately
-  useEffect(() => {
-    if (sessionData?.user) {
-      const u = sessionData.user as typeof sessionData.user & {
-        agentTag?: string | null;
-        username?: string | null;
-        trainingCompleted?: boolean | null;
-      };
-
-      if (u.trainingCompleted) {
-        router.replace("/cases");
-        return;
-      }
-      if (u.username && u.agentTag) {
-        setStep("rules");
-        return;
-      }
-      // If user has session but still on credentials step, advance to tag selection
-      setStep((prev) => (prev === "credentials" ? "agentTag" : prev));
-      if (u.email && !email) {
-        setEmail(u.email);
-      }
-    }
-  }, [sessionData, router, email]);
-
   // Step 1: Agent Tag (3 digits)
   const [agentTag, setAgentTag] = useState("");
   const [isTagChecking, setIsTagChecking] = useState(false);
@@ -79,12 +54,40 @@ export function SignupForm() {
   const [isOver13, setIsOver13] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(true); // Selected by default
   const [isStamped, setIsStamped] = useState(false);
   const [stampDate, setStampDate] = useState<string>("");
 
   // Generic loading & error
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // If user authenticated via OAuth callback or has active session, enforce strict wizard progression
+  useEffect(() => {
+    if (sessionData?.user) {
+      const u = sessionData.user as typeof sessionData.user & {
+        agentTag?: string | null;
+        username?: string | null;
+        trainingCompleted?: boolean | null;
+      };
+
+      if (u.trainingCompleted && u.username && u.agentTag) {
+        router.replace("/cases");
+        return;
+      }
+      if (!u.agentTag) {
+        setStep("agentTag");
+      } else if (!u.username) {
+        setStep("username");
+      } else if (!u.trainingCompleted) {
+        setStep("rules");
+      }
+
+      if (u.email && !email) {
+        setEmail(u.email);
+      }
+    }
+  }, [sessionData, router, email]);
 
   // Handle Initial Email / Password Submission
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
@@ -228,6 +231,7 @@ export function SignupForm() {
         isOver13: true,
         termsAccepted: true,
         privacyAccepted: true,
+        marketingOptIn,
       });
       await completeTrainingAction();
 
@@ -720,37 +724,88 @@ export function SignupForm() {
                 </div>
               </div>
 
-              {/* Legal Confirmations */}
-              <div className="mt-10 pt-6 border-t-2 border-dashed border-[#120f0d]/30 space-y-3 font-mono text-xs text-[#2d241e]">
-                <label className="flex items-center gap-3 cursor-pointer">
+              {/* Legal Confirmations with Explicit Policy Links & Marketing Subscription */}
+              <div className="mt-10 pt-6 border-t-2 border-dashed border-[#120f0d]/30 space-y-4 font-mono text-xs text-[#2d241e]">
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isOver13}
                     onChange={(e) => setIsOver13(e.target.checked)}
-                    className="w-4 h-4 accent-oxblood"
+                    className="w-4 h-4 accent-oxblood mt-0.5"
                   />
-                  <span>I confirm that I am at least 13 years of age.</span>
+                  <span>
+                    I confirm under penalty of perjury that I am at least 13 years of age (
+                    <Link
+                      href="/legal#terms"
+                      target="_blank"
+                      className="text-[#641B1B] underline font-bold hover:text-black"
+                    >
+                      COPPA Age Verification Policy
+                    </Link>
+                    ).
+                  </span>
                 </label>
-                <label className="flex items-center gap-3 cursor-pointer">
+
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={termsAccepted}
                     onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="w-4 h-4 accent-oxblood"
+                    className="w-4 h-4 accent-oxblood mt-0.5"
                   />
                   <span>
-                    I agree to the Terms of Service for No Shit Sherlock field operatives.
+                    I have read and agree to the comprehensive{" "}
+                    <Link
+                      href="/legal#terms"
+                      target="_blank"
+                      className="text-[#641B1B] underline font-bold hover:text-black"
+                    >
+                      Terms of Service & Operative Agreement
+                    </Link>
+                    .
                   </span>
                 </label>
-                <label className="flex items-center gap-3 cursor-pointer">
+
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={privacyAccepted}
                     onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                    className="w-4 h-4 accent-oxblood"
+                    className="w-4 h-4 accent-oxblood mt-0.5"
                   />
                   <span>
-                    I acknowledge the Departmental Privacy Notice and data processing policies.
+                    I acknowledge and consent to the{" "}
+                    <Link
+                      href="/legal#privacy"
+                      target="_blank"
+                      className="text-[#641B1B] underline font-bold hover:text-black"
+                    >
+                      Privacy Policy
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      href="/legal#data-processing"
+                      target="_blank"
+                      className="text-[#641B1B] underline font-bold hover:text-black"
+                    >
+                      Data Processing & Retention Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
+
+                {/* Subscribing to updates / mailing (Checked by default) */}
+                <label className="flex items-start gap-3 cursor-pointer border-t border-[#120f0d]/15 pt-3">
+                  <input
+                    type="checkbox"
+                    checked={marketingOptIn}
+                    onChange={(e) => setMarketingOptIn(e.target.checked)}
+                    className="w-4 h-4 accent-oxblood mt-0.5"
+                  />
+                  <span>
+                    Subscribe to Departmental Dispatches: Receive periodic cold case releases,
+                    investigation bulletins, and community alerts via email (Default: Subscribed.
+                    Uncheck to opt out).
                   </span>
                 </label>
               </div>

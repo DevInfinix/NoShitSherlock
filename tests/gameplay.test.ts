@@ -29,18 +29,27 @@ describe("Gameplay Engine & Concurrency", () => {
         name: "Detective Miller",
         email: `${testUserA}@yard.test`,
         emailVerified: true,
+        agentTag: "901",
+        username: "miller_test",
+        trainingCompleted: true,
       },
       {
         id: testUserB,
         name: "Officer Watson",
         email: `${testUserB}@yard.test`,
         emailVerified: true,
+        agentTag: "902",
+        username: "watson_test",
+        trainingCompleted: true,
       },
       {
         id: testIntruder,
         name: "Intruder",
         email: `${testIntruder}@crime.test`,
         emailVerified: true,
+        agentTag: "903",
+        username: "intruder_test",
+        trainingCompleted: true,
       },
     ]);
   });

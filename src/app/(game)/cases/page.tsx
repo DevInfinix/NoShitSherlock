@@ -1,5 +1,9 @@
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { db } from "@/db/client";
+import { users } from "@/db/schema";
 import { type ActiveCaseListing, getActiveCases } from "@/server/services/game-session-service";
 import { getCurrentUser } from "@/server/session";
 
@@ -8,6 +12,17 @@ export const dynamic = "force-dynamic";
 export default async function CaseLibraryPage() {
   const headerList = await headers();
   const user = await getCurrentUser(headerList);
+
+  let dbUser: typeof users.$inferSelect | null = null;
+  if (user) {
+    const [found] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+    dbUser = found ?? null;
+
+    // Strict onboarding gate: if user skipped or quit onboarding, redirect to complete it
+    if (dbUser && (!dbUser.trainingCompleted || !dbUser.username || !dbUser.agentTag)) {
+      redirect("/signup");
+    }
+  }
 
   let activeCases: ActiveCaseListing[] = [];
   try {
@@ -34,9 +49,29 @@ export default async function CaseLibraryPage() {
     ];
   }
 
+  const isEmailUnverified = dbUser && !dbUser.emailVerified;
+
   return (
     <main className="min-h-screen bg-ink text-paper py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
+        {/* Unverified Email Warning Banner */}
+        {isEmailUnverified && (
+          <div className="mb-8 border-2 border-evidence-red bg-oxblood/80 p-5 font-mono text-xs text-paper shadow-xl">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="font-bold uppercase tracking-widest text-evidence-red block">
+                  [SECURITY PROTOCOL] EMAIL VERIFICATION REQUIRED
+                </span>
+                <p className="font-serif text-paper-muted text-sm leading-relaxed">
+                  Your operative account ({dbUser?.email}) is currently unverified. To prevent
+                  unauthorized impersonation and protect case chain of custody, you must verify your
+                  email address before launching any investigation.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Archive Title Header */}
         <header className="border-b border-brass/40 pb-6 mb-10">
           <div className="flex items-center justify-between flex-wrap gap-4">

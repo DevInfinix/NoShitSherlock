@@ -12,6 +12,7 @@ import {
   sessionClues,
   sessionQuestionStates,
   teamMembers,
+  users,
 } from "@/db/schema";
 
 export class GameSessionError extends Error {
@@ -87,6 +88,37 @@ export async function startOrResumeSession(
 
   if (!activeCase) {
     throw new GameSessionError("Case file not found or currently archived.", 404);
+  }
+
+  // Verify operative clearance: email must be verified and training must be completed
+  const [dbUser] = await db
+    .select({
+      id: users.id,
+      emailVerified: users.emailVerified,
+      trainingCompleted: users.trainingCompleted,
+      username: users.username,
+      agentTag: users.agentTag,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!dbUser) {
+    throw new GameSessionError("Operative record not found.", 401);
+  }
+
+  if (!dbUser.emailVerified) {
+    throw new GameSessionError(
+      "Department protocol requires email verification prior to launching an investigation. Please verify your email.",
+      403,
+    );
+  }
+
+  if (!dbUser.trainingCompleted || !dbUser.username || !dbUser.agentTag) {
+    throw new GameSessionError(
+      "Operative onboarding incomplete. Please confirm your callsign, agent tag, and statutory clearance.",
+      403,
+    );
   }
 
   // If team session requested, verify membership

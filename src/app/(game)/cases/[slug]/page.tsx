@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CaseFolder } from "@/components/game/folder/CaseFolder";
 import {
   GameSessionError,
@@ -31,8 +31,17 @@ export default async function CaseFilePage({ params }: { params: Promise<{ slug:
       </main>
     );
   } catch (error) {
-    if (error instanceof GameSessionError && error.statusCode === 404) {
-      notFound();
+    if (error instanceof GameSessionError) {
+      if (error.statusCode === 404) {
+        notFound();
+      }
+      if (error.statusCode === 403) {
+        // Unverified email or incomplete onboarding - redirect to appropriate stage
+        if (error.message.includes("onboarding incomplete")) {
+          redirect("/signup");
+        }
+        redirect("/cases");
+      }
     }
     throw error;
   }

@@ -16,6 +16,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "bun run src/db/seed.ts",
     "db:clear-users": "bun run --env-file .env.local src/db/clear-users.ts",
+    "db:export-audience": "bun run --env-file .env.local src/db/export-audience.ts",
     "db:studio": "drizzle-kit studio",
     "prepare": "husky"
   },

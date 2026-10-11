@@ -18,6 +18,9 @@ describe("Pinboard Validation Engine", () => {
       name: "Chief Inspector Lestrade",
       email: `${testDetective}@yard.test`,
       emailVerified: true,
+      agentTag: "904",
+      username: "lestrade_test",
+      trainingCompleted: true,
     });
 
     const { session } = await startOrResumeSession(testDetective, "case-01-missing-ledger");

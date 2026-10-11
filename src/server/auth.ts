@@ -41,7 +41,7 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: Boolean(process.env.RESEND_API_KEY),
+    requireEmailVerification: true,
   },
   emailVerification: {
     sendOnSignUp: true,
@@ -57,7 +57,11 @@ export const auth = betterAuth({
           html: `<p>Your verification code is: <strong>${token}</strong></p><p><a href="${url}">Click here to verify your account</a></p><p>This code expires in 10 minutes.</p>`,
         });
       } else {
-        console.log(`[Dev Auth] Verification code for ${user.email}: ${token} (Link: ${url})`);
+        console.log("================================================================");
+        console.log(`[DEPARTMENT DISPATCH] EMAIL VERIFICATION LINK FOR ${user.email}:`);
+        console.log(`URL: ${url}`);
+        console.log(`CODE: ${token}`);
+        console.log("================================================================");
       }
     },
   },
