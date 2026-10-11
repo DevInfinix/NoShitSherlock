@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { PinboardCorkboard } from "@/components/game/pinboard/PinboardCorkboard";
 import { startOrResumeSession } from "@/server/services/game-session-service";
-import { getPinboardDossier, PinboardError } from "@/server/services/pinboard-service";
+import { getPinboardCaseFile, PinboardError } from "@/server/services/pinboard-service";
 import { requireUser } from "@/server/session";
 
 export const dynamic = "force-dynamic";
@@ -20,11 +20,11 @@ export default async function CasePinboardPage({ params }: { params: Promise<{ s
 
   try {
     const { session } = await startOrResumeSession(user.id, slug);
-    const dossier = await getPinboardDossier(session.id, user.id);
+    const caseFile = await getPinboardCaseFile(session.id, user.id);
 
     return (
-      <main className="min-h-screen bg-ink text-paper py-8">
-        <PinboardCorkboard initialDossier={dossier} />
+      <main className="min-h-screen bg-[#0C0907] text-[#E7DDC8] py-8">
+        <PinboardCorkboard initialCaseFile={caseFile} />
       </main>
     );
   } catch (error) {

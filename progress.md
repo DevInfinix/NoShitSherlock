@@ -113,21 +113,24 @@
 
 ---
 
-## 3. Pending Information & Next Steps
-
-1. **Phase M5 Execution**: Proceed with Leaderboard (individual & squad), periodic team sync polling hook, security headers, and accessibility audit.
-2. **Operational Quality**: 18 test suites passing, zero Biome lint errors, zero TypeScript errors.
-
-Phase M4 and Auth Shell are 100% complete.
-Next focus areas:
-- **Landing Page GSAP Canvas Animation**: Interactive 3D scroll sequence using sequential frames in `public/landing/frames/`.
-- **Phase M5**: Leaderboards, squad sync, and accessibility pass.
+10. **Phase M5 & Physical Gameplay Overhaul (Current Milestone Delivered)**:
+    - Built 3D Detective Desk Environment (`src/components/game/desk/DetectiveDesk3D.tsx`) using Three.js/R3F with warm Banker Lamp lighting (2700K tungsten conic spotlight + emerald-green glass glow), authentic detective props (magnifying glass, fountain pen, glass ashtray, scattered brass paperclips), floating dust motes, and smooth camera parallax transitions.
+    - Built Physical Vintage Manila Case Folder UI (`src/components/game/folder/CaseFolder.tsx`) with aged kraft paper cardstock, die-cut section index tabs, brass eyelets, rubber evidence stamps, and sound-engine page turns.
+    - Systematically purged all remaining internal and user-facing occurrences of the word "dossier" across schemas, services, actions, components, and tests.
+    - Overhauled all 5 puzzle components into tactile forensic document formats (`FillDashesQuestion.tsx`, `McqQuestion.tsx`, `TrueFalseQuestion.tsx`, `CrypticQuestion.tsx`, `VoicemailQuestion.tsx`).
+    - Overhauled Realistic Cork Pinboard (`src/components/game/pinboard/PinboardCorkboard.tsx`) with Portuguese corkboard texture, dark walnut frame, brass corner brackets, and procedural Catmull-Rom sag red yarn thread connections.
+    - Ingested, structured, and seeded Cases 01 through 05 from `content/inbox/Cases PDF/` into `content/cases/` and database seed scripts (`src/db/seed.ts`), extracting 49 WebP image assets and generating valid audio assets.
+    - Implemented Global and Squad Leaderboards at `/leaderboard` (`src/app/(game)/leaderboard/page.tsx`, `src/server/services/leaderboard-service.ts`, `tests/leaderboard.test.ts`).
+    - Implemented lightweight team synchronization polling hook (`src/lib/hooks/use-team-sync.ts`).
+    - Configured production security headers in `next.config.ts`.
+    - Fully validated with `bun run check`: 0 Biome lint errors, 0 TypeScript errors, 21 passing test suites across 7 test files.
 
 ---
 
-## 5. Working Tree Status
+## 3. Working Tree Status
 
-- Working tree is clean.
+- Working tree is clean and fully operational.
+- All 5 cases seeded in live Neon Serverless PostgreSQL 17 database.
 - All code formatted and validated via `bun run check`.
 - Git remote: `origin` pointing to `https://github.com/DevInfinix/NoShitSherlock.git`.
 - Active branch: `main`.

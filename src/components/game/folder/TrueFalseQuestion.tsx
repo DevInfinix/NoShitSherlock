@@ -40,60 +40,83 @@ export function TrueFalseQuestion({
   };
 
   return (
-    <div className="border border-brass/40 bg-ink-raised/60 p-6 rounded-none shadow-md backdrop-blur-xs">
-      <div className="flex items-center justify-between border-b border-brass/20 pb-3 mb-4">
-        <span className="font-mono text-xs uppercase tracking-widest text-brass">
-          Question {question.sortOrder} — Testimony Verification
-        </span>
+    <div className="relative border-2 border-[#1C1510]/30 bg-[#F4EDE0] p-6 shadow-md text-[#1C1510]">
+      {/* Top Header */}
+      <div className="flex flex-wrap items-center justify-between border-b-2 border-[#1C1510]/20 pb-3 mb-4 gap-2">
+        <div>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#641B1B] font-bold block">
+            ITEM 0{question.sortOrder} {"//"} SWORN TESTIMONY VERIFICATION
+          </span>
+          <span className="font-mono text-xs text-[#554436]">AFFIDAVIT CLAUSE #{question.id}</span>
+        </div>
+
         <div className="flex items-center gap-3">
-          <span className="font-mono text-xs text-paper-muted">{question.points} PTS</span>
+          <span className="border border-[#1C1510]/30 bg-[#E8DCBF] px-2 py-0.5 font-mono text-[11px] font-bold text-[#1C1510]">
+            {question.points} PTS
+          </span>
           {isSolved && (
-            <span className="border border-evidence-red bg-evidence-red/20 px-2 py-0.5 font-mono text-xs text-evidence-red uppercase tracking-wider">
-              [SOLVED]
+            <span className="border-2 border-[#A92A28] bg-[#A92A28]/15 px-2.5 py-0.5 font-mono text-xs font-black text-[#A92A28] uppercase tracking-wider rotate-[-2deg]">
+              [VERIFIED ENTRY]
             </span>
           )}
           {isExhausted && (
-            <span className="border border-smoke bg-smoke/20 px-2 py-0.5 font-mono text-xs text-smoke uppercase tracking-wider">
-              [EXHAUSTED]
+            <span className="border-2 border-[#78716A] bg-[#78716A]/20 px-2.5 py-0.5 font-mono text-xs font-bold text-[#78716A] uppercase tracking-wider">
+              [ATTEMPTS EXHAUSTED]
             </span>
           )}
         </div>
       </div>
 
-      <p className="font-serif text-lg leading-relaxed text-paper mb-6">{question.prompt}</p>
+      {/* Testimony Statement */}
+      <div className="border-l-4 border-[#A9874A] bg-[#EAE0CD]/60 p-4 mb-6">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-[#554436] font-bold block mb-1">
+          RECORDED STATEMENT:
+        </span>
+        <p className="font-serif text-base sm:text-lg leading-relaxed text-[#1C1510] italic">
+          "{question.prompt}"
+        </p>
+      </div>
 
+      {/* Affidavit Stamp Toggles */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button
             type="button"
             disabled={isSolved || isExhausted || isSubmitting}
             onClick={() => setSelectedVal("true")}
-            className={`p-4 border font-mono text-sm tracking-wider uppercase transition-colors cursor-pointer ${
+            className={`p-4 border-2 font-mono text-sm tracking-wider uppercase flex items-center justify-center gap-3 transition-all cursor-pointer ${
               selectedVal === "true"
-                ? "border-evidence-red bg-oxblood/40 text-paper shadow-inner"
-                : "border-brass/20 bg-ink/60 text-paper-muted hover:border-brass/50 hover:text-paper"
-            } ${isSolved || isExhausted ? "opacity-50 cursor-not-allowed" : ""}`}
+                ? "border-[#A92A28] bg-[#641B1B] text-[#E7DDC8] shadow-md font-bold"
+                : "border-[#1C1510]/30 bg-[#FBF7EE] text-[#1C1510] hover:border-[#1C1510]/60 hover:bg-[#E8DCBF]"
+            } disabled:opacity-50`}
           >
-            [ TRUE / VERIFIED ]
+            <span className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-xs">
+              {selectedVal === "true" ? "✓" : ""}
+            </span>
+            <span>AFFIRMED / TRUE</span>
           </button>
 
           <button
             type="button"
             disabled={isSolved || isExhausted || isSubmitting}
             onClick={() => setSelectedVal("false")}
-            className={`p-4 border font-mono text-sm tracking-wider uppercase transition-colors cursor-pointer ${
+            className={`p-4 border-2 font-mono text-sm tracking-wider uppercase flex items-center justify-center gap-3 transition-all cursor-pointer ${
               selectedVal === "false"
-                ? "border-evidence-red bg-oxblood/40 text-paper shadow-inner"
-                : "border-brass/20 bg-ink/60 text-paper-muted hover:border-brass/50 hover:text-paper"
-            } ${isSolved || isExhausted ? "opacity-50 cursor-not-allowed" : ""}`}
+                ? "border-[#A92A28] bg-[#641B1B] text-[#E7DDC8] shadow-md font-bold"
+                : "border-[#1C1510]/30 bg-[#FBF7EE] text-[#1C1510] hover:border-[#1C1510]/60 hover:bg-[#E8DCBF]"
+            } disabled:opacity-50`}
           >
-            [ FALSE / FABRICATED ]
+            <span className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-xs">
+              {selectedVal === "false" ? "✗" : ""}
+            </span>
+            <span>REFUTED / FALSE</span>
           </button>
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-brass/20">
-          <span className="font-mono text-xs text-smoke">
-            Attempts: {attemptsUsed} / {question.maxAttempts} ({attemptsRemaining} left)
+        {/* Footer Actions */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-[#1C1510]/15">
+          <span className="font-mono text-xs text-[#554436]">
+            ATTEMPTS: {attemptsUsed} / {question.maxAttempts} ({attemptsRemaining} remaining)
           </span>
 
           <div className="flex gap-3">
@@ -101,51 +124,57 @@ export function TrueFalseQuestion({
               <button
                 type="button"
                 onClick={() => setShowHints(!showHints)}
-                className="border border-brass/40 px-3 py-1.5 font-mono text-xs text-brass hover:border-brass hover:text-paper transition-colors cursor-pointer"
+                className="border border-[#1C1510]/40 bg-[#E8DCBF]/60 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-[#1C1510] hover:bg-[#E8DCBF] transition-colors cursor-pointer"
               >
-                {showHints ? "Hide Hints" : `Hints (${hints.length})`}
+                {showHints ? "Fold Leads" : `Consult Leads (${hints.length})`}
               </button>
             )}
 
-            <button
-              type="submit"
-              disabled={!selectedVal || isSolved || isExhausted || isSubmitting}
-              className="bg-oxblood hover:bg-evidence-red text-paper px-4 py-1.5 font-mono text-xs uppercase tracking-wider border border-evidence-red/60 disabled:opacity-40 transition-colors cursor-pointer"
-            >
-              {isSubmitting ? "Verifying..." : "Attest Finding"}
-            </button>
+            {!isSolved && !isExhausted && (
+              <button
+                type="submit"
+                disabled={!selectedVal || isSubmitting}
+                className="border-2 border-[#A92A28] bg-[#641B1B] text-[#E7DDC8] px-5 py-1.5 font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#A92A28] disabled:opacity-40 transition-colors shadow-sm cursor-pointer"
+              >
+                {isSubmitting ? "Verifying..." : "Verify Deduction"}
+              </button>
+            )}
           </div>
         </div>
       </form>
 
-      {showHints && hints.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-brass/20 space-y-3">
-          <span className="font-mono text-xs text-brass uppercase tracking-widest block">
-            Investigation Wiretaps & Informant Hints
+      {/* Consulted Hints Drawer */}
+      {showHints && (
+        <div className="mt-5 border-t-2 border-dashed border-[#1C1510]/20 pt-4 space-y-3">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#641B1B] font-bold block">
+            ARCHIVAL HINTS & WITNESS DISCLOSURES:
           </span>
           {hints.map((hint) => (
             <div
               key={hint.id}
-              className="p-3 bg-ink/80 border border-brass/20 flex items-center justify-between gap-4"
+              className="border border-[#1C1510]/20 bg-[#DFD3BA]/50 p-3 font-serif text-sm text-[#1C1510]"
             >
-              <div className="text-sm font-mono text-paper-muted">
-                {hint.isUnlocked ? (
-                  <span className="text-paper">{hint.hintText}</span>
-                ) : (
-                  <span className="italic text-smoke">
-                    Locked Lead — Cost: {hint.costPoints} PTS
+              {hint.isUnlocked ? (
+                <div className="flex items-start gap-2">
+                  <span className="font-mono text-xs text-[#641B1B] font-bold">
+                    [LEAD #{hint.hintOrder}]:
                   </span>
-                )}
-              </div>
-              {!hint.isUnlocked && !isSolved && (
-                <button
-                  type="button"
-                  onClick={() => onRequestHint(hint.id)}
-                  disabled={isSubmitting}
-                  className="shrink-0 border border-brass/40 px-2 py-1 font-mono text-xs text-brass hover:bg-brass/20 transition-colors cursor-pointer"
-                >
-                  Unlock Hint
-                </button>
+                  <p className="italic leading-relaxed">{hint.hintText}</p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs text-[#554436]">
+                    Sealed lead #{hint.hintOrder} ({hint.costPoints} PTS penalty)
+                  </span>
+                  <button
+                    type="button"
+                    disabled={isSubmitting || isSolved}
+                    onClick={() => onRequestHint(hint.id)}
+                    className="border border-[#641B1B] bg-[#641B1B]/10 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-[#641B1B] hover:bg-[#641B1B] hover:text-[#E7DDC8] transition-colors cursor-pointer"
+                  >
+                    Unseal Lead (-{hint.costPoints} PTS)
+                  </button>
+                </div>
               )}
             </div>
           ))}

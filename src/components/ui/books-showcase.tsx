@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { type MouseEvent, useState } from "react";
 import { soundEngine } from "@/lib/audio/sound-engine";
 
-export interface CaseDossierCfg {
+export interface CaseFileCfg {
   id: string;
   code: string;
   title: string;
@@ -16,11 +16,13 @@ export interface CaseDossierCfg {
   cluesCount: number;
 }
 
+export type CaseDossierCfg = CaseFileCfg;
+
 interface BooksShowcaseProps {
-  cases: CaseDossierCfg[];
+  cases: CaseFileCfg[];
   heroTitle?: string;
   className?: string;
-  onSelectCase?: (c: CaseDossierCfg) => void;
+  onSelectCase?: (c: CaseFileCfg) => void;
 }
 
 export function BooksShowcase({
@@ -29,9 +31,9 @@ export function BooksShowcase({
   className = "",
   onSelectCase,
 }: BooksShowcaseProps) {
-  const [selectedCase, setSelectedCase] = useState<CaseDossierCfg | null>(cases[0] || null);
+  const [selectedCase, setSelectedCase] = useState<CaseFileCfg | null>(cases[0] || null);
 
-  const handleSelect = (c: CaseDossierCfg) => {
+  const handleSelect = (c: CaseFileCfg) => {
     soundEngine.playPaper();
     setSelectedCase(c);
     onSelectCase?.(c);
@@ -44,7 +46,7 @@ export function BooksShowcase({
         {heroTitle}
       </div>
 
-      {/* 3D Dossier Books Grid */}
+      {/* 3D Case File Books Grid */}
       <div className="grid w-full max-w-6xl grid-cols-1 gap-8 px-6 md:grid-cols-3">
         {cases.map((caseItem) => {
           const isSelected = selectedCase?.id === caseItem.id;
@@ -52,7 +54,7 @@ export function BooksShowcase({
           return (
             <CaseBookCard
               key={caseItem.id}
-              dossier={caseItem}
+              caseFile={caseItem}
               isSelected={isSelected}
               onSelect={() => handleSelect(caseItem)}
             />
@@ -60,7 +62,7 @@ export function BooksShowcase({
         })}
       </div>
 
-      {/* Selected Case Detail Dossier Sheet */}
+      {/* Selected Case Detail Sheet */}
       <AnimatePresence mode="wait">
         {selectedCase && (
           <motion.div
@@ -94,20 +96,21 @@ export function BooksShowcase({
               {selectedCase.summary}
             </p>
 
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[var(--color-brass)]/20">
-              <div className="flex items-center gap-4 text-xs font-mono text-[var(--color-paper-muted)]">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--color-brass)]/20 pt-4">
+              <div className="flex gap-4 font-mono text-xs text-[var(--color-paper-muted)]">
                 <span>SECTIONS: {selectedCase.sectionsCount}</span>
+                <span>•</span>
                 <span>CLUES: {selectedCase.cluesCount}</span>
-                <span className="text-[var(--color-evidence-red)]">
-                  SECURITY: {selectedCase.classification}
-                </span>
+                <span>•</span>
+                <span className="text-[var(--color-brass)]">{selectedCase.classification}</span>
               </div>
+
               <a
                 href="/cases"
                 onClick={() => soundEngine.playStamp()}
                 className="inline-flex items-center gap-2 border border-[var(--color-evidence-red)] bg-[var(--color-evidence-red)]/10 px-4 py-1.5 font-mono text-xs tracking-wider uppercase text-[var(--color-paper)] transition-all duration-300 hover:bg-[var(--color-evidence-red)] hover:text-[var(--color-paper)]"
               >
-                OPEN DOSSIER &rarr;
+                OPEN CASE FILE &rarr;
               </a>
             </div>
           </motion.div>
@@ -118,11 +121,11 @@ export function BooksShowcase({
 }
 
 function CaseBookCard({
-  dossier,
+  caseFile,
   isSelected,
   onSelect,
 }: {
-  dossier: CaseDossierCfg;
+  caseFile: CaseFileCfg;
   isSelected: boolean;
   onSelect: () => void;
 }) {
@@ -167,11 +170,11 @@ function CaseBookCard({
         {/* Top Case Label */}
         <div className="pl-3">
           <div className="flex items-center justify-between font-mono text-[10px] text-[var(--color-paper-muted)]">
-            <span>{dossier.code}</span>
-            <span className="text-[var(--color-brass)]">{dossier.year}</span>
+            <span>{caseFile.code}</span>
+            <span className="text-[var(--color-brass)]">{caseFile.year}</span>
           </div>
           <h4 className="mt-3 font-serif text-xl font-bold tracking-tight text-[var(--color-paper)]">
-            {dossier.title}
+            {caseFile.title}
           </h4>
         </div>
 
@@ -179,7 +182,7 @@ function CaseBookCard({
         <div className="my-6 flex items-center justify-center pl-3">
           <div className="relative flex h-24 w-24 items-center justify-center rounded-full border border-[var(--color-brass)]/30">
             <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--color-brass)]/60 text-center px-1">
-              {dossier.difficulty}
+              {caseFile.difficulty}
             </span>
             <div className="absolute inset-2 rounded-full border border-dashed border-[var(--color-evidence-red)]/40" />
           </div>

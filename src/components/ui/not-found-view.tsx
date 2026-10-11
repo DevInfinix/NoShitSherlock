@@ -85,7 +85,7 @@ export function NotFoundView() {
 
         <div className="space-y-2">
           <h2 className="font-serif text-xl font-semibold text-[var(--color-paper)]">
-            Dossier Not Found in Central Archives
+            Case File Not Found in Central Archives
           </h2>
           <p className="font-serif text-sm leading-relaxed text-[var(--color-paper-muted)]">
             The page you are tracking has been scrubbed from records, relocated under witness

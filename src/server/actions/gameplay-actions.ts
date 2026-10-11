@@ -5,7 +5,7 @@ import { z } from "zod";
 import {
   GameSessionError,
   getActiveCases,
-  getSessionDossier,
+  getSessionCaseFile,
   startOrResumeSession,
 } from "@/server/services/game-session-service";
 import { GameplayError, submitAnswer } from "@/server/services/gameplay-service";
@@ -53,20 +53,22 @@ export async function startOrResumeSessionAction(caseSlug: string, teamId?: numb
   }
 }
 
-export async function getSessionDossierAction(sessionId: number) {
+export async function getSessionCaseFileAction(sessionId: number) {
   try {
     const headerList = await headers();
     const user = await requireUser(headerList);
 
-    const dossier = await getSessionDossier(sessionId, user.id);
-    return { success: true, dossier };
+    const caseFile = await getSessionCaseFile(sessionId, user.id);
+    return { success: true, caseFile, dossier: caseFile };
   } catch (error) {
     if (error instanceof GameSessionError) {
       return { success: false, error: error.message };
     }
-    return { success: false, error: "Failed to load case dossier." };
+    return { success: false, error: "Failed to load case file." };
   }
 }
+
+export const getSessionDossierAction = getSessionCaseFileAction;
 
 export async function submitAnswerAction(input: {
   sessionId: number;

@@ -41,7 +41,7 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: Boolean(process.env.RESEND_API_KEY),
   },
   emailVerification: {
     sendOnSignUp: true,

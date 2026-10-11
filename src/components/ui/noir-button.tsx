@@ -53,7 +53,7 @@ export function NoirButton({
 
   const renderContent = () => (
     <>
-      {/* Corner Bracket Accents for Noir Dossier Aesthetic */}
+      {/* Corner Bracket Accents for Noir Case File Aesthetic */}
       {variant !== "minimal" && (
         <>
           <span className="pointer-events-none absolute top-0 left-0 h-1.5 w-1.5 border-t border-l border-[#E8DCC8]/40" />

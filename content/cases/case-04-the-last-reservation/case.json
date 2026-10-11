@@ -1,0 +1,279 @@
+{
+  "slug": "case-04-the-last-reservation",
+  "title": "The Last Reservation",
+  "description": "Celebrity food critic Kabir Sen dies suddenly during the dessert course at Le Miroir. Trace the poisoned wine batch and kitchen access logs.",
+  "difficulty": 4,
+  "maxScore": 1000,
+  "assets": [
+    {
+      "assetKey": "c4_restaurant_scene",
+      "assetType": "IMAGE",
+      "url": "/cases/case-04-the-last-reservation/images/image_1.webp",
+      "mimeType": "image/webp",
+      "altText": "Private dining table with half-eaten dessert, decanted wine bottle, and forensic evidence tags"
+    },
+    {
+      "assetKey": "c4_wiretap_audio",
+      "assetType": "AUDIO",
+      "url": "/cases/case-04-the-last-reservation/audio/wiretap.mp3",
+      "mimeType": "audio/mpeg",
+      "altText": "Recording of the private reservation call made to the restaurant matre d'"
+    }
+  ],
+  "sections": [
+    {
+      "sectionOrder": 1,
+      "title": "Section 1: The Last Course",
+      "narrative": "At 9:45 PM, critic Kabir Sen collapsed while finishing his five-course tasting menu. The digital kitchen ticket indicates a non-standard order modification entered just before plating.",
+      "questions": [
+        {
+          "questionKey": "c4_q1_course_name",
+          "questionType": "FILL_DASHES",
+          "prompt": "What seven-letter dessert course was specially sent to Kabir's private booth: 'HAZELNUT _______'?",
+          "placeholderText": "_______",
+          "correctAnswer": "SOUFFLE",
+          "points": 150,
+          "maxAttempts": 5,
+          "penaltyPerWrong": 15,
+          "sortOrder": 1,
+          "metadata": {
+            "acceptedVariants": [
+              "SOUFFLE",
+              "SOUFFL",
+              "souffle"
+            ]
+          },
+          "assetKeys": [
+            "c4_restaurant_scene"
+          ],
+          "hints": [
+            {
+              "hintText": "A delicate baked French egg dessert that collapses if left standing.",
+              "costPoints": 20,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c4_order_modification"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 2,
+      "title": "Section 2: The Wine Bottle",
+      "narrative": "The sommelier served a 2018 Saint-milion vintage. The cork was found with microscopic syringe puncture marks along the foil seal.",
+      "questions": [
+        {
+          "questionKey": "c4_q2_tampered_batch",
+          "questionType": "CRYPTIC",
+          "prompt": "Decipher the cellar inventory bin code written on the tampered vintage bottle: 'ROTATE NUMBERS: 9-0-4' -> 'FOUR-ZERO-NINE'",
+          "correctAnswer": "409",
+          "points": 200,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 25,
+          "sortOrder": 1,
+          "metadata": {
+            "cipherText": "REVERSED BIN NUMBER: 904 -> BIN 409",
+            "acceptedVariants": [
+              "409",
+              "BIN 409"
+            ]
+          },
+          "assetKeys": [],
+          "hints": [
+            {
+              "hintText": "Read the three digits in reverse order.",
+              "costPoints": 25,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c4_wine_batch"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 3,
+      "title": "Section 3: The Allergy Note",
+      "narrative": "The guest registry records an explicit medical advisory for Kabir Sen regarding lethal almond extract cross-contamination.",
+      "questions": [
+        {
+          "questionKey": "c4_q3_allergy_confirmed",
+          "questionType": "TRUE_FALSE",
+          "prompt": "True or False: The victim's severe cyanide-like amygdalin allergy was officially logged in the head chef's dietary ledger.",
+          "correctAnswer": "true",
+          "points": 150,
+          "maxAttempts": 3,
+          "penaltyPerWrong": 20,
+          "sortOrder": 1,
+          "metadata": {},
+          "assetKeys": [],
+          "hints": [
+            {
+              "hintText": "Inspect the red highlighted warning on the server station clipboard.",
+              "costPoints": 20,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c4_allergy_record"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 4,
+      "title": "Section 4: The Surveillance Reel",
+      "narrative": "Kitchen surveillance covers the pastry preparation station and sommelier lockup during dinner service.",
+      "questions": [
+        {
+          "questionKey": "c4_q4_kitchen_culprit",
+          "questionType": "MCQ",
+          "prompt": "Which staff member accessed the sommelier reserve station unaccompanied right before the dessert course was dispatched?",
+          "correctAnswer": null,
+          "points": 200,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 25,
+          "sortOrder": 1,
+          "metadata": {},
+          "assetKeys": [],
+          "options": [
+            {
+              "optionText": "Marco Rossi (Head Sommelier)",
+              "isCorrect": false,
+              "sortOrder": 1
+            },
+            {
+              "optionText": "Vivek Mehra (Pastry Sous Chef)",
+              "isCorrect": true,
+              "sortOrder": 2
+            },
+            {
+              "optionText": "Claire Vance (Floor Manager)",
+              "isCorrect": false,
+              "sortOrder": 3
+            },
+            {
+              "optionText": "Antoine Blanc (Executive Chef)",
+              "isCorrect": false,
+              "sortOrder": 4
+            }
+          ],
+          "hints": [
+            {
+              "hintText": "The chef wearing the black apron who prepared the souffl garnish.",
+              "costPoints": 30,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c4_cctv_reel"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 5,
+      "title": "Section 5: The Voicemail",
+      "narrative": "A wiretapped phone message left for the restaurant manager prior to opening explains why the critic was targeted.",
+      "questions": [
+        {
+          "questionKey": "c4_q5_critic_voicemail",
+          "questionType": "VOICEMAIL_TRANSCRIPT",
+          "prompt": "Listen to the recorded reservation tape. What career-ending rating does the caller mention Kabir was preparing to publish tomorrow?",
+          "correctAnswer": "zero",
+          "points": 250,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 30,
+          "sortOrder": 1,
+          "metadata": {
+            "transcript": "Sen is coming tonight. If his review runs tomorrow, our Michelin star is revoked and the restaurant is finished. He gave us zero stars in his draft.",
+            "callerId": "INTERNAL MANAGERIAL LINE",
+            "acceptedVariants": [
+              "zero",
+              "ZERO",
+              "zero stars",
+              "0"
+            ]
+          },
+          "assetKeys": [
+            "c4_wiretap_audio"
+          ],
+          "hints": [
+            {
+              "hintText": "The absolute lowest rating possible in culinary reviews.",
+              "costPoints": 35,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c4_reservation_voicemail"
+          ]
+        }
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "clueKey": "clue_c4_allergy_record",
+      "title": "Allergy Medical Advisory",
+      "clueText": "Kabir Sen had a documented deadly allergy to almond extracts, known to every senior chef.",
+      "chronologicalOrder": 1,
+      "metadata": {
+        "tag": "MEDICAL RECORD",
+        "timestamp": "18:00 PM"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_c4_reservation_voicemail",
+      "title": "Zero-Star Panic Recording",
+      "clueText": "Management discovered Kabir was publishing a devastating zero-star review that would bankrupt the venue.",
+      "chronologicalOrder": 2,
+      "metadata": {
+        "tag": "MOTIVE WIRE",
+        "timestamp": "19:15 PM"
+      },
+      "assetKeys": [
+        "c4_wiretap_audio"
+      ]
+    },
+    {
+      "clueKey": "clue_c4_wine_batch",
+      "title": "Tampered Wine Bin 409",
+      "clueText": "A syringe needle hole was discovered in the foil seal of the wine bottle from Bin 409.",
+      "chronologicalOrder": 3,
+      "metadata": {
+        "tag": "PHYSICAL EVIDENCE",
+        "timestamp": "20:30 PM"
+      },
+      "assetKeys": [
+        "c4_restaurant_scene"
+      ]
+    },
+    {
+      "clueKey": "clue_c4_cctv_reel",
+      "title": "Pastry Station Access Still",
+      "clueText": "Vivek Mehra was recorded entering the wine prep alcove alone immediately prior to dessert plating.",
+      "chronologicalOrder": 4,
+      "metadata": {
+        "tag": "CCTV REEL",
+        "timestamp": "21:15 PM"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_c4_order_modification",
+      "title": "Modified Dessert Order Ticket",
+      "clueText": "The digital ticket confirmed Vivek added pure bitter almond extract to Kabir's personal souffl.",
+      "chronologicalOrder": 5,
+      "metadata": {
+        "tag": "ORDER LOG",
+        "timestamp": "21:40 PM"
+      },
+      "assetKeys": []
+    }
+  ]
+}

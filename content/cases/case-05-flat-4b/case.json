@@ -1,0 +1,279 @@
+{
+  "slug": "case-05-flat-4b",
+  "title": "Flat 4B",
+  "description": "Retired judge Anand Swaminathan is discovered deceased in locked Flat 4B with the heating at maximum. Untangle the altered time of death and poisoned crossword.",
+  "difficulty": 4,
+  "maxScore": 1000,
+  "assets": [
+    {
+      "assetKey": "c5_apartment_scene",
+      "assetType": "IMAGE",
+      "url": "/cases/case-05-flat-4b/images/image_1.webp",
+      "mimeType": "image/webp",
+      "altText": "Locked apartment living room with armchair, folded morning paper, and digital thermostat set high"
+    },
+    {
+      "assetKey": "c5_wiretap_audio",
+      "assetType": "AUDIO",
+      "url": "/cases/case-05-flat-4b/audio/wiretap.mp3",
+      "mimeType": "audio/mpeg",
+      "altText": "Emergency dispatch 911 tape placed by neighbor Kavya at 01:14 AM"
+    }
+  ],
+  "sections": [
+    {
+      "sectionOrder": 1,
+      "title": "Section 1: The Locked Door",
+      "narrative": "At 01:25 AM, police were called to Flat 4B. The reinforced brass lock was turned from the outside, requiring the master key.",
+      "questions": [
+        {
+          "questionKey": "c5_q1_external_lock",
+          "questionType": "TRUE_FALSE",
+          "prompt": "True or False: The front door lock of Flat 4B had been locked from the outside with a physical latch key.",
+          "correctAnswer": "true",
+          "points": 150,
+          "maxAttempts": 3,
+          "penaltyPerWrong": 20,
+          "sortOrder": 1,
+          "metadata": {},
+          "assetKeys": [
+            "c5_apartment_scene"
+          ],
+          "hints": [
+            {
+              "hintText": "The latch cylinder had no internal thumbturn engaged.",
+              "costPoints": 20,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c5_door_latch"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 2,
+      "title": "Section 2: The Crossword",
+      "narrative": "Beside the judge's armchair, a newspaper crossword was left open. One answer was filled in with distinct handwriting and dark blue ink.",
+      "questions": [
+        {
+          "questionKey": "c5_q2_crossword_clue",
+          "questionType": "FILL_DASHES",
+          "prompt": "What six-letter clue was written for 14-Across describing an excessive medication dose: '______'?",
+          "placeholderText": "______",
+          "correctAnswer": "STRONG",
+          "points": 200,
+          "maxAttempts": 5,
+          "penaltyPerWrong": 20,
+          "sortOrder": 1,
+          "metadata": {
+            "acceptedVariants": [
+              "STRONG",
+              "LETHAL",
+              "DOSAGE"
+            ]
+          },
+          "assetKeys": [],
+          "hints": [
+            {
+              "hintText": "The opposite of weak, describing the fatal concentration.",
+              "costPoints": 25,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c5_newspaper_crossword"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 3,
+      "title": "Section 3: The Thermostat Request",
+      "narrative": "The apartment was stiflingly hot upon entry. The digital thermostat log shows the temperature was raised from 20C to 34C at 20:30 PM.",
+      "questions": [
+        {
+          "questionKey": "c5_q3_heat_purpose",
+          "questionType": "MCQ",
+          "prompt": "Why was Flat 4B's digital thermostat deliberately overridden to maximum heat?",
+          "correctAnswer": null,
+          "points": 200,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 25,
+          "sortOrder": 1,
+          "metadata": {},
+          "assetKeys": [],
+          "options": [
+            {
+              "optionText": "To trigger the apartment sprinkler system",
+              "isCorrect": false,
+              "sortOrder": 1
+            },
+            {
+              "optionText": "To accelerate body temperature decay and mask the true time of death",
+              "isCorrect": true,
+              "sortOrder": 2
+            },
+            {
+              "optionText": "To destroy photographic evidence on the desk",
+              "isCorrect": false,
+              "sortOrder": 3
+            },
+            {
+              "optionText": "To force the victim to open the balcony window",
+              "isCorrect": false,
+              "sortOrder": 4
+            }
+          ],
+          "hints": [
+            {
+              "hintText": "High ambient heat distorts forensic algor mortis calculations.",
+              "costPoints": 30,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c5_thermostat_log"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 4,
+      "title": "Section 4: The Medical Chart",
+      "narrative": "A medical prescription slip on the bedside nightstand records cardiac drops prescribed by Dr. Meera Rao.",
+      "questions": [
+        {
+          "questionKey": "c5_q4_medicine_cipher",
+          "questionType": "CRYPTIC",
+          "prompt": "Decipher the coded pharmaceutical warning on the chart: 'READ FIRST LETTERS: D-O-S-E'",
+          "correctAnswer": "DOSE",
+          "points": 200,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 25,
+          "sortOrder": 1,
+          "metadata": {
+            "cipherText": "PRESCRIPTION WARNING: D-O-S-E LETHAL",
+            "acceptedVariants": [
+              "DOSE",
+              "dose"
+            ]
+          },
+          "assetKeys": [],
+          "hints": [
+            {
+              "hintText": "The four letters spelling the measured quantity.",
+              "costPoints": 25,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c5_medical_chart"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 5,
+      "title": "Section 5: Kavya's Voicemail",
+      "narrative": "Neighbor Kavya called emergency services reporting a visitor leaving the flat in haste late that evening.",
+      "questions": [
+        {
+          "questionKey": "c5_q5_dispatch_recording",
+          "questionType": "VOICEMAIL_TRANSCRIPT",
+          "prompt": "Listen to the emergency 911 dispatch tape. What relative does Kavya report seeing locking the apartment door?",
+          "correctAnswer": "daughter",
+          "points": 250,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 30,
+          "sortOrder": 1,
+          "metadata": {
+            "transcript": "I heard footsteps rushing down the stairwell. I opened my peephole and saw his daughter Meera locking Flat 4B from the outside with her duplicate key.",
+            "callerId": "EMERGENCY 911 LOG // DISPATCH 03",
+            "acceptedVariants": [
+              "daughter",
+              "Meera",
+              "MEERA",
+              "his daughter"
+            ]
+          },
+          "assetKeys": [
+            "c5_wiretap_audio"
+          ],
+          "hints": [
+            {
+              "hintText": "The family member who also served as his personal physician.",
+              "costPoints": 35,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c5_kavya_voicemail"
+          ]
+        }
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "clueKey": "clue_c5_medical_chart",
+      "title": "Altered Cardiac Medication Chart",
+      "clueText": "Dr. Meera Rao intentionally doubled the digitalis cardiac drops prescribed to her father.",
+      "chronologicalOrder": 1,
+      "metadata": {
+        "tag": "MEDICAL CHART",
+        "timestamp": "MORNING"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_c5_newspaper_crossword",
+      "title": "Crossword Margin Notation",
+      "clueText": "The handwriting on 14-Across matched Meera's penmanship, proving she was present in the flat.",
+      "chronologicalOrder": 2,
+      "metadata": {
+        "tag": "HANDWRITING ANALYSIS",
+        "timestamp": "19:00 PM"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_c5_thermostat_log",
+      "title": "Smart Thermostat Override Log",
+      "clueText": "The thermostat was elevated to 34C at 20:30 PM to accelerate decomp and fabricate an alibi.",
+      "chronologicalOrder": 3,
+      "metadata": {
+        "tag": "SMART HOME LOG",
+        "timestamp": "20:30 PM"
+      },
+      "assetKeys": [
+        "c5_apartment_scene"
+      ]
+    },
+    {
+      "clueKey": "clue_c5_door_latch",
+      "title": "Exterior Latch Forensics",
+      "clueText": "Flat 4B was locked from the exterior hallway with a duplicate key held only by Meera.",
+      "chronologicalOrder": 4,
+      "metadata": {
+        "tag": "LOCK FORENSICS",
+        "timestamp": "21:00 PM"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_c5_kavya_voicemail",
+      "title": "Neighbor Dispatch Tape",
+      "clueText": "Neighbor Kavya's emergency call confirmed seeing Meera exit and lock the flat from outside.",
+      "chronologicalOrder": 5,
+      "metadata": {
+        "tag": "EYEWITNESS AUDIO",
+        "timestamp": "01:14 AM"
+      },
+      "assetKeys": [
+        "c5_wiretap_audio"
+      ]
+    }
+  ]
+}

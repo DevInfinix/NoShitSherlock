@@ -1,16 +1,16 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { DossierFolder } from "@/components/game/folder/DossierFolder";
+import { CaseFolder } from "@/components/game/folder/CaseFolder";
 import {
   GameSessionError,
-  getSessionDossier,
+  getSessionCaseFile,
   startOrResumeSession,
 } from "@/server/services/game-session-service";
 import { requireUser } from "@/server/session";
 
 export const dynamic = "force-dynamic";
 
-export default async function CaseDossierPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CaseFilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const headerList = await headers();
 
@@ -23,11 +23,11 @@ export default async function CaseDossierPage({ params }: { params: Promise<{ sl
 
   try {
     const { session } = await startOrResumeSession(user.id, slug);
-    const dossier = await getSessionDossier(session.id, user.id);
+    const caseFile = await getSessionCaseFile(session.id, user.id);
 
     return (
-      <main className="min-h-screen bg-ink text-paper py-8">
-        <DossierFolder initialDossier={dossier} />
+      <main className="min-h-screen bg-[#0C0907] text-[#E7DDC8]">
+        <CaseFolder initialCaseFile={caseFile} />
       </main>
     );
   } catch (error) {

@@ -1,0 +1,277 @@
+{
+  "slug": "case-03-the-vanishing-bride",
+  "title": "The Vanishing Bride",
+  "description": "On her wedding morning at a luxury resort, bride Ishita Verma disappears from a locked suite. Piece together the financial betrayal and escape path.",
+  "difficulty": 3,
+  "maxScore": 1000,
+  "assets": [
+    {
+      "assetKey": "c3_hotel_suite",
+      "assetType": "IMAGE",
+      "url": "/cases/case-03-the-vanishing-bride/images/image_1.webp",
+      "mimeType": "image/webp",
+      "altText": "Locked bridal suite with wedding gown on hanger and untouched jewelry box"
+    },
+    {
+      "assetKey": "c3_wiretap_audio",
+      "assetType": "AUDIO",
+      "url": "/cases/case-03-the-vanishing-bride/audio/wiretap.mp3",
+      "mimeType": "audio/mpeg",
+      "altText": "Final voice recording retrieved from the bride's phone in the garden"
+    }
+  ],
+  "sections": [
+    {
+      "sectionOrder": 1,
+      "title": "Section 1: The Locked Suite",
+      "narrative": "At 7:02 AM, hotel staff opened the bridal suite to find Ishita missing. The heavy mahogany door was double-deadbolted and the balcony window was latched shut from inside.",
+      "questions": [
+        {
+          "questionKey": "c3_q1_forced_entry",
+          "questionType": "TRUE_FALSE",
+          "prompt": "True or False: Forensic inspection confirmed that the bridal suite deadbolt and balcony latch suffered mechanical forced entry.",
+          "correctAnswer": "false",
+          "points": 150,
+          "maxAttempts": 3,
+          "penaltyPerWrong": 20,
+          "sortOrder": 1,
+          "metadata": {},
+          "assetKeys": [
+            "c3_hotel_suite"
+          ],
+          "hints": [
+            {
+              "hintText": "Check the locksmith report on the brass deadbolt mechanism.",
+              "costPoints": 20,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c3_door_inspection"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 2,
+      "title": "Section 2: The Money Trail",
+      "narrative": "Auditing the luxury resort accounts reveals that half of the wedding vendor deposits were siphoned off through a dummy shell company two days before the ceremony.",
+      "questions": [
+        {
+          "questionKey": "c3_q2_altered_budget",
+          "questionType": "MCQ",
+          "prompt": "What discrepancy was uncovered in the wedding vendor budget ledger?",
+          "correctAnswer": null,
+          "points": 200,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 20,
+          "sortOrder": 1,
+          "metadata": {},
+          "assetKeys": [],
+          "options": [
+            {
+              "optionText": "Jewelry receipts were double-counted",
+              "isCorrect": false,
+              "sortOrder": 1
+            },
+            {
+              "optionText": "Vendor budget funds were systematically falsified and diverted",
+              "isCorrect": true,
+              "sortOrder": 2
+            },
+            {
+              "optionText": "The catering contract was cancelled by the venue",
+              "isCorrect": false,
+              "sortOrder": 3
+            },
+            {
+              "optionText": "The honeymoon flights were overbooked",
+              "isCorrect": false,
+              "sortOrder": 4
+            }
+          ],
+          "hints": [
+            {
+              "hintText": "The groom's business partner managed the vendor bank transfers.",
+              "costPoints": 30,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c3_altered_budget"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 3,
+      "title": "Section 3: The Burned Note",
+      "narrative": "In the suite's stone fireplace, detectives recover partially charred cream parchment bearing emergency travel instructions in blue fountain ink.",
+      "questions": [
+        {
+          "questionKey": "c3_q3_burned_note_word",
+          "questionType": "FILL_DASHES",
+          "prompt": "What six-letter word is decipherable on the burned note beside the departure time: 'CONFIRMED ______ TO DUBAI'?",
+          "placeholderText": "______",
+          "correctAnswer": "FLIGHT",
+          "points": 200,
+          "maxAttempts": 5,
+          "penaltyPerWrong": 20,
+          "sortOrder": 1,
+          "metadata": {
+            "acceptedVariants": [
+              "FLIGHT",
+              "FLIGHTS"
+            ]
+          },
+          "assetKeys": [],
+          "hints": [
+            {
+              "hintText": "An international air ticket was booked under her maiden name.",
+              "costPoints": 25,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c3_burned_note"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 4,
+      "title": "Section 4: The Last Recording",
+      "narrative": "Ishita's abandoned phone in the rose garden recorded a 40-second audio memo at 04:15 AM before it was powered down.",
+      "questions": [
+        {
+          "questionKey": "c3_q4_voicemail_target",
+          "questionType": "VOICEMAIL_TRANSCRIPT",
+          "prompt": "Listen to the recovered voice memo. Who does Ishita state she had to confront about the stolen family trust funds?",
+          "correctAnswer": "Rohan",
+          "points": 200,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 25,
+          "sortOrder": 1,
+          "metadata": {
+            "transcript": "Rohan lied to everyone. The accounts are completely empty. I have the bank statements in my bag. I cannot go through with this wedding.",
+            "callerId": "ISHITA'S VOICE MEMO // GARDEN",
+            "acceptedVariants": [
+              "Rohan",
+              "ROHAN",
+              "rohan"
+            ]
+          },
+          "assetKeys": [
+            "c3_wiretap_audio"
+          ],
+          "hints": [
+            {
+              "hintText": "The groom whose family was orchestrating the merger.",
+              "costPoints": 30,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c3_phone_voicemail"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 5,
+      "title": "Section 5: The Grey Hoodie",
+      "narrative": "Perimeter security captured a lone figure in an oversized grey hoodie slipping past the service dock into a waiting vehicle at 04:45 AM.",
+      "questions": [
+        {
+          "questionKey": "c3_q5_cctv_cipher",
+          "questionType": "CRYPTIC",
+          "prompt": "Decipher the coded licence plate suffix on the getaway taxi: 'REVERSE LETTERS OF XYZ: Z-Y-X'",
+          "correctAnswer": "ZYX",
+          "points": 250,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 30,
+          "sortOrder": 1,
+          "metadata": {
+            "cipherText": "VEHICLE TAG REGISTRATION: MH-02-Z-Y-X",
+            "acceptedVariants": [
+              "ZYX",
+              "zyx"
+            ]
+          },
+          "assetKeys": [],
+          "hints": [
+            {
+              "hintText": "Simply invert the three alphabetical characters.",
+              "costPoints": 25,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c3_cctv_footage"
+          ]
+        }
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "clueKey": "clue_c3_altered_budget",
+      "title": "Falsified Wedding Ledger",
+      "clueText": "Bank audits show the groom systematically embezzled the bride's dowry trust funds weeks in advance.",
+      "chronologicalOrder": 1,
+      "metadata": {
+        "tag": "FINANCIAL FRAUD",
+        "timestamp": "2 WEEKS PRIOR"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_c3_burned_note",
+      "title": "Charred Flight Itinerary",
+      "clueText": "Ishita secured an emergency one-way flight ticket under her maiden name upon discovering the fraud.",
+      "chronologicalOrder": 2,
+      "metadata": {
+        "tag": "ESCAPE PLAN",
+        "timestamp": "01:30 AM"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_c3_door_inspection",
+      "title": "Undamaged Deadbolt Inspection",
+      "clueText": "The bridal suite door had no signs of forced entry, proving Ishita locked it behind her as she slipped away.",
+      "chronologicalOrder": 3,
+      "metadata": {
+        "tag": "CRIME SCENE",
+        "timestamp": "03:45 AM"
+      },
+      "assetKeys": [
+        "c3_hotel_suite"
+      ]
+    },
+    {
+      "clueKey": "clue_c3_phone_voicemail",
+      "title": "Garden Voice Recording",
+      "clueText": "Ishita's voice memo proves she uncovered Rohan's embezzlement and refused to proceed with the wedding.",
+      "chronologicalOrder": 4,
+      "metadata": {
+        "tag": "AUDIO DIARY",
+        "timestamp": "04:15 AM"
+      },
+      "assetKeys": [
+        "c3_wiretap_audio"
+      ]
+    },
+    {
+      "clueKey": "clue_c3_cctv_footage",
+      "title": "Service Dock Taxi Still",
+      "clueText": "Security cameras confirm Ishita boarded an airport taxi at the service dock dressed in disguise.",
+      "chronologicalOrder": 5,
+      "metadata": {
+        "tag": "CCTV EXIT",
+        "timestamp": "04:45 AM"
+      },
+      "assetKeys": []
+    }
+  ]
+}

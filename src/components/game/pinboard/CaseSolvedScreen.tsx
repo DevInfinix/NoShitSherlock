@@ -7,6 +7,7 @@ interface CaseSolvedScreenProps {
   finalScore: number;
   totalTimeSeconds: number;
   caseSlug: string;
+  totalClues?: number;
 }
 
 export function CaseSolvedScreen({
@@ -14,6 +15,7 @@ export function CaseSolvedScreen({
   finalScore,
   totalTimeSeconds,
   caseSlug,
+  totalClues,
 }: CaseSolvedScreenProps) {
   const formatTime = (secs: number) => {
     const mins = Math.floor(secs / 60);
@@ -66,7 +68,7 @@ export function CaseSolvedScreen({
         </div>
 
         {/* Score & Time Breakdown */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-ink border border-brass/30">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-ink border border-brass/30">
           <div>
             <span className="font-mono text-xs text-smoke uppercase tracking-wider block">
               FINAL DEDUCTION SCORE
@@ -76,12 +78,21 @@ export function CaseSolvedScreen({
             </span>
           </div>
 
-          <div className="border-t md:border-t-0 md:border-l border-brass/20 pt-4 md:pt-0">
+          <div className="border-t md:border-t-0 md:border-l border-brass/20 pt-4 md:pt-0 pl-0 md:pl-6">
             <span className="font-mono text-xs text-smoke uppercase tracking-wider block">
               TOTAL ELAPSED TIME
             </span>
             <span className="font-mono text-3xl md:text-4xl text-brass font-bold">
               {formatTime(totalTimeSeconds)}
+            </span>
+          </div>
+
+          <div className="border-t md:border-t-0 md:border-l border-brass/20 pt-4 md:pt-0 pl-0 md:pl-6">
+            <span className="font-mono text-xs text-smoke uppercase tracking-wider block">
+              EVIDENCE ASSEMBLED
+            </span>
+            <span className="font-mono text-3xl md:text-4xl text-paper font-bold">
+              {totalClues ?? "ALL"} CLUES
             </span>
           </div>
         </div>
@@ -110,7 +121,7 @@ export function CaseSolvedScreen({
             href={`/cases/${caseSlug}`}
             className="border border-brass/40 px-6 py-3 font-mono text-xs uppercase tracking-wider text-paper-muted hover:border-brass hover:text-paper transition-colors"
           >
-            Review Evidence Dossier
+            Review Evidence File
           </Link>
         </div>
       </div>

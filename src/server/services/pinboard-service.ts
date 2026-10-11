@@ -29,7 +29,7 @@ export interface SanitizedPinboardClue {
   metadata: Record<string, unknown> | null;
 }
 
-export interface PinboardDossier {
+export interface PinboardCaseFile {
   session: typeof gameSessions.$inferSelect;
   case: {
     id: number;
@@ -44,6 +44,8 @@ export interface PinboardDossier {
     submittedAt: Date;
   };
 }
+
+export type PinboardDossier = PinboardCaseFile;
 
 export interface SubmitPinboardResult {
   isCorrect: boolean;
@@ -64,10 +66,10 @@ const PINBOARD_WRONG_PENALTY = 50;
  * Retrieve clues ready for pinboard arrangement.
  * NEVER leaks `chronological_order` to the client.
  */
-export async function getPinboardDossier(
+export async function getPinboardCaseFile(
   sessionId: number,
   userId: string,
-): Promise<PinboardDossier> {
+): Promise<PinboardCaseFile> {
   const { session } = await verifySessionAccess(sessionId, userId);
 
   const [caseRecord] = await db.select().from(cases).where(eq(cases.id, session.caseId)).limit(1);
@@ -116,6 +118,8 @@ export async function getPinboardDossier(
       : undefined,
   };
 }
+
+export const getPinboardDossier = getPinboardCaseFile;
 
 /**
  * Validates a submitted clue sequence against authoritative chronological order.
@@ -219,7 +223,7 @@ export async function submitPinboard({
       const expectedOrder = orderMap.get(clueId);
 
       if (expectedOrder === undefined) {
-        throw new PinboardError(`Clue ID ${clueId} does not belong to this case dossier.`, 400);
+        throw new PinboardError(`Clue ID ${clueId} does not belong to this case file.`, 400);
       }
 
       const placedPosition = i + 1;

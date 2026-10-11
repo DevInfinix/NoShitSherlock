@@ -26,10 +26,14 @@ export function SortableClueCard({
     disabled,
   });
 
+  // Natural subtle tilt angle based on clue ID (between -2.5deg and +2.5deg)
+  const baseTilt = (((clue.id * 13) % 9) - 4) * 0.55;
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : 1,
+    zIndex: isDragging ? 50 : 2,
+    rotate: isDragging ? "0deg" : `${baseTilt}deg`,
   };
 
   const meta = clue.metadata as {
@@ -42,51 +46,55 @@ export function SortableClueCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative border-2 border-brass/50 bg-ink-raised p-5 shadow-xl transition-shadow select-none ${
+      data-clue-card
+      className={`relative border-2 border-[#D4C3A3] bg-[#F4EDE0] p-5 shadow-xl transition-all select-none text-[#1C1510] ${
         isDragging
-          ? "opacity-60 ring-2 ring-evidence-red shadow-2xl"
-          : "hover:border-brass hover:shadow-2xl"
+          ? "opacity-85 ring-4 ring-[#A92A28] shadow-2xl scale-105"
+          : "hover:border-[#A9874A] hover:shadow-2xl"
       }`}
     >
-      {/* Decorative Brass Pushpin at top center */}
-      <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-evidence-red border-2 border-paper flex items-center justify-center shadow-md z-10">
-        <span className="w-1.5 h-1.5 rounded-full bg-paper" />
+      {/* Authentic Brass / Lacquered Pushpin at top center */}
+      <div
+        data-pushpin
+        className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-gradient-to-br from-[#E6BE75] via-[#C59E58] to-[#8C6B2D] border border-[#FFE8B3] flex items-center justify-center shadow-[0_3px_6px_rgba(0,0,0,0.6)] z-20"
+      >
+        <span className="w-2 h-2 rounded-full bg-[#A92A28] shadow-inner" />
       </div>
 
       {/* Card Header & Sequence Indicator */}
-      <div className="flex items-center justify-between border-b border-brass/20 pb-3 mb-3 pt-1">
-        <span className="font-mono text-xs font-bold text-evidence-red tracking-wider">
-          TIMELINE #{index + 1}
+      <div className="flex items-center justify-between border-b border-[#1C1510]/15 pb-2.5 mb-3 pt-1">
+        <span className="font-mono text-xs font-black text-[#A92A28] tracking-widest uppercase">
+          TIMELINE POS #{index + 1}
         </span>
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] uppercase text-brass bg-ink px-2 py-0.5 border border-brass/30">
+        <div className="flex items-center gap-1.5">
+          <span className="font-mono text-[10px] uppercase text-[#1C1510] bg-[#DFD3BA] px-2 py-0.5 border border-[#CBB895] font-bold">
             {clue.clueKey}
           </span>
           {meta?.tag && (
-            <span className="font-mono text-[10px] uppercase text-smoke">[{meta.tag}]</span>
+            <span className="font-mono text-[10px] uppercase text-[#641B1B] font-bold">
+              [{meta.tag}]
+            </span>
           )}
         </div>
       </div>
 
-      {/* Card Body / Drag Handle */}
+      {/* Card Drag Handle Body */}
       <div
         {...attributes}
         {...listeners}
         className="cursor-grab active:cursor-grabbing focus:outline-hidden"
       >
-        <h3 className="font-serif text-lg text-paper font-semibold leading-snug mb-2">
+        <h3 className="font-serif text-lg font-bold leading-snug mb-2 text-[#1C1510]">
           {clue.title}
         </h3>
-        <p className="font-serif text-paper-muted text-xs leading-relaxed line-clamp-3">
+        <p className="font-serif text-xs leading-relaxed text-[#382D24] line-clamp-4">
           {clue.clueText}
         </p>
       </div>
 
-      {/* Keyboard Accessibility Controls */}
-      <div className="mt-4 pt-3 border-t border-brass/20 flex items-center justify-between">
-        <span className="font-mono text-[10px] text-smoke">
-          {meta?.timestamp ?? "Time Recorded"}
-        </span>
+      {/* Footer Details & Accessible Reorder Controls */}
+      <div className="mt-4 pt-2.5 border-t border-[#1C1510]/15 flex items-center justify-between text-[#554436]">
+        <span className="font-mono text-[10px] font-bold">{meta?.timestamp ?? "INCIDENT LOG"}</span>
 
         <div className="flex items-center gap-1.5">
           <button
@@ -94,7 +102,7 @@ export function SortableClueCard({
             disabled={disabled || index === 0}
             onClick={onMoveUp}
             aria-label={`Move clue ${clue.title} earlier in timeline`}
-            className="border border-brass/40 px-2 py-0.5 font-mono text-[10px] text-brass hover:border-brass disabled:opacity-20 transition-colors cursor-pointer"
+            className="border border-[#1C1510]/30 bg-[#E8DCBF]/50 px-2 py-0.5 font-mono text-[10px] text-[#1C1510] hover:bg-[#E8DCBF] disabled:opacity-25 transition-colors cursor-pointer"
           >
             &uarr; EARLIER
           </button>
@@ -103,7 +111,7 @@ export function SortableClueCard({
             disabled={disabled || index >= totalCount - 1}
             onClick={onMoveDown}
             aria-label={`Move clue ${clue.title} later in timeline`}
-            className="border border-brass/40 px-2 py-0.5 font-mono text-[10px] text-brass hover:border-brass disabled:opacity-20 transition-colors cursor-pointer"
+            className="border border-[#1C1510]/30 bg-[#E8DCBF]/50 px-2 py-0.5 font-mono text-[10px] text-[#1C1510] hover:bg-[#E8DCBF] disabled:opacity-25 transition-colors cursor-pointer"
           >
             &darr; LATER
           </button>

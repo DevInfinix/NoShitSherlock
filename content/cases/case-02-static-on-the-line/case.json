@@ -1,0 +1,277 @@
+{
+  "slug": "case-02-static-on-the-line",
+  "title": "Static on the Line",
+  "description": "Late-night radio host Arjun Kapoor collapses live on air from a fast-acting sedative. Reconstruct the timeline to unmask the perpetrator.",
+  "difficulty": 3,
+  "maxScore": 1000,
+  "assets": [
+    {
+      "assetKey": "c2_studio_crime_scene",
+      "assetType": "IMAGE",
+      "url": "/cases/case-02-static-on-the-line/images/image_1.webp",
+      "mimeType": "image/webp",
+      "altText": "Late-night radio studio with microphone, unfinished coffee cup, and broadcast controls"
+    },
+    {
+      "assetKey": "c2_wiretap_audio",
+      "assetType": "AUDIO",
+      "url": "/cases/case-02-static-on-the-line/audio/wiretap.mp3",
+      "mimeType": "audio/mpeg",
+      "altText": "Corrupted caller recording from 20 minutes before the broadcast collapse"
+    }
+  ],
+  "sections": [
+    {
+      "sectionOrder": 1,
+      "title": "Section 1: The Missing Dose",
+      "narrative": "At 11:00 PM, radio host Arjun Kapoor slumped over his microphone during a live call-in show. Hospital toxicology reveals a fast-acting sedative. The first lead points to the studio medical supplies, where code RX-114 is unaccounted for.",
+      "questions": [
+        {
+          "questionKey": "c2_q1_substance_type",
+          "questionType": "FILL_DASHES",
+          "prompt": "Inspect the medical inventory logs and pharmacy cross-check. What category of substance was missing item RX-114?",
+          "placeholderText": "________",
+          "correctAnswer": "SEDATIVE",
+          "points": 150,
+          "maxAttempts": 5,
+          "penaltyPerWrong": 15,
+          "sortOrder": 1,
+          "metadata": {
+            "acceptedVariants": [
+              "SEDATIVE",
+              "FAST ACTING SEDATIVE"
+            ]
+          },
+          "assetKeys": [
+            "c2_studio_crime_scene"
+          ],
+          "hints": [
+            {
+              "hintText": "The compound is a pharmaceutical downer used to suppress agitation.",
+              "costPoints": 25,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c2_pharmacy_record"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 2,
+      "title": "Section 2: The Name That Disappeared",
+      "narrative": "The front desk security log records everyone entering and leaving the broadcast suite. One signature on the 10:30 PM entry has been violently crossed out with black fountain pen ink.",
+      "questions": [
+        {
+          "questionKey": "c2_q2_crossed_out_name",
+          "questionType": "MCQ",
+          "prompt": "Examine the studio sign-in roster. Whose name was crossed out in an attempt to fabricate an early alibi?",
+          "correctAnswer": null,
+          "points": 200,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 20,
+          "sortOrder": 1,
+          "metadata": {},
+          "assetKeys": [],
+          "options": [
+            {
+              "optionText": "Sunita Iyer (Sound Engineer)",
+              "isCorrect": false,
+              "sortOrder": 1
+            },
+            {
+              "optionText": "Deepak Nair (Show Producer)",
+              "isCorrect": true,
+              "sortOrder": 2
+            },
+            {
+              "optionText": "Farah Sheikh (Assistant)",
+              "isCorrect": false,
+              "sortOrder": 3
+            },
+            {
+              "optionText": "Thomas Crane (Station Director)",
+              "isCorrect": false,
+              "sortOrder": 4
+            }
+          ],
+          "hints": [
+            {
+              "hintText": "Look at the producer's initials beside the scratched timestamp.",
+              "costPoints": 30,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c2_crossed_out_signin"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 3,
+      "title": "Section 3: The Second Entry",
+      "narrative": "While the main lobby camera shows no second entry, the rear fire-escape sensor logged a latch release at 10:48 PM, shortly before Arjun went on air.",
+      "questions": [
+        {
+          "questionKey": "c2_q3_fire_exit_reentry",
+          "questionType": "TRUE_FALSE",
+          "prompt": "True or False: The rear fire-exit surveillance footage confirms Deepak re-entered the studio after his departure was recorded.",
+          "correctAnswer": "true",
+          "points": 200,
+          "maxAttempts": 3,
+          "penaltyPerWrong": 30,
+          "sortOrder": 1,
+          "metadata": {},
+          "assetKeys": [],
+          "hints": [
+            {
+              "hintText": "Review the timecode on camera feed #04 covering the alley door.",
+              "costPoints": 35,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c2_fire_exit_footage"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 4,
+      "title": "Section 4: Static on the Line",
+      "narrative": "Twenty minutes before the broadcast collapse, an anonymous caller phoned the hotline. The transmission suffered electromagnetic interference, but key words were recovered.",
+      "questions": [
+        {
+          "questionKey": "c2_q4_caller_warning",
+          "questionType": "VOICEMAIL_TRANSCRIPT",
+          "prompt": "Listen to the wiretap recording. What drink container does the frantic caller tell Arjun to inspect before he drinks from it?",
+          "correctAnswer": "coffee",
+          "points": 200,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 25,
+          "sortOrder": 1,
+          "metadata": {
+            "transcript": "Arjun... don't touch it... check the coffee before you drink it, Arjun... he came back through the fire door...",
+            "callerId": "HOTLINE CALLER // LINE 02",
+            "acceptedVariants": [
+              "coffee",
+              "COFFEE",
+              "coffee cup"
+            ]
+          },
+          "assetKeys": [
+            "c2_wiretap_audio"
+          ],
+          "hints": [
+            {
+              "hintText": "The host's ceramic mug was found knocked over on the desk.",
+              "costPoints": 30,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c2_caller_recording"
+          ]
+        }
+      ]
+    },
+    {
+      "sectionOrder": 5,
+      "title": "Section 5: The Exit Plan",
+      "narrative": "In the producer's locked desk drawer, investigators uncover an unsent resignation draft detailing a fraudulent kickback scheme, alongside travel tickets.",
+      "questions": [
+        {
+          "questionKey": "c2_q5_flight_destination",
+          "questionType": "CRYPTIC",
+          "prompt": "Decipher the travel destination found with the producer's confession letter: 'By the time you read this I\\'ll be in ____'",
+          "correctAnswer": "Goa",
+          "points": 250,
+          "maxAttempts": 4,
+          "penaltyPerWrong": 30,
+          "sortOrder": 1,
+          "metadata": {
+            "cipherText": "TICKET DESTINATION: G-O-A // FLIGHT 602",
+            "acceptedVariants": [
+              "goa",
+              "GOA"
+            ]
+          },
+          "assetKeys": [],
+          "hints": [
+            {
+              "hintText": "The seaside coastal state known for domestic holiday flights.",
+              "costPoints": 40,
+              "hintOrder": 1
+            }
+          ],
+          "unlockedClueKeys": [
+            "clue_c2_draft_resignation"
+          ]
+        }
+      ]
+    }
+  ],
+  "clues": [
+    {
+      "clueKey": "clue_c2_pharmacy_record",
+      "title": "Pharmacy Dispensation Record",
+      "clueText": "RX-114 sedative was officially prescribed to Deepak Nair three weeks prior to the poisoning.",
+      "chronologicalOrder": 1,
+      "metadata": {
+        "tag": "FORENSIC PHARMACY",
+        "timestamp": "3 WEEKS PRIOR"
+      },
+      "assetKeys": [
+        "c2_studio_crime_scene"
+      ]
+    },
+    {
+      "clueKey": "clue_c2_draft_resignation",
+      "title": "Draft Resignation & Ad-Fraud Exposure",
+      "clueText": "Arjun had drafted a memo exposing Deepak's illegal kickback scheme, giving Deepak immediate motive.",
+      "chronologicalOrder": 2,
+      "metadata": {
+        "tag": "FINANCIAL MOTIVE",
+        "timestamp": "10:15 PM"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_c2_crossed_out_signin",
+      "title": "Crossed-Out Sign-In Sheet",
+      "clueText": "Deepak crossed out his name on the studio sign-out log to establish an alibi that he had departed.",
+      "chronologicalOrder": 3,
+      "metadata": {
+        "tag": "SECURITY LOG",
+        "timestamp": "10:30 PM"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_c2_fire_exit_footage",
+      "title": "Fire-Exit Surveillance Still",
+      "clueText": "Surveillance camera #4 captured Deepak slipping back into the studio through the alley fire exit.",
+      "chronologicalOrder": 4,
+      "metadata": {
+        "tag": "CCTV FOOTAGE",
+        "timestamp": "10:48 PM"
+      },
+      "assetKeys": []
+    },
+    {
+      "clueKey": "clue_c2_caller_recording",
+      "title": "Anonymous Hotline Warning Tape",
+      "clueText": "Sunita phoned into the show warning Arjun not to drink from his coffee mug moments before he collapsed.",
+      "chronologicalOrder": 5,
+      "metadata": {
+        "tag": "AUDIO TAP",
+        "timestamp": "11:02 PM"
+      },
+      "assetKeys": [
+        "c2_wiretap_audio"
+      ]
+    }
+  ]
+}

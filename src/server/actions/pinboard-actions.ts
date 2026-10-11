@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import {
-  getPinboardDossier,
+  getPinboardCaseFile,
   PinboardError,
   submitPinboard,
 } from "@/server/services/pinboard-service";
@@ -18,7 +18,7 @@ const submitPinboardSchema = z.object({
   clueOrder: z.array(z.coerce.number().int().positive()).min(1),
 });
 
-export async function getPinboardDossierAction(sessionId: number) {
+export async function getPinboardCaseFileAction(sessionId: number) {
   try {
     const headerList = await headers();
     const user = await requireUser(headerList);
@@ -28,8 +28,8 @@ export async function getPinboardDossierAction(sessionId: number) {
       return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid session ID." };
     }
 
-    const dossier = await getPinboardDossier(parsed.data.sessionId, user.id);
-    return { success: true, dossier };
+    const caseFile = await getPinboardCaseFile(parsed.data.sessionId, user.id);
+    return { success: true, caseFile, dossier: caseFile };
   } catch (error) {
     if (error instanceof PinboardError) {
       return { success: false, error: error.message };
@@ -37,6 +37,8 @@ export async function getPinboardDossierAction(sessionId: number) {
     return { success: false, error: "Failed to load pinboard evidence." };
   }
 }
+
+export const getPinboardDossierAction = getPinboardCaseFileAction;
 
 export async function submitPinboardAction(input: { sessionId: number; clueOrder: number[] }) {
   try {

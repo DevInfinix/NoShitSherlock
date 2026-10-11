@@ -649,7 +649,7 @@ export function SignupForm() {
               <div className="space-y-6 font-selnora text-lg sm:text-xl text-[#1c1714] leading-relaxed">
                 <div className="border-l-4 border-oxblood pl-4">
                   <h3 className="font-valmist font-bold text-base sm:text-lg uppercase text-[#641b1b]">
-                    1. Sequential Dossier Investigation
+                    1. Sequential Case Investigation
                   </h3>
                   <p className="mt-1">
                     Cold cases unfold across five numbered puzzle sections. Clues remain concealed

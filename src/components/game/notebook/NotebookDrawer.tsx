@@ -109,7 +109,7 @@ export function NotebookDrawer({ unlockedClues }: NotebookDrawerProps) {
                 {filteredClues.length === 0 ? (
                   <div className="p-8 text-center border border-dashed border-brass/30 text-paper-muted font-mono text-xs">
                     {unlockedClues.length === 0
-                      ? "No evidence items recovered yet. Solve deductions in the active dossier to unlock field clues."
+                      ? "No evidence items recovered yet. Solve deductions in the active case file to unlock field clues."
                       : "No evidence items matching this category tag."}
                   </div>
                 ) : (

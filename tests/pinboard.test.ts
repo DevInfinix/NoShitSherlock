@@ -3,7 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { clues, gameSessions, users } from "@/db/schema";
 import { startOrResumeSession } from "@/server/services/game-session-service";
-import { getPinboardDossier, submitPinboard } from "@/server/services/pinboard-service";
+import { getPinboardCaseFile, submitPinboard } from "@/server/services/pinboard-service";
 
 describe("Pinboard Validation Engine", () => {
   const timestamp = Date.now();
@@ -33,15 +33,15 @@ describe("Pinboard Validation Engine", () => {
     await db.delete(users).where(eq(users.id, testDetective));
   });
 
-  it("retrieves pinboard dossier without leaking chronological order", async () => {
+  it("retrieves pinboard case file without leaking chronological order", async () => {
     if (!process.env.DATABASE_URL || !sessionId) return;
 
-    const dossier = await getPinboardDossier(sessionId, testDetective);
-    expect(dossier.case.title).toBe("The Missing Ledger");
-    expect(dossier.isCompleted).toBe(false);
+    const caseFile = await getPinboardCaseFile(sessionId, testDetective);
+    expect(caseFile.case.title).toBe("The Missing Ledger");
+    expect(caseFile.isCompleted).toBe(false);
 
     // Security check: zero leakage of chronological_order
-    for (const c of dossier.clues) {
+    for (const c of caseFile.clues) {
       expect((c as unknown as { chronologicalOrder?: unknown }).chronologicalOrder).toBeUndefined();
     }
   }, 15000);

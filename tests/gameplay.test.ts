@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { gameSessions, questionOptions, questions, users } from "@/db/schema";
 import {
-  getSessionDossier,
+  getSessionCaseFile,
   startOrResumeSession,
   verifySessionAccess,
 } from "@/server/services/game-session-service";
@@ -76,15 +76,15 @@ describe("Gameplay Engine & Concurrency", () => {
     await expect(verifySessionAccess(session.id, testIntruder)).rejects.toThrow(/Access denied/);
   }, 15000);
 
-  it("retrieves dossier without leaking correct answers or option solutions", async () => {
+  it("retrieves case file without leaking correct answers or option solutions", async () => {
     if (!process.env.DATABASE_URL || !soloSessionId) return;
 
-    const dossier = await getSessionDossier(soloSessionId, testUserA);
-    expect(dossier.sections.length).toBe(5);
-    expect(dossier.questions.length).toBeGreaterThanOrEqual(5);
+    const caseFile = await getSessionCaseFile(soloSessionId, testUserA);
+    expect(caseFile.sections.length).toBe(5);
+    expect(caseFile.questions.length).toBeGreaterThanOrEqual(5);
 
     // Verify security requirement: zero answer leakage
-    for (const q of dossier.questions) {
+    for (const q of caseFile.questions) {
       expect((q as unknown as { correctAnswer?: unknown }).correctAnswer).toBeUndefined();
       for (const opt of q.options) {
         expect((opt as unknown as { isCorrect?: unknown }).isCorrect).toBeUndefined();
@@ -95,8 +95,8 @@ describe("Gameplay Engine & Concurrency", () => {
   it("evaluates wrong answers with score penalty clamping and enforces max attempts", async () => {
     if (!process.env.DATABASE_URL || !soloSessionId) return;
 
-    const dossier = await getSessionDossier(soloSessionId, testUserA);
-    const targetQ = dossier.questions[0];
+    const caseFile = await getSessionCaseFile(soloSessionId, testUserA);
+    const targetQ = caseFile.questions[0];
     expect(targetQ).toBeDefined();
     if (!targetQ) return;
 
@@ -117,8 +117,8 @@ describe("Gameplay Engine & Concurrency", () => {
   it("unlocks hints, deducts points, and returns unlocked hint on subsequent calls", async () => {
     if (!process.env.DATABASE_URL || !soloSessionId) return;
 
-    const dossier = await getSessionDossier(soloSessionId, testUserA);
-    const targetHint = dossier.hints[0];
+    const caseFile = await getSessionCaseFile(soloSessionId, testUserA);
+    const targetHint = caseFile.hints[0];
     if (!targetHint) return;
 
     const unlock = await requestHint({
@@ -149,8 +149,8 @@ describe("Gameplay Engine & Concurrency", () => {
     // Wait past anti-spam interval
     await new Promise((resolve) => setTimeout(resolve, 1600));
 
-    const dossier = await getSessionDossier(soloSessionId, testUserA);
-    const targetQ = dossier.questions[0];
+    const caseFile = await getSessionCaseFile(soloSessionId, testUserA);
+    const targetQ = caseFile.questions[0];
     if (!targetQ) return;
 
     const [authQ] = await db.select().from(questions).where(eq(questions.id, targetQ.id));
@@ -197,8 +197,8 @@ describe("Gameplay Engine & Concurrency", () => {
     const { session } = await startOrResumeSession(testUserA, "case-01-missing-ledger", testTeamId);
     teamSessionId = session.id;
 
-    const dossier = await getSessionDossier(teamSessionId, testUserA);
-    const targetQ = dossier.questions[1] ?? dossier.questions[0];
+    const caseFile = await getSessionCaseFile(teamSessionId, testUserA);
+    const targetQ = caseFile.questions[1] ?? caseFile.questions[0];
     if (!targetQ) return;
 
     const [authQ] = await db.select().from(questions).where(eq(questions.id, targetQ.id));

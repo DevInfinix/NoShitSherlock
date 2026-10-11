@@ -86,7 +86,7 @@ export async function startOrResumeSession(
     .limit(1);
 
   if (!activeCase) {
-    throw new GameSessionError("Case dossier not found or currently archived.", 404);
+    throw new GameSessionError("Case file not found or currently archived.", 404);
   }
 
   // If team session requested, verify membership
@@ -229,7 +229,7 @@ export interface UnlockedClue {
   unlockedAt: Date;
 }
 
-export interface SessionDossier {
+export interface SessionCaseFile {
   session: SessionWithOwnership;
   case: {
     id: number;
@@ -260,20 +260,22 @@ export interface SessionDossier {
   hints: SanitizedHint[];
 }
 
+export type SessionDossier = SessionCaseFile;
+
 /**
- * Retrieve the full sanitized dossier for an investigation session.
+ * Retrieve the full sanitized case file for an investigation session.
  * NEVER leaks correct_answer or is_correct to the client.
  */
-export async function getSessionDossier(
+export async function getSessionCaseFile(
   sessionId: number,
   userId: string,
-): Promise<SessionDossier> {
+): Promise<SessionCaseFile> {
   const { session } = await verifySessionAccess(sessionId, userId);
 
   const [caseRecord] = await db.select().from(cases).where(eq(cases.id, session.caseId)).limit(1);
 
   if (!caseRecord) {
-    throw new GameSessionError("Case dossier not found.", 404);
+    throw new GameSessionError("Case file not found.", 404);
   }
 
   // Fetch sections
@@ -430,6 +432,8 @@ export async function getSessionDossier(
     hints: sanitizedHints,
   };
 }
+
+export const getSessionDossier = getSessionCaseFile;
 
 export interface ActiveCaseListing {
   id: number;

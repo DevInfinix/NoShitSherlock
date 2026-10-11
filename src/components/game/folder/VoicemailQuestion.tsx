@@ -49,7 +49,7 @@ export function VoicemailQuestion({
 
   const audioUrl = meta?.audioUrl ?? null;
   const transcript = meta?.transcript ?? null;
-  const callerId = meta?.callerId ?? "UNKNOWN CALLER / TAP 04";
+  const callerId = meta?.callerId ?? "UNKNOWN CALLER // WIRETAP CHANNEL 04";
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -94,38 +94,50 @@ export function VoicemailQuestion({
   };
 
   return (
-    <div className="border border-brass/40 bg-ink-raised/60 p-6 rounded-none shadow-md backdrop-blur-xs">
-      <div className="flex items-center justify-between border-b border-brass/20 pb-3 mb-4">
-        <span className="font-mono text-xs uppercase tracking-widest text-brass">
-          Question {question.sortOrder} — Wiretap Intercept
-        </span>
+    <div className="relative border-2 border-[#1C1510]/30 bg-[#F4EDE0] p-6 shadow-md text-[#1C1510]">
+      {/* Top Header */}
+      <div className="flex flex-wrap items-center justify-between border-b-2 border-[#1C1510]/20 pb-3 mb-4 gap-2">
+        <div>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#641B1B] font-bold block">
+            ITEM 0{question.sortOrder} {"//"} WIRETAP SURVEILLANCE INTERCEPT
+          </span>
+          <span className="font-mono text-xs text-[#554436]">AUDIO LOG ENTRY #{question.id}</span>
+        </div>
+
         <div className="flex items-center gap-3">
-          <span className="font-mono text-xs text-paper-muted">{question.points} PTS</span>
+          <span className="border border-[#1C1510]/30 bg-[#E8DCBF] px-2 py-0.5 font-mono text-[11px] font-bold text-[#1C1510]">
+            {question.points} PTS
+          </span>
           {isSolved && (
-            <span className="border border-evidence-red bg-evidence-red/20 px-2 py-0.5 font-mono text-xs text-evidence-red uppercase tracking-wider">
-              [SOLVED]
+            <span className="border-2 border-[#A92A28] bg-[#A92A28]/15 px-2.5 py-0.5 font-mono text-xs font-black text-[#A92A28] uppercase tracking-wider rotate-[-2deg]">
+              [INTERCEPT SOLVED]
             </span>
           )}
           {isExhausted && (
-            <span className="border border-smoke bg-smoke/20 px-2 py-0.5 font-mono text-xs text-smoke uppercase tracking-wider">
-              [EXHAUSTED]
+            <span className="border-2 border-[#78716A] bg-[#78716A]/20 px-2.5 py-0.5 font-mono text-xs font-bold text-[#78716A] uppercase tracking-wider">
+              [ATTEMPTS EXHAUSTED]
             </span>
           )}
         </div>
       </div>
 
-      <p className="font-serif text-lg leading-relaxed text-paper mb-4">{question.prompt}</p>
+      {/* Forensic Prompt */}
+      <p className="font-serif text-base sm:text-lg leading-relaxed text-[#1C1510] mb-5 font-medium">
+        {question.prompt}
+      </p>
 
-      {/* Retro Cassette Wiretap Unit */}
-      <div className="mb-6 p-4 bg-ink border border-brass/40 rounded-xs">
-        <div className="flex items-center justify-between border-b border-brass/20 pb-2 mb-3">
-          <span className="font-mono text-xs text-evidence-red uppercase tracking-wider flex items-center gap-2">
+      {/* Analog Reel-to-Reel Wiretap Unit */}
+      <div className="mb-6 p-4 sm:p-5 bg-[#201813] border-2 border-[#A9874A]/60 rounded-xs text-[#E7DDC8] shadow-lg">
+        <div className="flex items-center justify-between border-b border-[#A9874A]/30 pb-3 mb-4">
+          <span className="font-mono text-xs text-[#E7DDC8] uppercase tracking-wider flex items-center gap-2">
             <span
-              className={`w-2 h-2 rounded-full ${isPlaying ? "bg-evidence-red animate-pulse" : "bg-smoke"}`}
+              className={`w-2.5 h-2.5 rounded-full ${
+                isPlaying ? "bg-[#A92A28] animate-pulse" : "bg-[#78716A]"
+              }`}
             />
             {callerId}
           </span>
-          <span className="font-mono text-xs text-smoke">
+          <span className="font-mono text-xs text-[#A9874A]">
             {formatTime(currentTime)} / {formatTime(duration || 0)}
           </span>
         </div>
@@ -143,59 +155,92 @@ export function VoicemailQuestion({
           </audio>
         ) : null}
 
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={togglePlay}
-            disabled={!audioUrl}
-            className="border border-brass/60 px-4 py-1.5 font-mono text-xs uppercase tracking-wider text-brass hover:bg-brass/20 disabled:opacity-40 transition-colors cursor-pointer"
-          >
-            {isPlaying ? "PAUSE TAPE" : "PLAY INTERCEPT"}
-          </button>
+        {/* Vintage Reel Spools & Waveform Visualizer */}
+        <div className="flex flex-wrap items-center justify-between gap-4 py-3">
+          <div className="flex items-center gap-6">
+            {/* Left Tape Reel */}
+            <div
+              className={`w-12 h-12 rounded-full border-2 border-[#A9874A] flex items-center justify-center bg-[#15100C] ${
+                isPlaying ? "animate-spin" : ""
+              }`}
+            >
+              <div className="w-4 h-4 rounded-full border border-[#A9874A] bg-[#A9874A]/30" />
+            </div>
 
-          <button
-            type="button"
-            onClick={() => setShowTranscript(!showTranscript)}
-            className="border border-brass/30 px-3 py-1.5 font-mono text-xs text-paper-muted hover:text-paper hover:border-brass/60 transition-colors cursor-pointer"
-          >
-            {showTranscript ? "Hide Transcript" : "View Wiretap Transcript"}
-          </button>
+            {/* Play / Pause Toggle Button */}
+            <button
+              type="button"
+              onClick={togglePlay}
+              className="border-2 border-[#A9874A] bg-[#A9874A]/20 hover:bg-[#A9874A] hover:text-[#15100C] text-[#E7DDC8] px-5 py-2 font-mono text-xs tracking-wider uppercase transition-all shadow-md cursor-pointer"
+            >
+              {isPlaying ? "Pause Tape" : "Play Surveillance Tape"}
+            </button>
+
+            {/* Right Tape Reel */}
+            <div
+              className={`w-12 h-12 rounded-full border-2 border-[#A9874A] flex items-center justify-center bg-[#15100C] ${
+                isPlaying ? "animate-spin" : ""
+              }`}
+            >
+              <div className="w-4 h-4 rounded-full border border-[#A9874A] bg-[#A9874A]/30" />
+            </div>
+          </div>
+
+          {/* Transcript Accordion Button */}
+          {transcript && (
+            <button
+              type="button"
+              onClick={() => setShowTranscript(!showTranscript)}
+              className="border border-[#A9874A]/50 bg-[#15100C] px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-[#A9874A] hover:bg-[#A9874A]/10 transition-colors cursor-pointer"
+            >
+              {showTranscript ? "Hide Log" : "View Stenographer Transcript"}
+            </button>
+          )}
         </div>
 
-        {/* Expandable Wiretap Transcript for Accessibility & Fallback */}
-        {showTranscript && (
-          <div className="mt-4 p-3 bg-ink-raised border-l-2 border-evidence-red text-sm font-mono text-paper-muted leading-relaxed">
-            <span className="text-xs uppercase text-brass block mb-1">
-              Official Wiretap Log Transcript:
-            </span>
-            {transcript ??
-              "Audio transcript note: Inspect audio recording carefully for background sound clues and spoken passwords."}
-          </div>
-        )}
+        {/* Tape Progress Scrub Bar */}
+        <div className="mt-3 w-full bg-[#15100C] h-2 border border-[#A9874A]/40 overflow-hidden">
+          <div
+            className="bg-[#A92A28] h-full transition-all duration-100"
+            style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+          />
+        </div>
       </div>
 
+      {/* Stenographer Transcript Paper Note */}
+      {showTranscript && transcript && (
+        <div className="mb-6 border-l-4 border-[#641B1B] bg-[#E8DCBF]/70 p-4 font-mono text-xs sm:text-sm leading-relaxed text-[#1C1510] shadow-inner">
+          <span className="text-[10px] uppercase tracking-widest block text-[#641B1B] font-bold mb-1">
+            CERTIFIED WIRETAP TRANSCRIPT {"//"} STENOGRAPHY RECORD:
+          </span>
+          <p className="whitespace-pre-line italic">{transcript}</p>
+        </div>
+      )}
+
+      {/* Submission Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor={inputId}
-            className="font-mono text-xs text-paper-muted uppercase tracking-wider block mb-1"
+            className="font-mono text-[10px] uppercase tracking-widest text-[#554436] font-bold block mb-1"
           >
-            Recovered Intelligence:
+            INTERCEPT DEDUCTION (NAME, CODEWORD, OR CRITICAL FACT):
           </label>
           <input
             id={inputId}
             type="text"
             value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
             disabled={isSolved || isExhausted || isSubmitting}
-            placeholder={question.placeholderText ?? "Enter intercepted information..."}
-            className="w-full bg-ink border border-brass/50 p-2.5 font-mono text-sm uppercase text-paper placeholder-smoke focus:border-evidence-red focus:outline-hidden disabled:opacity-50 transition-colors"
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder="Type your audio deduction here..."
+            className="w-full border-2 border-[#1C1510]/50 bg-[#FFFFFF] p-3 font-mono text-base uppercase font-bold text-[#1C1510] focus:border-[#A92A28] focus:outline-hidden disabled:opacity-60 shadow-inner"
           />
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-brass/20">
-          <span className="font-mono text-xs text-smoke">
-            Attempts: {attemptsUsed} / {question.maxAttempts} ({attemptsRemaining} left)
+        {/* Footer Actions */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-[#1C1510]/15">
+          <span className="font-mono text-xs text-[#554436]">
+            ATTEMPTS: {attemptsUsed} / {question.maxAttempts} ({attemptsRemaining} remaining)
           </span>
 
           <div className="flex gap-3">
@@ -203,51 +248,57 @@ export function VoicemailQuestion({
               <button
                 type="button"
                 onClick={() => setShowHints(!showHints)}
-                className="border border-brass/40 px-3 py-1.5 font-mono text-xs text-brass hover:border-brass hover:text-paper transition-colors cursor-pointer"
+                className="border border-[#1C1510]/40 bg-[#E8DCBF]/60 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-[#1C1510] hover:bg-[#E8DCBF] transition-colors cursor-pointer"
               >
-                {showHints ? "Hide Hints" : `Hints (${hints.length})`}
+                {showHints ? "Fold Leads" : `Consult Leads (${hints.length})`}
               </button>
             )}
 
-            <button
-              type="submit"
-              disabled={!answer.trim() || isSolved || isExhausted || isSubmitting}
-              className="bg-oxblood hover:bg-evidence-red text-paper px-4 py-1.5 font-mono text-xs uppercase tracking-wider border border-evidence-red/60 disabled:opacity-40 transition-colors cursor-pointer"
-            >
-              {isSubmitting ? "Verifying..." : "File Wiretap Deduction"}
-            </button>
+            {!isSolved && !isExhausted && (
+              <button
+                type="submit"
+                disabled={!answer.trim() || isSubmitting}
+                className="border-2 border-[#A92A28] bg-[#641B1B] text-[#E7DDC8] px-5 py-1.5 font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#A92A28] disabled:opacity-40 transition-colors shadow-sm cursor-pointer"
+              >
+                {isSubmitting ? "Verifying..." : "Verify Deduction"}
+              </button>
+            )}
           </div>
         </div>
       </form>
 
-      {showHints && hints.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-brass/20 space-y-3">
-          <span className="font-mono text-xs text-brass uppercase tracking-widest block">
-            Investigation Wiretaps & Informant Hints
+      {/* Consulted Hints Drawer */}
+      {showHints && (
+        <div className="mt-5 border-t-2 border-dashed border-[#1C1510]/20 pt-4 space-y-3">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#641B1B] font-bold block">
+            ARCHIVAL HINTS & WITNESS DISCLOSURES:
           </span>
           {hints.map((hint) => (
             <div
               key={hint.id}
-              className="p-3 bg-ink/80 border border-brass/20 flex items-center justify-between gap-4"
+              className="border border-[#1C1510]/20 bg-[#DFD3BA]/50 p-3 font-serif text-sm text-[#1C1510]"
             >
-              <div className="text-sm font-mono text-paper-muted">
-                {hint.isUnlocked ? (
-                  <span className="text-paper">{hint.hintText}</span>
-                ) : (
-                  <span className="italic text-smoke">
-                    Locked Lead — Cost: {hint.costPoints} PTS
+              {hint.isUnlocked ? (
+                <div className="flex items-start gap-2">
+                  <span className="font-mono text-xs text-[#641B1B] font-bold">
+                    [LEAD #{hint.hintOrder}]:
                   </span>
-                )}
-              </div>
-              {!hint.isUnlocked && !isSolved && (
-                <button
-                  type="button"
-                  onClick={() => onRequestHint(hint.id)}
-                  disabled={isSubmitting}
-                  className="shrink-0 border border-brass/40 px-2 py-1 font-mono text-xs text-brass hover:bg-brass/20 transition-colors cursor-pointer"
-                >
-                  Unlock Hint
-                </button>
+                  <p className="italic leading-relaxed">{hint.hintText}</p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs text-[#554436]">
+                    Sealed lead #{hint.hintOrder} ({hint.costPoints} PTS penalty)
+                  </span>
+                  <button
+                    type="button"
+                    disabled={isSubmitting || isSolved}
+                    onClick={() => onRequestHint(hint.id)}
+                    className="border border-[#641B1B] bg-[#641B1B]/10 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-[#641B1B] hover:bg-[#641B1B] hover:text-[#E7DDC8] transition-colors cursor-pointer"
+                  >
+                    Unseal Lead (-{hint.costPoints} PTS)
+                  </button>
+                </div>
               )}
             </div>
           ))}
