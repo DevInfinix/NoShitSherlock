@@ -29,8 +29,9 @@ export function PinnedCaseCard3D({
 }: PinnedCaseCard3DProps) {
   const meshRef = useRef<THREE.Group>(null);
   const pointerOffset = useRef({ x: 0, y: 0 });
+  const dimMeshRef = useRef<THREE.Mesh>(null);
 
-  // 1. Procedural Aged Manila Paper Texture
+  // 1. Procedural Heavy-Aged Manila Paper Texture
   const paperTexture = useMemo(
     () =>
       createAgedPaperTexture(
@@ -46,23 +47,42 @@ export function PinnedCaseCard3D({
     () =>
       new THREE.MeshStandardMaterial({
         color: new THREE.Color("#C59E58"),
-        metalness: 0.85,
-        roughness: 0.25,
+        metalness: 0.88,
+        roughness: 0.22,
       }),
     [],
   );
 
-  // 3. Multi-surface Paper Material (Front has dossier graphics, back/edges have kraft paper)
+  // 3. Multi-surface Paper Material with vertex displacement corner-curling
   const paperMaterials = useMemo(() => {
     const edgeMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color("#D8C9AE"),
-      roughness: 0.85,
+      color: new THREE.Color("#C9B896"),
+      roughness: 0.9,
     });
+
     const frontMat = new THREE.MeshStandardMaterial({
       map: paperTexture,
-      roughness: 0.75,
-      metalness: 0.05,
+      roughness: 0.82,
+      metalness: 0.03,
     });
+
+    // Custom vertex shader displacement injection for dog-eared corner curling
+    frontMat.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader.replace(
+        "#include <begin_vertex>",
+        `
+        #include <begin_vertex>
+        // Physical page curl on bottom-right corner and top-left corner
+        float brDist = length(vec2(uv.x - 0.96, uv.y - 0.04));
+        float brCurl = smoothstep(0.42, 0.0, brDist) * 0.065;
+        float tlDist = length(vec2(uv.x - 0.04, uv.y - 0.96));
+        float tlCurl = smoothstep(0.35, 0.0, tlDist) * 0.035;
+        float bow = sin(uv.x * 3.14159) * sin(uv.y * 3.14159) * 0.02;
+        transformed.z += brCurl + tlCurl + bow;
+        `,
+      );
+    };
+
     return [edgeMat, edgeMat, edgeMat, edgeMat, frontMat, edgeMat];
   }, [paperTexture]);
 
@@ -75,44 +95,52 @@ export function PinnedCaseCard3D({
   useFrame((_, delta) => {
     if (!meshRef.current) return;
 
-    // Target Z position: Lifts forward by 0.65 units when hovered
-    const targetZ = position[2] + (isHovered ? 0.65 : 0);
+    // Smooth Z elevation on hover (+0.85 forward toward flashlight)
+    const targetZ = position[2] + (isHovered ? 0.85 : 0);
     meshRef.current.position.z = THREE.MathUtils.damp(
       meshRef.current.position.z,
       targetZ,
-      6.0,
+      6.5,
       delta,
     );
 
-    // Target Tilt Rotation: reacts to pointer when hovered, rests at baseRotationZ when idle
-    const targetRotX = isHovered ? pointerOffset.current.y * 0.25 : 0;
-    const targetRotY = isHovered ? pointerOffset.current.x * 0.25 : 0;
+    // Dynamic tilt following pointer coordinates
+    const targetRotX = isHovered ? pointerOffset.current.y * 0.28 : 0;
+    const targetRotY = isHovered ? pointerOffset.current.x * 0.28 : 0;
     const targetRotZ = isHovered ? 0 : baseRotationZ;
 
     meshRef.current.rotation.x = THREE.MathUtils.damp(
       meshRef.current.rotation.x,
       targetRotX,
-      5.0,
+      5.5,
       delta,
     );
     meshRef.current.rotation.y = THREE.MathUtils.damp(
       meshRef.current.rotation.y,
       targetRotY,
-      5.0,
+      5.5,
       delta,
     );
     meshRef.current.rotation.z = THREE.MathUtils.damp(
       meshRef.current.rotation.z,
       targetRotZ,
-      5.0,
+      5.5,
       delta,
     );
 
-    // Scale dampening for tactile spring pop with responsive scale multiplier
-    const targetScale = (isHovered ? 1.08 : 1.0) * scale;
+    // Tactile spring scale multiplier
+    const targetScale = (isHovered ? 1.07 : 1.0) * scale;
     meshRef.current.scale.setScalar(
       THREE.MathUtils.damp(meshRef.current.scale.x, targetScale, 6.0, delta),
     );
+
+    // Chiaroscuro smooth dimming shroud (fades smoothly down to 80% opacity when dimmed)
+    if (dimMeshRef.current) {
+      const targetDimOpacity = isDimmed ? 0.78 : 0.0;
+      const mat = dimMeshRef.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = THREE.MathUtils.damp(mat.opacity, targetDimOpacity, 7.0, delta);
+      dimMeshRef.current.visible = mat.opacity > 0.01;
+    }
   });
 
   return (
@@ -130,7 +158,6 @@ export function PinnedCaseCard3D({
       }}
       onPointerMove={(e) => {
         e.stopPropagation();
-        // Viewport relative pointer tilt coordinates
         pointerOffset.current = {
           x: (e.uv?.x ?? 0.5) - 0.5,
           y: (e.uv?.y ?? 0.5) - 0.5,
@@ -141,18 +168,16 @@ export function PinnedCaseCard3D({
         onSelect(caseItem);
       }}
     >
-      {/* 3D Paper Dossier Cardstock Mesh */}
+      {/* 3D Paper Dossier Cardstock Mesh with 32x32 segments for vertex displacement */}
       <mesh material={paperMaterials} castShadow receiveShadow>
-        <boxGeometry args={[1.85, 2.5, 0.02]} />
+        <boxGeometry args={[1.85, 2.5, 0.02, 16, 16, 1]} />
       </mesh>
 
-      {/* Atmospheric Dimming Shroud when another card is hovered */}
-      {isDimmed && (
-        <mesh position={[0, 0, 0.015]}>
-          <planeGeometry args={[1.86, 2.51]} />
-          <meshBasicMaterial color="#0A0807" transparent opacity={0.65} />
-        </mesh>
-      )}
+      {/* Atmospheric Dimming Shroud with smooth opacity transition */}
+      <mesh ref={dimMeshRef} position={[0, 0, 0.016]} visible={false}>
+        <planeGeometry args={[1.87, 2.52]} />
+        <meshBasicMaterial color="#060504" transparent opacity={0} />
+      </mesh>
 
       {/* Heavy Brass Pushpin at top center of paper */}
       <group position={[0, 1.15, 0.05]}>
@@ -174,7 +199,7 @@ export function PinnedCaseCard3D({
         </mesh>
       </group>
 
-      {/* Optional Gold Brass Paperclip at top-right corner */}
+      {/* Gold Brass Paperclip at top-right corner */}
       <group position={[0.7, 1.05, 0.02]} rotation={[0, 0, 0.35]}>
         <mesh material={brassMaterial}>
           <torusGeometry args={[0.08, 0.012, 8, 16, Math.PI * 1.5]} />

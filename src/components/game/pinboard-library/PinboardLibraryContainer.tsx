@@ -29,8 +29,18 @@ export function PinboardLibraryContainer({
   const [hoveredCase, setHoveredCase] = useState<ActiveCaseListing | null>(null);
   const [selectedCase, setSelectedCase] = useState<ActiveCaseListing | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: -300, y: -300 });
 
-  // Close inspection on Escape key
+  // Track cursor position for custom detective flashlight beam
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  // Close inspection modal on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -66,8 +76,8 @@ export function PinboardLibraryContainer({
   };
 
   return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-[#0A0806] text-[#E7DDC8] select-none">
-      {/* 1. Fullscreen 3D WebGL / R3F Canvas Layer (Covers 100% Viewport) */}
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-[#080605] text-[#E7DDC8] select-none cursor-none">
+      {/* 1. Fullscreen 3D WebGL / R3F Canvas Layer */}
       <div className="absolute inset-0 z-0">
         <PinboardLibrary3D
           cases={cases}
@@ -78,20 +88,31 @@ export function PinboardLibraryContainer({
         />
       </div>
 
-      {/* 2. Soft Atmospheric Peripheral Vignette */}
-      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(10,8,6,0.6)_85%,rgba(10,8,6,0.95)_100%)]" />
+      {/* 2. Soft Atmospheric Vignette */}
+      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(8,6,5,0.7)_80%,rgba(8,6,5,0.98)_100%)]" />
 
-      {/* 3. Top Immersive Floating HUD Bar */}
+      {/* 3. Detective Flashlight Cursor Beam */}
+      <div
+        className="pointer-events-none fixed z-20 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full transition-transform duration-75 ease-out"
+        style={{
+          left: `${mousePos.x}px`,
+          top: `${mousePos.y}px`,
+          background:
+            "radial-gradient(circle, rgba(255,243,220,0.16) 0%, rgba(255,243,220,0.05) 45%, transparent 75%)",
+        }}
+      />
+
+      {/* 4. Top Immersive Floating HUD Bar */}
       <div className="absolute top-4 inset-x-4 sm:inset-x-8 z-20 pointer-events-none flex flex-wrap items-center justify-between gap-4">
         {/* Top Left: Department Evidence Seal */}
-        <div className="pointer-events-auto border border-[#A9874A]/40 bg-[#120E0B]/90 px-4 py-2 backdrop-blur-md shadow-xl flex items-center gap-3">
+        <div className="pointer-events-auto border border-[#A9874A]/40 bg-[#100D0A]/90 px-4 py-2 backdrop-blur-md shadow-xl flex items-center gap-3">
           <span className="w-2.5 h-2.5 rounded-full bg-[#A7192D] animate-pulse" />
           <div>
             <span className="font-mono text-[10px] uppercase tracking-widest text-[#A9874A] font-bold block">
-              METROPOLITAN POLICE {"//"} CENTRAL COLD FILE WALL
+              METROPOLITAN POLICE {"//"} GREEN FELT NOTICEBOARD
             </span>
             <span className="font-serif text-xs text-[#E7DDC8]">
-              {cases.length} RESTRICTED EVIDENCE FILES PINNED
+              {cases.length} RESTRICTED EVIDENCE CASES PINNED
             </span>
           </div>
         </div>
@@ -100,13 +121,13 @@ export function PinboardLibraryContainer({
         <div className="pointer-events-auto flex items-center gap-3">
           <Link
             href="/leaderboard"
-            className="border border-[#A9874A]/40 bg-[#120E0B]/90 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-[#A9874A] hover:border-[#A9874A] hover:bg-[#A9874A]/10 transition-colors backdrop-blur-md shadow-lg"
+            className="border border-[#A9874A]/40 bg-[#100D0A]/90 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-[#A9874A] hover:border-[#A9874A] hover:bg-[#A9874A]/10 transition-colors backdrop-blur-md shadow-lg"
           >
             Clearance Registry &rarr;
           </Link>
 
           {currentUser ? (
-            <div className="flex items-center gap-2 border border-[#A9874A]/40 bg-[#120E0B]/90 px-3 py-1.5 backdrop-blur-md shadow-lg font-mono text-[11px]">
+            <div className="flex items-center gap-2 border border-[#A9874A]/40 bg-[#100D0A]/90 px-3 py-1.5 backdrop-blur-md shadow-lg font-mono text-[11px]">
               <span className="text-[#B8AD98]">OPERATIVE:</span>
               <span className="text-[#E7DDC8] font-bold">
                 {currentUser.name ?? currentUser.email}
@@ -125,7 +146,7 @@ export function PinboardLibraryContainer({
           ) : (
             <Link
               href="/login"
-              className="border border-[#A9874A]/40 bg-[#120E0B]/90 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-[#E7DDC8] hover:border-[#A9874A] backdrop-blur-md"
+              className="border border-[#A9874A]/40 bg-[#100D0A]/90 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-[#E7DDC8] hover:border-[#A9874A] backdrop-blur-md"
             >
               Sign In
             </Link>
@@ -133,28 +154,23 @@ export function PinboardLibraryContainer({
         </div>
       </div>
 
-      {/* 4. Bottom Hover Status Ribbon (Provides instant hover feedback without covering cards) */}
+      {/* 5. Bottom Subtle Case Status Indicator */}
       <div className="absolute bottom-4 inset-x-4 sm:inset-x-8 z-20 pointer-events-none flex items-center justify-between">
-        <div className="pointer-events-auto border border-[#A9874A]/40 bg-[#120E0B]/90 px-4 py-2 backdrop-blur-md shadow-xl text-left max-w-lg">
+        <div className="pointer-events-auto border border-[#A9874A]/40 bg-[#100D0A]/90 px-4 py-2 backdrop-blur-md shadow-xl text-left max-w-lg">
           {hoveredCase ? (
             <div className="space-y-0.5">
               <span className="font-mono text-[10px] uppercase tracking-widest text-[#A7192D] font-bold block">
-                [INSPECT TARGET] FILE #{hoveredCase.id}: {hoveredCase.title}
+                [EXHIBIT TARGET] FILE #{hoveredCase.id}: {hoveredCase.title}
               </span>
               <span className="font-serif text-xs text-[#E7DDC8] block truncate">
-                Level: {"★".repeat(hoveredCase.difficulty)} {"//"} Click to unroll forensic dossier
-                & evidence photos
+                Difficulty: {"★".repeat(hoveredCase.difficulty)} {"//"} Click to unroll forensic
+                dossier
               </span>
             </div>
           ) : (
-            <div className="space-y-0.5">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[#78716A] block">
-                [IMMERSIVE 3D EVIDENCE WALL]
-              </span>
-              <span className="font-serif text-xs text-[#B8AD98] block">
-                Hover to inspect cards &bull; Click to open high-resolution forensic briefing
-              </span>
-            </div>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#78716A] block">
+              [CINEMATIC NOTICEBOARD {"//"} FLASHLIGHT ACTIVE]
+            </span>
           )}
         </div>
 
@@ -173,7 +189,7 @@ export function PinboardLibraryContainer({
                 className={`border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
                   isSelected || isHovered
                     ? "border-[#A7192D] bg-[#641B1B] text-[#E7DDC8] font-bold shadow-md scale-105"
-                    : "border-[#A9874A]/30 bg-[#120E0B]/80 text-[#B8AD98] hover:border-[#A9874A]"
+                    : "border-[#A9874A]/30 bg-[#100D0A]/80 text-[#B8AD98] hover:border-[#A9874A]"
                 }`}
               >
                 FILE #{c.id}
@@ -183,7 +199,7 @@ export function PinboardLibraryContainer({
         </div>
       </div>
 
-      {/* 5. Center Forensic Case Incise Modal (Opens reliably on click, no hover-fight) */}
+      {/* 6. Center Forensic Case Incise Modal (Stable click-to-unroll, zero hover race) */}
       <AnimatePresence>
         {selectedCase && (
           <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
@@ -193,7 +209,7 @@ export function PinboardLibraryContainer({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedCase(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-pointer"
+              className="absolute inset-0 bg-black/85 backdrop-blur-md cursor-pointer"
             />
 
             {/* Modal Content */}

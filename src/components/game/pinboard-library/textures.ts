@@ -1,61 +1,54 @@
 import * as THREE from "three";
 
 /**
- * Generates an ultra-detailed procedural Portuguese cork texture with micro-pores,
- * natural bark flecks, and depth variation.
+ * Generates an ultra-detailed procedural Green Felt Baize police noticeboard texture
+ * with micro-fibers, velvet weave, and pin puncture marks.
  */
-export function createProceduralCorkTexture(size = 512): {
+export function createProceduralGreenFeltTexture(size = 512): {
   diffuse: THREE.Texture;
   bump: THREE.Texture;
 } {
   if (typeof window === "undefined") {
-    // SSR fallback dummy textures
     return {
       diffuse: new THREE.Texture(),
       bump: new THREE.Texture(),
     };
   }
 
-  // 1. Diffuse Color Map
   const dCanvas = document.createElement("canvas");
   dCanvas.width = size;
   dCanvas.height = size;
   const dCtx = dCanvas.getContext("2d");
 
-  // 2. Bump Depth Map
   const bCanvas = document.createElement("canvas");
   bCanvas.width = size;
   bCanvas.height = size;
   const bCtx = bCanvas.getContext("2d");
 
   if (dCtx && bCtx) {
-    // Base cork warm amber-brown wash
-    dCtx.fillStyle = "#795436";
+    // 1. Deep forest green base
+    dCtx.fillStyle = "#122015";
     dCtx.fillRect(0, 0, size, size);
 
     bCtx.fillStyle = "#808080";
     bCtx.fillRect(0, 0, size, size);
 
-    // Multi-layered pore noise and flecks
+    // 2. Microfiber velvet noise
     const imgData = dCtx.getImageData(0, 0, size, size);
     const dPixels = imgData.data;
     const bImgData = bCtx.getImageData(0, 0, size, size);
     const bPixels = bImgData.data;
 
     for (let i = 0; i < dPixels.length; i += 4) {
-      // High-frequency noise
-      const n1 = (Math.random() - 0.5) * 35;
-      const n2 = Math.random() < 0.08 ? (Math.random() - 0.5) * 60 : 0; // occasional deep pore
-      const n3 = Math.random() < 0.03 ? 40 : 0; // light bark fleck
+      const n = (Math.random() - 0.5) * 25;
+      const fiber = Math.random() < 0.05 ? 20 : 0; // tiny felt fiber
 
-      // RGB tone modulation
-      dPixels[i] = Math.min(255, Math.max(0, 121 + n1 + n2 + n3)); // Red
-      dPixels[i + 1] = Math.min(255, Math.max(0, 84 + n1 * 0.8 + n2 + n3)); // Green
-      dPixels[i + 2] = Math.min(255, Math.max(0, 54 + n1 * 0.6 + n2 + n3)); // Blue
+      dPixels[i] = Math.min(255, Math.max(0, 18 + n * 0.4)); // Deep red channel
+      dPixels[i + 1] = Math.min(255, Math.max(0, 32 + n + fiber)); // Forest green
+      dPixels[i + 2] = Math.min(255, Math.max(0, 21 + n * 0.5)); // Deep blue
       dPixels[i + 3] = 255;
 
-      // Bump height
-      const height = Math.min(255, Math.max(0, 128 + n1 * 2 + n2 * 3));
+      const height = Math.min(255, Math.max(0, 128 + n * 1.5 + fiber * 2));
       bPixels[i] = height;
       bPixels[i + 1] = height;
       bPixels[i + 2] = height;
@@ -65,15 +58,19 @@ export function createProceduralCorkTexture(size = 512): {
     dCtx.putImageData(imgData, 0, 0);
     bCtx.putImageData(bImgData, 0, 0);
 
-    // Add subtle larger organic bark patches
-    for (let j = 0; j < 30; j++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const r = Math.random() * 25 + 5;
-      dCtx.fillStyle = Math.random() > 0.5 ? "rgba(91, 62, 37, 0.25)" : "rgba(148, 110, 74, 0.2)";
+    // 3. Subtle scattered pushpin puncture marks from past cold cases
+    for (let p = 0; p < 45; p++) {
+      const px = Math.random() * size;
+      const py = Math.random() * size;
+      dCtx.fillStyle = "rgba(6, 12, 8, 0.6)";
       dCtx.beginPath();
-      dCtx.arc(x, y, r, 0, Math.PI * 2);
+      dCtx.arc(px, py, 1.8, 0, Math.PI * 2);
       dCtx.fill();
+
+      bCtx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      bCtx.beginPath();
+      bCtx.arc(px, py, 2.0, 0, Math.PI * 2);
+      bCtx.fill();
     }
   }
 
@@ -91,8 +88,49 @@ export function createProceduralCorkTexture(size = 512): {
 }
 
 /**
- * Generates an aged Manila paper texture with deckle edge roughness,
- * subtle crease lines, and coffee/patina rings.
+ * Generates a soft GoBo texture casting subtle, diffuse window grill / blind shadows.
+ */
+export function createSoftWindowBlindGoBoTexture(size = 512): THREE.Texture {
+  if (typeof window === "undefined") {
+    return new THREE.Texture();
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) return new THREE.Texture(canvas);
+
+  // Soft ambient illuminated base
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, size, size);
+
+  // Blurred window slats & crossbars
+  ctx.filter = "blur(14px)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+
+  // Horizontal blind slats
+  const slatCount = 9;
+  const step = size / slatCount;
+  for (let i = 0; i < slatCount; i++) {
+    ctx.fillRect(0, i * step + step * 0.25, size, step * 0.45);
+  }
+
+  // Vertical window mullion dividing the frame
+  ctx.fillRect(size * 0.48, 0, size * 0.08, size);
+
+  ctx.filter = "none";
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  return texture;
+}
+
+/**
+ * Generates an aged Manila paper texture with heavy weathering,
+ * crease fold displacement lines, coffee stains, and burned/weathered edges.
  */
 export function createAgedPaperTexture(
   title: string,
@@ -106,32 +144,58 @@ export function createAgedPaperTexture(
 
   const canvas = document.createElement("canvas");
   canvas.width = size;
-  canvas.height = size * 1.35; // Standard 3:4 dossier aspect ratio
+  canvas.height = Math.round(size * 1.35); // 3:4.05 dossier aspect ratio
   const ctx = canvas.getContext("2d");
 
   if (!ctx) {
-    return new THREE.CanvasTexture(canvas);
+    return new THREE.Texture(canvas);
   }
 
   const w = canvas.width;
   const h = canvas.height;
 
-  // 1. Aged manila background
-  const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, w * 0.7);
-  bgGrad.addColorStop(0, "#F2EADB");
-  bgGrad.addColorStop(0.7, "#E6DBC5");
-  bgGrad.addColorStop(1, "#D6C7AC");
+  // 1. Aged manila parchment radial gradient
+  const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, w * 0.75);
+  bgGrad.addColorStop(0, "#EAE0CD");
+  bgGrad.addColorStop(0.65, "#DECFAf");
+  bgGrad.addColorStop(1, "#C9B692");
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, w, h);
 
-  // 2. Weathered edges & subtle vignette
-  ctx.fillStyle = "rgba(70, 50, 30, 0.08)";
-  ctx.fillRect(0, 0, w, 16);
-  ctx.fillRect(0, h - 16, w, 16);
-  ctx.fillRect(0, 0, 16, h);
-  ctx.fillRect(w - 16, 0, 16, h);
+  // 2. Weathered, burnt/stained deckle edges
+  ctx.fillStyle = "rgba(60, 42, 22, 0.12)";
+  ctx.fillRect(0, 0, w, 20);
+  ctx.fillRect(0, h - 20, w, 20);
+  ctx.fillRect(0, 0, 20, h);
+  ctx.fillRect(w - 20, 0, 20, h);
 
-  // 3. Faint ledger ruled margin line
+  // 3. Central horizontal & diagonal crease fold lines
+  ctx.strokeStyle = "rgba(80, 58, 36, 0.14)";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(0, h * 0.48);
+  ctx.lineTo(w, h * 0.49);
+  ctx.moveTo(0, h * 0.72);
+  ctx.lineTo(w, h * 0.73);
+  ctx.stroke();
+
+  // Highlight crease reflection line
+  ctx.strokeStyle = "rgba(255, 250, 240, 0.25)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, h * 0.48 - 2);
+  ctx.lineTo(w, h * 0.49 - 2);
+  ctx.stroke();
+
+  // 4. Twin staple puncture holes at top margin
+  ctx.fillStyle = "#120E0A";
+  ctx.fillRect(w * 0.35, 12, 10, 3);
+  ctx.fillRect(w * 0.65, 12, 10, 3);
+  ctx.fillStyle = "rgba(140, 95, 55, 0.4)"; // rust stain around staple
+  ctx.fillRect(w * 0.35 - 3, 10, 16, 7);
+  ctx.fillRect(w * 0.65 - 3, 10, 16, 7);
+
+  // 5. Red Ledger Margin Line
   ctx.strokeStyle = "rgba(167, 25, 45, 0.35)";
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -139,11 +203,11 @@ export function createAgedPaperTexture(
   ctx.lineTo(42, h);
   ctx.stroke();
 
-  // 4. Header Classification Stamp
+  // 6. Header Classification Rubber Stamp
   ctx.save();
   ctx.translate(w / 2, 60);
-  ctx.rotate(-0.04);
-  ctx.strokeStyle = "rgba(167, 25, 45, 0.85)";
+  ctx.rotate(-0.035);
+  ctx.strokeStyle = "rgba(167, 25, 45, 0.88)";
   ctx.lineWidth = 3;
   ctx.strokeRect(-160, -22, 320, 44);
 
@@ -153,59 +217,59 @@ export function createAgedPaperTexture(
   ctx.fillText(`CONFIDENTIAL // ${code}`, 0, 6);
   ctx.restore();
 
-  // 5. Official Case Title
+  // 7. Case Title
   ctx.fillStyle = "#1C1510";
-  ctx.font = "bold 26px Georgia, serif";
+  ctx.font = "bold 25px Georgia, serif";
   ctx.textAlign = "left";
-  ctx.fillText(title, 60, 140);
+  ctx.fillText(title, 60, 138);
 
-  // 6. Difficulty Stars & Metadata
-  ctx.font = "14px 'Courier New', monospace";
+  // 8. Difficulty Indicator
+  ctx.font = "13px 'Courier New', monospace";
   ctx.fillStyle = "#554335";
   const stars = "★".repeat(difficulty) + "☆".repeat(5 - difficulty);
-  ctx.fillText(`LEVEL: ${stars} [DIFFICULTY ${difficulty}/5]`, 60, 175);
+  ctx.fillText(`LEVEL: ${stars} [DIFFICULTY ${difficulty}/5]`, 60, 172);
 
-  // 7. Simulated Typewriter Body Text Lines
-  ctx.fillStyle = "rgba(28, 21, 16, 0.7)";
+  // 9. Typewriter Body Lines
+  ctx.fillStyle = "rgba(28, 21, 16, 0.75)";
   ctx.font = "12px 'Courier New', monospace";
   const dummyLines = [
-    "INCIDENT DOSSIER // RECONSTRUCTION PENDING",
+    "HOMICIDE DIVISION // ACTIVE EVIDENCE EXAM",
     "------------------------------------------",
     "Evidence collected at scene requires chronological",
     "verification. Cross-examine forensic exhibits,",
     "witness affidavits, and wiretapped intercepts.",
     "",
-    "STATUS: RESTRICTED HOMICIDE ARCHIVE",
+    "STATUS: RESTRICTED CENTRAL ARCHIVE",
   ];
 
   dummyLines.forEach((line, idx) => {
-    ctx.fillText(line, 60, 230 + idx * 24);
+    ctx.fillText(line, 60, 224 + idx * 24);
   });
 
-  // 8. Bottom Seal / Watermark
+  // 10. Scotland Yard Seal / Watermark
   ctx.save();
-  ctx.translate(w - 100, h - 90);
+  ctx.translate(w - 95, h - 85);
   ctx.rotate(0.08);
-  ctx.strokeStyle = "rgba(121, 96, 74, 0.4)";
+  ctx.strokeStyle = "rgba(100, 75, 50, 0.35)";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(0, 0, 45, 0, Math.PI * 2);
+  ctx.arc(0, 0, 42, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.fillStyle = "rgba(121, 96, 74, 0.5)";
-  ctx.font = "10px 'Courier New', monospace";
+  ctx.fillStyle = "rgba(100, 75, 50, 0.45)";
+  ctx.font = "9px 'Courier New', monospace";
   ctx.textAlign = "center";
-  ctx.fillText("SCOTLAND YARD", 0, -6);
-  ctx.fillText("BUREAU ARCHIVE", 0, 10);
+  ctx.fillText("METROPOLITAN", 0, -6);
+  ctx.fillText("POLICE EVIDENCE", 0, 8);
   ctx.restore();
 
-  // 9. Subtle Coffee Stain / Water Drop on corner
+  // 11. Prominent Coffee Ring Stain on corner
   ctx.save();
-  ctx.fillStyle = "rgba(100, 70, 40, 0.07)";
+  ctx.fillStyle = "rgba(85, 55, 30, 0.08)";
   ctx.beginPath();
-  ctx.arc(w - 60, 70, 35, 0, Math.PI * 2);
+  ctx.arc(w - 65, 75, 36, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = "rgba(100, 70, 40, 0.15)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(95, 62, 35, 0.16)";
+  ctx.lineWidth = 2.5;
   ctx.stroke();
   ctx.restore();
 
