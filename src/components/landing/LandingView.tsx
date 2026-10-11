@@ -19,7 +19,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CrimeSceneTape } from "@/components/landing/CrimeSceneTape";
 import { FloatingDetectiveScene } from "@/components/landing/FloatingDetectiveScene";
-import { NoirCloudSeparator } from "@/components/landing/NoirCloudSeparator";
 import { SmoothScrollProvider } from "@/components/landing/SmoothScrollProvider";
 import { VerticalInvestigateTimeline } from "@/components/landing/VerticalInvestigateTimeline";
 import { BorderBeam } from "@/components/ui/border-beam";
@@ -61,14 +60,11 @@ export function LandingView({ user }: LandingViewProps) {
 
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const currentFrameRef = useRef(0);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [loadCount, setLoadCount] = useState(0);
 
   // Preload 150 frames in public/landing/frames/
   useEffect(() => {
     let active = true;
     const images: HTMLImageElement[] = [];
-    let loaded = 0;
 
     const drawFrame = (frameIdx: number) => {
       const canvas = canvasRef.current;
@@ -109,22 +105,40 @@ export function LandingView({ user }: LandingViewProps) {
       ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
     };
 
-    for (let i = 1; i <= TOTAL_FRAMES; i++) {
+    // 1. Immediately preload and draw initial frame 001
+    const frame1 = new window.Image();
+    frame1.src = "/landing/frames/frame-001.webp";
+
+    const renderFirstFrame = () => {
+      if (!active) return;
+      drawFrame(0);
+    };
+
+    if (frame1.complete) {
+      renderFirstFrame();
+    } else {
+      frame1.onload = renderFirstFrame;
+    }
+    images.push(frame1);
+
+    // 2. Stream remaining frames in background
+    for (let i = 2; i <= TOTAL_FRAMES; i++) {
       const img = new window.Image();
       const numStr = String(i).padStart(3, "0");
       img.src = `/landing/frames/frame-${numStr}.webp`;
 
-      img.onload = () => {
+      const onSingleLoad = () => {
         if (!active) return;
-        loaded++;
-        setLoadCount(loaded);
-        if (loaded === 1) {
-          drawFrame(0);
-        }
-        if (loaded >= Math.min(30, TOTAL_FRAMES)) {
-          setIsLoaded(true);
+        if (i - 1 === currentFrameRef.current) {
+          drawFrame(i - 1);
         }
       };
+
+      if (img.complete) {
+        onSingleLoad();
+      } else {
+        img.onload = onSingleLoad;
+      }
 
       images.push(img);
     }
@@ -147,8 +161,15 @@ export function LandingView({ user }: LandingViewProps) {
     handleResize();
     window.addEventListener("resize", handleResize);
 
+    const initialDrawTimer = setTimeout(() => {
+      if (active) {
+        drawFrame(0);
+      }
+    }, 60);
+
     return () => {
       active = false;
+      clearTimeout(initialDrawTimer);
       window.removeEventListener("resize", handleResize);
     };
   }, []);
@@ -246,6 +267,9 @@ export function LandingView({ user }: LandingViewProps) {
         },
         0,
       );
+
+      // Render initial frame on mount
+      drawFrame(0);
 
       // Detective silhouette: Starts zoomed at 1.28 and slightly right (+6vw on desktop), smoothly centers and remains zoomed to crop watermarks
       if (canvasWrapRef.current) {
@@ -382,21 +406,6 @@ export function LandingView({ user }: LandingViewProps) {
            ========================================================================= */}
         <div ref={heroTrackRef} className="relative h-[400vh] w-full">
           <div className="sticky top-0 h-screen min-h-[100dvh] w-full overflow-hidden flex flex-col justify-between lg:flex-row lg:items-center px-4 sm:px-8 lg:px-16 pt-20 pb-6 lg:py-0">
-            {/* Loading Overlay */}
-            {!isLoaded && (
-              <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[#100D0D]">
-                <span className="font-valmist font-bold text-sm tracking-[0.25em] uppercase text-[#79604A] animate-pulse">
-                  LOADING CRIME SCENE EVIDENCE... {Math.round((loadCount / TOTAL_FRAMES) * 100)}%
-                </span>
-                <div className="mt-4 h-[2px] w-48 bg-[#181414]">
-                  <div
-                    className="h-full bg-[#A7192D] transition-all duration-200"
-                    style={{ width: `${(loadCount / TOTAL_FRAMES) * 100}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
             {/* DYNAMIC CURSOR-FOLLOWING SPOTLIGHT ILLUMINATION */}
             <div
               className="pointer-events-none absolute inset-0 z-0 transition-all duration-75 ease-out"
@@ -418,11 +427,19 @@ export function LandingView({ user }: LandingViewProps) {
               ref={canvasWrapRef}
               className="absolute inset-0 z-10 h-full w-full pointer-events-none flex items-center justify-center overflow-hidden"
             >
-              <canvas
-                ref={canvasRef}
-                className="h-full w-full object-cover transition-opacity duration-500"
-                style={{ opacity: isLoaded ? 1 : 0 }}
+              {/* Instant High-Resolution Baseline Frame (eliminates any cold load gap) */}
+              <Image
+                src="/landing/frames/frame-001.webp"
+                alt="Detective Silhouette"
+                fill
+                priority
+                sizes="100vw"
+                className="h-full w-full object-cover select-none pointer-events-none"
+                style={{
+                  transform: "scale(1.16) translateY(-5%)",
+                }}
               />
+              <canvas ref={canvasRef} className="relative z-10 h-full w-full object-cover" />
             </div>
 
             {/* LEFT ZONE: ENHANCED "NO SHIT SHERLOCK" BOLD BRANDING (RESPONSIVE ON MOBILE) */}
@@ -690,18 +707,23 @@ export function LandingView({ user }: LandingViewProps) {
               </div>
             </div>
           </div>
+
+          {/* Bottom edge shadow to ensure clean dark tone underneath separator tape */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#100D0D] to-transparent z-20" />
         </div>
 
         {/* =========================================================================
-            DYNAMIC THREE.JS HORIZONTAL CLOUD/SMOKE SEPARATOR (FLAWLESS TRANSITION)
+            ACTIVE CRIME SCENE INVESTIGATION TAPE SEPARATOR
+            Overlaps the bottom edge of the main hero frame, hiding the horizontal seam
+            and transitioning cleanly into "From Crime Scene to Evidence Board".
            ========================================================================= */}
-        <NoirCloudSeparator />
-
-        {/* =========================================================================
-            POLICE EVIDENCE BARRIER TAPE TICKER (INSPIRED BY 404 CRIME SCENE)
-           ========================================================================= */}
-        <div className="relative z-30 my-6">
-          <CrimeSceneTape rotate="-rotate-1" />
+        <div className="relative z-30 -my-7 sm:-my-9 w-full overflow-hidden py-3 pointer-events-none select-none">
+          <div className="w-[108%] -ml-[4%]">
+            <CrimeSceneTape
+              rotate="-rotate-1"
+              className="shadow-[0_0_45px_rgba(0,0,0,0.95),0_16px_32px_rgba(167,25,45,0.3)]"
+            />
+          </div>
         </div>
 
         {/* =========================================================================

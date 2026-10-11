@@ -3,10 +3,10 @@
 import { ArrowRight, Lock, Mail, ShieldAlert, Stamp } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { BlobatarAvatar } from "@/components/ui/blobatar-avatar";
-import { signIn, signUp } from "@/lib/auth-client";
+import { signIn, signUp, useSession } from "@/lib/auth-client";
 import {
   checkAgentTagAvailableAction,
   checkUsernameAvailableAction,
@@ -20,9 +20,16 @@ type Step = "credentials" | "agentTag" | "username" | "welcome" | "rules";
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Wizard Step
-  const [step, setStep] = useState<Step>("credentials");
+  // Read initial step from query param if redirected from OAuth callback (e.g. ?step=agentTag)
+  const queryStep = searchParams.get("step") as Step | null;
+  const validSteps: Step[] = ["agentTag", "username", "welcome", "rules"];
+  const [step, setStep] = useState<Step>(
+    queryStep && validSteps.includes(queryStep) ? queryStep : "credentials",
+  );
+
+  const { data: sessionData } = useSession();
 
   // Step 0: Initial Credentials & Vertical Stack
   const [email, setEmail] = useState("");
@@ -32,6 +39,31 @@ export function SignupForm() {
   const [expandedOption, setExpandedOption] = useState<"email" | "google" | "github" | null>(
     "email",
   );
+
+  // If user authenticated via OAuth callback, advance onboarding wizard appropriately
+  useEffect(() => {
+    if (sessionData?.user) {
+      const u = sessionData.user as typeof sessionData.user & {
+        agentTag?: string | null;
+        username?: string | null;
+        trainingCompleted?: boolean | null;
+      };
+
+      if (u.trainingCompleted) {
+        router.replace("/cases");
+        return;
+      }
+      if (u.username && u.agentTag) {
+        setStep("rules");
+        return;
+      }
+      // If user has session but still on credentials step, advance to tag selection
+      setStep((prev) => (prev === "credentials" ? "agentTag" : prev));
+      if (u.email && !email) {
+        setEmail(u.email);
+      }
+    }
+  }, [sessionData, router, email]);
 
   // Step 1: Agent Tag (3 digits)
   const [agentTag, setAgentTag] = useState("");
@@ -92,12 +124,20 @@ export function SignupForm() {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      await signIn.social({
+      const res = await signIn.social({
         provider,
         callbackURL: "/signup?step=agentTag",
       });
+      if (res?.error) {
+        setErrorMessage(
+          `${provider === "google" ? "Google" : "GitHub"} OAuth is not configured. Add ${provider === "google" ? "GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET" : "GITHUB_CLIENT_ID & GITHUB_CLIENT_SECRET"} to .env.local, or register with Email & Password.`,
+        );
+        setIsLoading(false);
+      }
     } catch {
-      setErrorMessage(`Failed to initiate ${provider} registration.`);
+      setErrorMessage(
+        `${provider === "google" ? "Google" : "GitHub"} OAuth is not configured. Add credentials to .env.local, or register with Email & Password.`,
+      );
       setIsLoading(false);
     }
   };

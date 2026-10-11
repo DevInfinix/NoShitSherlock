@@ -4,9 +4,9 @@ import { ArrowRight, Lock, Mail, ShieldAlert } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BlobatarAvatar } from "@/components/ui/blobatar-avatar";
-import { signIn } from "@/lib/auth-client";
+import { signIn, useSession } from "@/lib/auth-client";
 import { getAgentDetailsAction } from "@/server/actions/auth-actions";
 import { DetectiveIDCard3D } from "./DetectiveIDCard3D";
 
@@ -15,11 +15,20 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/cases";
 
+  const { data: sessionData } = useSession();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Auto-redirect if already signed in via OAuth or active session
+  useEffect(() => {
+    if (sessionData?.user) {
+      router.replace(callbackUrl);
+    }
+  }, [sessionData, router, callbackUrl]);
 
   // Vertical accordion state
   const [hoveredOption, setHoveredOption] = useState<"email" | "google" | "github" | null>(null);
@@ -67,12 +76,20 @@ export function LoginForm() {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      await signIn.social({
+      const res = await signIn.social({
         provider,
         callbackURL: callbackUrl,
       });
+      if (res?.error) {
+        setErrorMessage(
+          `${provider === "google" ? "Google" : "GitHub"} OAuth is not configured. Add ${provider === "google" ? "GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET" : "GITHUB_CLIENT_ID & GITHUB_CLIENT_SECRET"} to .env.local, or log in with Email & Password.`,
+        );
+        setIsLoading(false);
+      }
     } catch {
-      setErrorMessage(`Failed to initiate ${provider} sign in.`);
+      setErrorMessage(
+        `${provider === "google" ? "Google" : "GitHub"} OAuth is not configured. Add credentials to .env.local, or log in with Email & Password.`,
+      );
       setIsLoading(false);
     }
   };
