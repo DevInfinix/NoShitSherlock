@@ -8,11 +8,23 @@ const globalForDb = globalThis as unknown as {
 
 const connectionString = process.env.DATABASE_URL;
 
+// Ensure explicit sslmode=verify-full or libpq-compatible parameters to avoid pg deprecation warning
+function getSanitizedConnectionString(url?: string): string | undefined {
+  if (!url) return undefined;
+  // Replace sslmode=require with sslmode=verify-full to comply with modern libpq standard
+  if (url.includes("sslmode=require")) {
+    return url.replace("sslmode=require", "sslmode=verify-full");
+  }
+  return url;
+}
+
+const sanitizedConnectionString = getSanitizedConnectionString(connectionString);
+
 export const pool =
   globalForDb.pool ??
   new Pool({
-    connectionString,
-    ssl: connectionString?.includes("sslmode=require") ? { rejectUnauthorized: false } : undefined,
+    connectionString: sanitizedConnectionString,
+    ssl: connectionString?.includes("sslmode=") ? { rejectUnauthorized: false } : undefined,
   });
 
 if (process.env.NODE_ENV !== "production") {

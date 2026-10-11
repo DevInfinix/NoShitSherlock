@@ -3,6 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { createWoolYarnBumpTexture } from "./textures";
 
 interface Catenary3DYarnProps {
   points: Array<[number, number, number]>;
@@ -10,45 +11,13 @@ interface Catenary3DYarnProps {
 }
 
 /**
- * Creates a procedural wool micro-fiber bump texture for the yarn surface.
- */
-function createWoolFuzzBumpTexture(): THREE.Texture {
-  if (typeof window === "undefined") return new THREE.Texture();
-
-  const canvas = document.createElement("canvas");
-  canvas.width = 128;
-  canvas.height = 128;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return new THREE.Texture(canvas);
-
-  ctx.fillStyle = "#808080";
-  ctx.fillRect(0, 0, 128, 128);
-
-  const imgData = ctx.getImageData(0, 0, 128, 128);
-  const pixels = imgData.data;
-
-  for (let i = 0; i < pixels.length; i += 4) {
-    const fuzz = (Math.random() - 0.5) * 80;
-    const val = Math.min(255, Math.max(0, 128 + fuzz));
-    pixels[i] = val;
-    pixels[i + 1] = val;
-    pixels[i + 2] = val;
-    pixels[i + 3] = 255;
-  }
-  ctx.putImageData(imgData, 0, 0);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(16, 2);
-  return texture;
-}
-
-/**
- * Procedural 3D Crimson Wool Yarn Engine with harmonic spring sag physics.
+ * Procedural 3D Crimson Wool Yarn Engine with authentic gravitational catenary sag
+ * and harmonic spring dampening physics.
  */
 export function Catenary3DYarn({ points, isHovered = false }: Catenary3DYarnProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
+  const shadowMeshRef = useRef<THREE.Mesh>(null);
 
   // Harmonic spring oscillator state for yarn physical sway
   const springState = useRef({
@@ -57,111 +26,133 @@ export function Catenary3DYarn({ points, isHovered = false }: Catenary3DYarnProp
     target: 0,
   });
 
-  const woolFuzzMap = useMemo(() => createWoolFuzzBumpTexture(), []);
+  const woolBumpMap = useMemo(() => createWoolYarnBumpTexture(256), []);
 
-  useEffect(() => {
-    return () => {
-      woolFuzzMap.dispose();
-    };
-  }, [woolFuzzMap]);
-
-  // Authentic matte crimson wool material (zero plastic shine)
+  // Wool yarn PBR material: matte, thick crimson wool (#9E1A22)
   const woolMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#9E1B27"),
-        roughness: 0.96, // completely matte wool
-        metalness: 0.02,
-        bumpMap: woolFuzzMap,
-        bumpScale: 0.05,
+        color: new THREE.Color("#9E1A22"),
+        bumpMap: woolBumpMap,
+        bumpScale: 0.055,
+        roughness: 0.96,
+        metalness: 0.0,
       }),
-    [woolFuzzMap],
+    [woolBumpMap],
   );
 
-  // Deep dark shadow underneath yarn on the felt board
+  // Soft contact shadow strand resting on the green felt
   const shadowMaterial = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color("#080F0A"),
+        color: new THREE.Color("#080D0A"),
         transparent: true,
         opacity: 0.45,
+        depthWrite: false,
       }),
     [],
   );
 
-  // Generate 3D tube geometries with natural catenary sag between each sequential pair
-  const tubeMeshes = useMemo(() => {
-    const meshes: Array<{
-      curve: THREE.CatmullRomCurve3;
-      shadowCurve: THREE.CatmullRomCurve3;
-      pA: THREE.Vector3;
-      pB: THREE.Vector3;
-      sag: number;
-    }> = [];
+  useEffect(() => {
+    return () => {
+      woolBumpMap.dispose();
+      woolMaterial.dispose();
+      shadowMaterial.dispose();
+    };
+  }, [woolBumpMap, woolMaterial, shadowMaterial]);
 
-    for (let i = 0; i < points.length - 1; i++) {
-      const pAArr = points[i];
-      const pBArr = points[i + 1];
-      if (!pAArr || !pBArr) continue;
-
-      const pA = new THREE.Vector3(...pAArr);
-      const pB = new THREE.Vector3(...pBArr);
-
-      // Distance-dependent gravitational catenary sag
-      const dist = pA.distanceTo(pB);
-      const sag = Math.max(0.18, Math.min(0.52, dist * 0.13));
-
-      // Midpoint droop with forward Z displacement to clear paper cards
-      const mid = pA.clone().add(pB).multiplyScalar(0.5);
-      mid.y -= sag;
-      mid.z = Math.max(pA.z, pB.z) + 0.06;
-
-      const curve = new THREE.CatmullRomCurve3([pA, mid, pB]);
-
-      // Shadow projection curve resting directly on the felt surface (z: 0.01)
-      const sA = new THREE.Vector3(pA.x, pA.y - 0.04, 0.01);
-      const sMid = new THREE.Vector3(mid.x, mid.y - 0.04, 0.01);
-      const sB = new THREE.Vector3(pB.x, pB.y - 0.04, 0.01);
-      const shadowCurve = new THREE.CatmullRomCurve3([sA, sMid, sB]);
-
-      meshes.push({ curve, shadowCurve, pA, pB, sag });
-    }
-
-    return meshes;
-  }, [points]);
-
-  // Trigger spring disturbance on hover transition
+  // When hover state triggers, apply physical impulse to the yarn spring
   useEffect(() => {
     if (isHovered) {
-      springState.current.velocity += 0.45; // perturb thread
+      springState.current.velocity += 0.085;
     }
   }, [isHovered]);
 
+  // Construct catenary curves through pushpin anchor points
+  const curveSegments = useMemo(() => {
+    if (points.length < 2) return null;
+
+    const curves: THREE.CatmullRomCurve3[] = [];
+    const shadowCurves: THREE.CatmullRomCurve3[] = [];
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      if (!p1 || !p2) continue;
+
+      const dist = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+      // Gravitational sag proportional to distance between pushpins
+      const sagDepth = 0.22 + dist * 0.06;
+
+      const steps = 18;
+      const strandPoints: THREE.Vector3[] = [];
+      const shadowPoints: THREE.Vector3[] = [];
+
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        // Linear interpolation
+        const x = THREE.MathUtils.lerp(p1[0], p2[0], t);
+        const yBase = THREE.MathUtils.lerp(p1[1], p2[1], t);
+        const zBase = THREE.MathUtils.lerp(p1[2], p2[2], t);
+
+        // Gravitational catenary sag equation: 4 * sag * t * (1 - t)
+        const sag = Math.sin(t * Math.PI) * sagDepth;
+
+        strandPoints.push(new THREE.Vector3(x, yBase - sag, zBase + 0.015));
+        shadowPoints.push(new THREE.Vector3(x, yBase - sag * 0.85, 0.008));
+      }
+
+      curves.push(new THREE.CatmullRomCurve3(strandPoints));
+      shadowCurves.push(new THREE.CatmullRomCurve3(shadowPoints));
+    }
+
+    return { curves, shadowCurves };
+  }, [points]);
+
+  // Spring physics loop for natural physical bounce
   useFrame((_, delta) => {
-    if (!groupRef.current) return;
+    const k = 22.0; // Spring stiffness
+    const c = 3.8; // Damping coefficient
 
-    // Second-order harmonic spring integration: F = -k*x - c*v
-    const k = 28.0; // spring stiffness
-    const c = 3.8; // damping factor
-    const force = -k * springState.current.displacement - c * springState.current.velocity;
-    springState.current.velocity += force * Math.min(0.033, delta);
-    springState.current.displacement += springState.current.velocity * Math.min(0.033, delta);
+    const spring = springState.current;
+    const force = -k * spring.displacement - c * spring.velocity;
+    spring.velocity += force * Math.min(delta, 0.05);
+    spring.displacement += spring.velocity * Math.min(delta, 0.05);
 
-    groupRef.current.position.y = springState.current.displacement * 0.025;
+    if (groupRef.current) {
+      groupRef.current.position.y = spring.displacement;
+    }
   });
+
+  if (!curveSegments || points.length < 2) return null;
 
   return (
     <group ref={groupRef}>
-      {tubeMeshes.map((item) => {
-        const yarnGeo = new THREE.TubeGeometry(item.curve, 36, 0.016, 7, false);
-        const shadowGeo = new THREE.TubeGeometry(item.shadowCurve, 24, 0.014, 5, false);
-
+      {curveSegments.curves.map((curve, idx) => {
+        const key = `yarn-seg-${idx}-${curve.points.length}`;
         return (
-          <group key={`yarn-thread-${item.pA.x.toFixed(2)}-${item.pB.x.toFixed(2)}`}>
-            {/* Soft contact shadow on the green felt */}
-            <mesh geometry={shadowGeo} material={shadowMaterial} />
-            {/* Primary crimson wool yarn strand */}
-            <mesh geometry={yarnGeo} material={woolMaterial} castShadow />
+          <group key={key}>
+            {/* Soft Contact Shadow beneath Yarn */}
+            <mesh
+              ref={shadowMeshRef}
+              geometry={
+                new THREE.TubeGeometry(
+                  curveSegments.shadowCurves[idx] ?? curve,
+                  48,
+                  0.026,
+                  6,
+                  false,
+                )
+              }
+              material={shadowMaterial}
+            />
+            {/* Thick Crimson Wool Yarn Mesh */}
+            <mesh
+              ref={meshRef}
+              geometry={new THREE.TubeGeometry(curve, 48, 0.032, 8, false)}
+              material={woolMaterial}
+              castShadow
+            />
           </group>
         );
       })}

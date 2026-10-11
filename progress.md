@@ -127,6 +127,21 @@
 
 ---
 
+11. **3D Cases Noticeboard Atmospheric Overhaul & WebGL/DB Security Fixes**:
+    - **British Police Green Felt Baize**: High-resolution (1024x1024) procedural velvet texture with felt micro-fibers, sRGB color correction, and authentic pushpin holes.
+    - **3D Dark Walnut Wood Frame**: Mitered wooden border encasing the noticeboard with dark stained grain, 4 antique brass corner brackets with rivets, and central engraved department title plaque.
+    - **Stormy Window Lighting & Venetian Blinds**: Right-side cold blue-gray moonlight (`#5A738E`) with dynamic flickers and horizontal venetian blind shadow slats.
+    - **Resolved WebGL Blending Error**: Eliminated `THREE.WebGLState: MultiplyBlending requires material.premultipliedAlpha = true` by using premultiplied alpha and depthWrite=false on shadow projections.
+    - **Resolved Node-PG Deprecation Warning**: Explicitly configured `sslmode=verify-full` in `src/db/client.ts` to prepare for pg v9.0.0 and libpq standards.
+    - **Aged Golden Manila & Tea-Stained Cardstock**: Procedural 1024x1400 paper textures with coffee cup stain rings, water droplet warping puckers, charred deckle bottom edges, rusted wire staples, and red classified rubber stamps.
+    - **Corner-Curl Vertex Displacement Shader (`threejs-shaders`)**: Physical dog-eared page curl on bottom-right and top-left corners with central gravitational bow.
+    - **Thick Crimson Wool Yarn (`#9E1A22`)**: Procedural wool bump map, loose gravitational catenary sag equation, harmonic spring dampening bounce, and dark felt contact shadows.
+    - **Tangible Desk Ledge Props**: Classic Banker's lamp with emerald green glass hood, brass magnifying glass, black lacquer fountain pen, and crystal glass ashtray with rising smoke.
+    - **Tight Forensic Spotlight Cursor**: Visually sharp 3D and 2D flashlight spotlight tracking pointer coordinates with luminous incandescent core.
+    - **Buttery Steady-Cam Rig & 60% Hover Dimming**: Exponential low-pass damping on camera movement and smooth 60% radial atmospheric dimming on non-hovered cases without popping or disappearing.
+
+---
+
 ## 3. Working Tree Status
 
 - Working tree is clean and fully operational.

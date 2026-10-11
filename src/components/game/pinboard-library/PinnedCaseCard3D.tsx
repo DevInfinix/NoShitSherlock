@@ -8,6 +8,7 @@ import { createAgedPaperTexture } from "./textures";
 
 interface PinnedCaseCard3DProps {
   caseItem: ActiveCaseListing;
+  caseIndex?: number;
   position: [number, number, number];
   baseRotationZ?: number;
   scale?: number;
@@ -19,6 +20,7 @@ interface PinnedCaseCard3DProps {
 
 export function PinnedCaseCard3D({
   caseItem,
+  caseIndex = 0,
   position,
   baseRotationZ = 0,
   scale = 1.0,
@@ -29,125 +31,131 @@ export function PinnedCaseCard3D({
 }: PinnedCaseCard3DProps) {
   const meshRef = useRef<THREE.Group>(null);
   const pointerOffset = useRef({ x: 0, y: 0 });
-  const dimMeshRef = useRef<THREE.Mesh>(null);
+  const dimPlaneRef = useRef<THREE.Mesh>(null);
 
-  // 1. Procedural Heavy-Aged Manila Paper Texture
-  const paperTexture = useMemo(
+  // 1. Procedural Aged Golden Manila / Tea-Stained Parchment Textures
+  const { diffuse, bump } = useMemo(
     () =>
       createAgedPaperTexture(
         caseItem.title,
-        `FILE #${caseItem.id.toString().padStart(3, "0")}`,
+        `CASE-0${caseItem.id}`,
         caseItem.difficulty,
+        caseIndex,
+        1024,
       ),
-    [caseItem.title, caseItem.id, caseItem.difficulty],
+    [caseItem.title, caseItem.id, caseItem.difficulty, caseIndex],
   );
 
-  // 2. Brass Pushpin Material
+  // 2. Antique Turned Brass Pushpin Material
   const brassMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#C59E58"),
-        metalness: 0.88,
-        roughness: 0.22,
+        color: new THREE.Color("#C89E58"),
+        metalness: 0.86,
+        roughness: 0.26,
       }),
     [],
   );
 
-  // 3. Multi-surface Paper Material with vertex displacement corner-curling
-  const paperMaterials = useMemo(() => {
-    const edgeMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color("#C9B896"),
-      roughness: 0.9,
+  // 3. Realistic Manila Paper Material with Dog-Eared Corner Curvature Shader
+  const paperMaterial = useMemo(() => {
+    const mat = new THREE.MeshStandardMaterial({
+      map: diffuse,
+      bumpMap: bump,
+      bumpScale: 0.035,
+      roughness: 0.85,
+      metalness: 0.02,
+      side: THREE.DoubleSide,
+      shadowSide: THREE.DoubleSide,
     });
 
-    const frontMat = new THREE.MeshStandardMaterial({
-      map: paperTexture,
-      roughness: 0.82,
-      metalness: 0.03,
-    });
-
-    // Custom vertex shader displacement injection for dog-eared corner curling
-    frontMat.onBeforeCompile = (shader) => {
+    // Custom GLSL vertex displacement for physical dog-eared paper curl
+    mat.customProgramCacheKey = () => "curled-paper-dossier-v2";
+    mat.onBeforeCompile = (shader) => {
       shader.vertexShader = shader.vertexShader.replace(
         "#include <begin_vertex>",
         `
         #include <begin_vertex>
-        // Physical page curl on bottom-right corner and top-left corner
-        float brDist = length(vec2(uv.x - 0.96, uv.y - 0.04));
-        float brCurl = smoothstep(0.42, 0.0, brDist) * 0.065;
-        float tlDist = length(vec2(uv.x - 0.04, uv.y - 0.96));
-        float tlCurl = smoothstep(0.35, 0.0, tlDist) * 0.035;
-        float bow = sin(uv.x * 3.14159) * sin(uv.y * 3.14159) * 0.02;
-        transformed.z += brCurl + tlCurl + bow;
+        // Smooth dog-eared corner curl at bottom-right (uv.x -> 1.0, uv.y -> 0.0)
+        float brDistance = length(vec2(uv.x - 1.0, uv.y - 0.0));
+        float brCurl = smoothstep(0.48, 0.0, brDistance) * 0.085;
+
+        // Subtle top-left lift (uv.x -> 0.0, uv.y -> 1.0)
+        float tlDistance = length(vec2(uv.x - 0.0, uv.y - 1.0));
+        float tlCurl = smoothstep(0.38, 0.0, tlDistance) * 0.045;
+
+        // Gravitational bow: paper sags slightly forward away from board in center
+        float centralBow = sin(uv.x * 3.14159) * sin(uv.y * 3.14159) * 0.028;
+
+        transformed.z += (brCurl + tlCurl + centralBow);
         `,
       );
     };
 
-    return [edgeMat, edgeMat, edgeMat, edgeMat, frontMat, edgeMat];
-  }, [paperTexture]);
+    return mat;
+  }, [diffuse, bump]);
 
   useEffect(() => {
     return () => {
-      paperTexture.dispose();
+      diffuse.dispose();
+      bump.dispose();
+      paperMaterial.dispose();
+      brassMaterial.dispose();
     };
-  }, [paperTexture]);
+  }, [diffuse, bump, paperMaterial, brassMaterial]);
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
 
-    // Smooth Z elevation on hover (+0.85 forward toward flashlight)
-    const targetZ = position[2] + (isHovered ? 0.85 : 0);
+    // Smooth Z elevation on hover: card pulls forward toward flashlight
+    const targetZ = position[2] + (isHovered ? 0.65 : 0);
     meshRef.current.position.z = THREE.MathUtils.damp(
       meshRef.current.position.z,
       targetZ,
-      6.5,
+      7.0,
       delta,
     );
 
-    // Dynamic tilt following pointer coordinates
-    const targetRotX = isHovered ? pointerOffset.current.y * 0.28 : 0;
-    const targetRotY = isHovered ? pointerOffset.current.x * 0.28 : 0;
-    const targetRotZ = isHovered ? 0 : baseRotationZ;
+    // Subtle pointer parallax tilt
+    const targetRotX = isHovered ? -pointerOffset.current.y * 0.22 : 0;
+    const targetRotY = isHovered ? pointerOffset.current.x * 0.24 : 0;
+    const targetRotZ = baseRotationZ + (isHovered ? 0 : 0);
 
     meshRef.current.rotation.x = THREE.MathUtils.damp(
       meshRef.current.rotation.x,
       targetRotX,
-      5.5,
+      6.0,
       delta,
     );
     meshRef.current.rotation.y = THREE.MathUtils.damp(
       meshRef.current.rotation.y,
       targetRotY,
-      5.5,
+      6.0,
       delta,
     );
     meshRef.current.rotation.z = THREE.MathUtils.damp(
       meshRef.current.rotation.z,
       targetRotZ,
-      5.5,
+      6.0,
       delta,
     );
 
-    // Tactile spring scale multiplier
-    const targetScale = (isHovered ? 1.07 : 1.0) * scale;
-    meshRef.current.scale.setScalar(
-      THREE.MathUtils.damp(meshRef.current.scale.x, targetScale, 6.0, delta),
-    );
-
-    // Chiaroscuro smooth dimming shroud (fades smoothly down to 80% opacity when dimmed)
-    if (dimMeshRef.current) {
-      const targetDimOpacity = isDimmed ? 0.78 : 0.0;
-      const mat = dimMeshRef.current.material as THREE.MeshBasicMaterial;
-      mat.opacity = THREE.MathUtils.damp(mat.opacity, targetDimOpacity, 7.0, delta);
-      dimMeshRef.current.visible = mat.opacity > 0.01;
+    // Smooth radial atmospheric dimming: when another card is hovered, fade to 60% dimming smoothly
+    if (dimPlaneRef.current) {
+      const targetDimOpacity = isDimmed && !isHovered ? 0.58 : 0;
+      const mat = dimPlaneRef.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = THREE.MathUtils.damp(mat.opacity, targetDimOpacity, 9.0, delta);
+      dimPlaneRef.current.visible = mat.opacity > 0.01;
     }
   });
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: R3F Canvas 3D object interaction
+    // biome-ignore lint/a11y/noStaticElementInteractions: R3F Canvas group element
     <group
       ref={meshRef}
-      position={[position[0], position[1], position[2]]}
+      position={position}
+      scale={scale}
+      rotation={[0, 0, baseRotationZ]}
       onPointerOver={(e) => {
         e.stopPropagation();
         onHover(caseItem);
@@ -168,41 +176,36 @@ export function PinnedCaseCard3D({
         onSelect(caseItem);
       }}
     >
-      {/* 3D Paper Dossier Cardstock Mesh with 32x32 segments for vertex displacement */}
-      <mesh material={paperMaterials} castShadow receiveShadow>
-        <boxGeometry args={[1.85, 2.5, 0.02, 16, 16, 1]} />
+      {/* 3D Paper Dossier Cardstock Mesh with 32x32 segments for smooth curvature */}
+      <mesh material={paperMaterial} castShadow receiveShadow>
+        <planeGeometry args={[1.9, 2.62, 32, 32]} />
       </mesh>
 
-      {/* Atmospheric Dimming Shroud with smooth opacity transition */}
-      <mesh ref={dimMeshRef} position={[0, 0, 0.016]} visible={false}>
-        <planeGeometry args={[1.87, 2.52]} />
-        <meshBasicMaterial color="#060504" transparent opacity={0} />
+      {/* Atmospheric Dimming Shroud with smooth ease opacity transition */}
+      <mesh ref={dimPlaneRef} position={[0, 0, 0.018]} visible={false}>
+        <planeGeometry args={[1.92, 2.64]} />
+        <meshBasicMaterial color="#060504" transparent opacity={0} depthWrite={false} />
       </mesh>
 
-      {/* Heavy Brass Pushpin at top center of paper */}
-      <group position={[0, 1.15, 0.05]}>
-        {/* Needle post */}
-        <mesh position={[0, 0, -0.04]} material={brassMaterial}>
-          <cylinderGeometry args={[0.015, 0.015, 0.08, 12]} />
+      {/* Heavy Stepped Brass Pushpin at top center of paper */}
+      <group position={[0, 1.22, 0.06]}>
+        {/* Steel pin shaft piercing paper */}
+        <mesh position={[0, 0, -0.05]}>
+          <cylinderGeometry args={[0.014, 0.014, 0.1, 12]} />
+          <meshStandardMaterial color="#888888" metalness={0.92} roughness={0.2} />
         </mesh>
-        {/* Outer Flange */}
+        {/* Stepped brass base flange */}
         <mesh position={[0, 0, 0.01]} material={brassMaterial} castShadow>
-          <cylinderGeometry args={[0.075, 0.09, 0.05, 16]} />
+          <cylinderGeometry args={[0.075, 0.09, 0.045, 16]} />
         </mesh>
-        {/* Grip Cap with Red Lacquer Center */}
+        {/* Brass grip collar */}
         <mesh position={[0, 0, 0.06]} material={brassMaterial} castShadow>
-          <cylinderGeometry args={[0.06, 0.075, 0.08, 16]} />
+          <cylinderGeometry args={[0.06, 0.075, 0.075, 16]} />
         </mesh>
-        <mesh position={[0, 0, 0.1]}>
-          <sphereGeometry args={[0.035, 16, 16]} />
-          <meshStandardMaterial color="#A7192D" roughness={0.3} metalness={0.2} />
-        </mesh>
-      </group>
-
-      {/* Gold Brass Paperclip at top-right corner */}
-      <group position={[0.7, 1.05, 0.02]} rotation={[0, 0, 0.35]}>
-        <mesh material={brassMaterial}>
-          <torusGeometry args={[0.08, 0.012, 8, 16, Math.PI * 1.5]} />
+        {/* Crimson enamel lacquer domed top */}
+        <mesh position={[0, 0, 0.1]} castShadow>
+          <sphereGeometry args={[0.062, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
+          <meshStandardMaterial color="#A81626" metalness={0.25} roughness={0.18} />
         </mesh>
       </group>
     </group>

@@ -91,14 +91,15 @@ export function PinboardLibraryContainer({
       {/* 2. Soft Atmospheric Vignette */}
       <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(8,6,5,0.7)_80%,rgba(8,6,5,0.98)_100%)]" />
 
-      {/* 3. Detective Flashlight Cursor Beam */}
+      {/* 3. Detective Flashlight Cursor Beam: Tight Forensic Spotlight with Crisp Core */}
       <div
-        className="pointer-events-none fixed z-20 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full transition-transform duration-75 ease-out"
+        className="pointer-events-none fixed z-20 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full transition-transform duration-75 ease-out"
         style={{
           left: `${mousePos.x}px`,
           top: `${mousePos.y}px`,
           background:
-            "radial-gradient(circle, rgba(255,243,220,0.16) 0%, rgba(255,243,220,0.05) 45%, transparent 75%)",
+            "radial-gradient(circle, rgba(255,245,228,0.26) 0%, rgba(255,240,210,0.12) 32%, rgba(255,235,195,0.03) 60%, transparent 72%)",
+          boxShadow: "0 0 45px 10px rgba(255, 240, 200, 0.08)",
         }}
       />
 
