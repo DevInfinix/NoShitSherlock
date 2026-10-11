@@ -1,25 +1,19 @@
 "use client";
 
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AudioControlHud } from "@/components/landing/AudioControlHud";
-import { LandingFrameScrubber } from "@/components/landing/LandingFrameScrubber";
-import { ScrollProgressHud } from "@/components/landing/ScrollProgressHud";
 import { SmoothScrollProvider } from "@/components/landing/SmoothScrollProvider";
-import { BlobatarAvatar } from "@/components/ui/blobatar-avatar";
-import { BooksShowcase, type CaseDossierCfg } from "@/components/ui/books-showcase";
-import { BorderBeam } from "@/components/ui/border-beam";
-import { CylinderCarousel, type EvidenceExhibit } from "@/components/ui/cylinder-carousel";
-import { Particles } from "@/components/ui/particles";
-import { PerspectiveMarquee } from "@/components/ui/perspective-marquee";
-import { ProgressiveBlur } from "@/components/ui/progressive-blur";
-import { RadarRipple } from "@/components/ui/radar-ripple";
-import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
-import { TextMorph } from "@/components/ui/text-morph";
-import { TextScramble } from "@/components/ui/text-scramble";
-import { TextShimmer } from "@/components/ui/text-shimmer";
 import { soundEngine } from "@/lib/audio/sound-engine";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+const TOTAL_FRAMES = 150;
 
 interface LandingViewProps {
   user: {
@@ -31,479 +25,541 @@ interface LandingViewProps {
   } | null;
 }
 
-const ACTIVE_CASES: CaseDossierCfg[] = [
-  {
-    id: "case-01",
-    code: "CASE-1928-BW",
-    title: "The Blackwood Protocol",
-    difficulty: "HARD",
-    year: "1928",
-    summary:
-      "A locked railway carriage arrives in Edinburgh carrying a deceased diplomat and an empty steel briefcase. Five suspects with conflicting timetables. Decode wiretap ciphers and pinpoint the killer.",
-    classification: "TOP SECRET",
-    sectionsCount: 5,
-    cluesCount: 12,
-  },
-  {
-    id: "case-02",
-    code: "CASE-1934-WW",
-    title: "The Whispering Wire",
-    difficulty: "MEDIUM",
-    year: "1934",
-    summary:
-      "Intercepted telegraph communications reveal an espionage cell operating inside the General Post Office. Decrypt the wiretap ciphers, analyze Morse recordings, and intercept the courier.",
-    classification: "RESTRICTED",
-    sectionsCount: 5,
-    cluesCount: 10,
-  },
-  {
-    id: "case-03",
-    code: "CASE-1941-CL",
-    title: "The Crimson Ledger",
-    difficulty: "LETHAL",
-    year: "1941",
-    summary:
-      "Counterfeit wartime bonds and a midnight explosion in the harbor treasury. Sift forensic ash, examine torn bills, and reconstruct the conspirators' chronology on the evidence pinboard.",
-    classification: "EYES ONLY",
-    sectionsCount: 5,
-    cluesCount: 15,
-  },
-];
-
-const EXHIBIT_ARTIFACTS: EvidenceExhibit[] = [
-  {
-    id: "ex-1",
-    tag: "EXHIBIT A",
-    title: "Torn Train Ticket",
-    type: "PHYSICAL DOCUMENT",
-    notes: "Stamped at King's Cross 23:14. Smudged thumbprint in graphite on reverse margin.",
-  },
-  {
-    id: "ex-2",
-    tag: "EXHIBIT B",
-    title: "Brass Pocket Watch",
-    type: "MECHANICAL ARTIFACT",
-    notes: "Hands frozen at 03:42. Internal escapement jammed with seawater silt.",
-  },
-  {
-    id: "ex-3",
-    tag: "EXHIBIT C",
-    title: "Encoded Telegraph Tape",
-    type: "CIPHER TEXT",
-    notes: "Baudot code sequence repeating every 16 characters. Addressed to 'Nightingale'.",
-  },
-  {
-    id: "ex-4",
-    tag: "EXHIBIT D",
-    title: "Cyanide Residue Vial",
-    type: "TOXICOLOGY",
-    notes: "Apothecary label scraped clean. Traces of bitter almond and paraffin wax.",
-  },
-  {
-    id: "ex-5",
-    tag: "EXHIBIT E",
-    title: "Smudged Ledger Carbon",
-    type: "FINANCIAL",
-    notes: "Payment voucher totaling £4,500 transferred to a Swiss numbered vault.",
-  },
-];
-
-const DISCIPLINE_CARDS = [
-  {
-    num: "01",
-    title: "Fill-in-the-Blank Ciphers",
-    desc: "Recover missing words from torn coroner reports and charred witness statements.",
-  },
-  {
-    num: "02",
-    title: "Forensic MCQ Deduction",
-    desc: "Weigh conflicting ballistic trajectories and cross-examine suspect alibis.",
-  },
-  {
-    num: "03",
-    title: "Testimony Verification",
-    desc: "Toggle assertion switches to separate genuine testimony from fabricated cover stories.",
-  },
-  {
-    num: "04",
-    title: "Cryptic Manuscripts",
-    desc: "Crack substitution codes, book ciphers, and mirrored secret society emblems.",
-  },
-  {
-    num: "05",
-    title: "Wiretap Surveillance",
-    desc: "Listen to vintage wiretaps, calibrate frequency filters, and read synced transcripts.",
-  },
-  {
-    num: "06",
-    title: "Chronological Pinboard",
-    desc: "Pin gathered clues with red yarn. One correct chronological sequence breaks the case.",
-  },
-];
-
-const NOIR_MOTTOS = [
-  "TRUTH LEAVES A TRAIL",
-  "EVERY CLUE SPEAKS",
-  "SEAL THE DOSSIER",
-  "NO DETAIL ESCAPES",
-];
-
 export function LandingView({ user }: LandingViewProps) {
-  const [mottoIndex, setMottoIndex] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const beat1Ref = useRef<HTMLDivElement>(null);
+  const beat2Ref = useRef<HTMLDivElement>(null);
+  const beat3Ref = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
 
-  // Cycle mottos for TextMorph
+  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const currentFrameRef = useRef(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [loadCount, setLoadCount] = useState(0);
+
+  // Preload 150 frames
   useEffect(() => {
-    const timer = setInterval(() => {
-      setMottoIndex((prev) => (prev + 1) % NOIR_MOTTOS.length);
-    }, 3800);
-    return () => clearInterval(timer);
+    let active = true;
+    const images: HTMLImageElement[] = [];
+    let loaded = 0;
+
+    const drawFrame = (frameIdx: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const img = imagesRef.current[frameIdx];
+      if (!img?.complete) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+
+      const imgRatio = img.width / img.height;
+      const canvasRatio = w / h;
+      let drawW = w;
+      let drawH = h;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if (canvasRatio > imgRatio) {
+        drawH = w / imgRatio;
+        offsetY = (h - drawH) / 2;
+      } else {
+        drawW = h * imgRatio;
+        offsetX = (w - drawW) / 2;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+    };
+
+    for (let i = 1; i <= TOTAL_FRAMES; i++) {
+      const img = new Image();
+      const num = String(i).padStart(3, "0");
+      img.src = `/landing/frames/frame-${num}.webp`;
+
+      img.onload = () => {
+        if (!active) return;
+        loaded++;
+        setLoadCount(loaded);
+        if (loaded === 15 || loaded === TOTAL_FRAMES) {
+          setIsLoaded(true);
+          drawFrame(currentFrameRef.current);
+        }
+      };
+
+      images.push(img);
+    }
+    imagesRef.current = images;
+
+    const handleResize = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.scale(dpr, dpr);
+      }
+      drawFrame(currentFrameRef.current);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      active = false;
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
-  const activeMotto = NOIR_MOTTOS[mottoIndex] ?? "TRUTH LEAVES A TRAIL";
+  // Choreographed GSAP timeline
+  useEffect(() => {
+    if (!trackRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const drawFrame = (frameIdx: number) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx2d = canvas.getContext("2d");
+        if (!ctx2d) return;
+
+        const img = imagesRef.current[frameIdx];
+        if (!img?.complete) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        const w = canvas.width / dpr;
+        const h = canvas.height / dpr;
+
+        const imgRatio = img.width / img.height;
+        const canvasRatio = w / h;
+        let drawW = w;
+        let drawH = h;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (canvasRatio > imgRatio) {
+          drawH = w / imgRatio;
+          offsetY = (h - drawH) / 2;
+        } else {
+          drawW = h * imgRatio;
+          offsetX = (w - drawW) / 2;
+        }
+
+        ctx2d.clearRect(0, 0, w, h);
+        ctx2d.drawImage(img, offsetX, offsetY, drawW, drawH);
+      };
+
+      const frameObj = { frame: 0 };
+
+      // Master scroll timeline
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: trackRef.current,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 0.6,
+          onUpdate: () => {
+            const target = Math.min(TOTAL_FRAMES - 1, Math.floor(frameObj.frame));
+            currentFrameRef.current = target;
+            drawFrame(target);
+          },
+        },
+      });
+
+      // Frame scrubbing across whole track (0 -> 149)
+      tl.to(
+        frameObj,
+        {
+          frame: TOTAL_FRAMES - 1,
+          ease: "none",
+          duration: 1,
+        },
+        0,
+      );
+
+      // Detective scale and position:
+      // Starts enlarged (1.20) and shifted to the right (+8vw).
+      // Smoothly returns to center (0vw) and normal scale (1.0).
+      if (canvasWrapRef.current) {
+        tl.fromTo(
+          canvasWrapRef.current,
+          {
+            scale: 1.2,
+            x: "8vw",
+          },
+          {
+            scale: 1.0,
+            x: "0vw",
+            ease: "power2.out",
+            duration: 0.5,
+          },
+          0,
+        );
+      }
+
+      // Title transformation:
+      // Starts massive in the center-left.
+      // Shrinks to compact brand mark and docks top-left.
+      if (titleRef.current) {
+        tl.fromTo(
+          titleRef.current,
+          {
+            scale: 1.0,
+            y: "0vh",
+            x: "0vw",
+            transformOrigin: "top left",
+          },
+          {
+            scale: 0.44,
+            y: "-26vh",
+            x: "-1vw",
+            ease: "power2.inOut",
+            duration: 0.42,
+          },
+          0,
+        );
+      }
+
+      // Crimson atmospheric backlight expands slightly as magnifying glass approaches
+      if (glowRef.current) {
+        tl.fromTo(
+          glowRef.current,
+          { opacity: 0.35, scale: 0.9 },
+          { opacity: 0.7, scale: 1.2, ease: "power1.inOut", duration: 1 },
+          0,
+        );
+      }
+
+      // Narrative Beat 1: Initial premise (visible at start, fades out by 0.32)
+      if (beat1Ref.current) {
+        tl.fromTo(
+          beat1Ref.current,
+          { opacity: 1, y: 0, pointerEvents: "auto" },
+          { opacity: 0, y: -30, pointerEvents: "none", ease: "power1.in", duration: 0.15 },
+          0.18,
+        );
+      }
+
+      // Narrative Beat 2: Core Loop (fades in at 0.36, fades out at 0.68)
+      if (beat2Ref.current) {
+        tl.fromTo(
+          beat2Ref.current,
+          { opacity: 0, y: 35, pointerEvents: "none" },
+          { opacity: 1, y: 0, pointerEvents: "auto", ease: "power2.out", duration: 0.12 },
+          0.35,
+        );
+        tl.to(
+          beat2Ref.current,
+          { opacity: 0, y: -30, pointerEvents: "none", ease: "power1.in", duration: 0.12 },
+          0.64,
+        );
+      }
+
+      // Narrative Beat 3: Enlistment & Action (fades in at 0.72, solid till end)
+      if (beat3Ref.current) {
+        tl.fromTo(
+          beat3Ref.current,
+          { opacity: 0, y: 35, pointerEvents: "none" },
+          { opacity: 1, y: 0, pointerEvents: "auto", ease: "power2.out", duration: 0.15 },
+          0.72,
+        );
+      }
+    }, trackRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
     <SmoothScrollProvider>
-      <div className="relative min-h-screen w-full bg-[var(--color-ink)] text-[var(--color-paper)] selection:bg-[var(--color-evidence-red)] selection:text-[var(--color-paper)]">
-        {/* Interactive Custom Spotlight Cursor */}
+      <div className="relative min-h-screen w-full bg-[#090807] text-[#E7DDC8] selection:bg-[#A92A28] selection:text-[#E7DDC8] cursor-none overflow-x-hidden">
+        {/* Refined Cinematic Spotlight Cursor */}
         <SpotlightCursor />
 
-        {/* Ambient Audio Toggle */}
+        {/* Global Noir Sound Controls */}
         <AudioControlHud />
 
-        {/* Vertical Scroll Level Progress HUD */}
-        <ScrollProgressHud />
+        {/* Procedural Film Grain Overlay */}
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 z-30 h-full w-full opacity-[0.035]"
+        >
+          <filter id="noir-grain">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.75"
+              numOctaves="3"
+              stitchTiles="stitch"
+            />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#noir-grain)" />
+        </svg>
 
-        {/* Floating Particles Atmosphere */}
-        <Particles quantity={35} color="#A9874A" className="z-10" />
+        {/* Global Vignette and Darkness Gradients */}
+        <div className="pointer-events-none fixed inset-0 z-20 bg-radial from-transparent via-[#090807]/30 to-[#090807]/90" />
+        <div className="pointer-events-none fixed inset-0 z-20 bg-gradient-to-t from-[#090807] via-transparent to-[#090807]/80" />
 
-        {/* Persistent Top Hairline Navigation Bar */}
-        <header className="fixed top-0 inset-x-0 z-30 flex items-center justify-between border-b border-[var(--color-brass)]/20 bg-[var(--color-ink)]/80 px-6 py-4 backdrop-blur-md">
-          <Link
-            href="/"
-            onClick={() => soundEngine.playPaper()}
-            className="group flex items-center gap-3"
-          >
-            <div className="flex h-7 w-7 items-center justify-center border border-[var(--color-brass)] bg-[var(--color-ink-raised)]">
-              <span className="font-serif text-sm font-bold text-[var(--color-evidence-red)]">
-                N
-              </span>
-            </div>
-            <div>
-              <span className="font-serif text-sm tracking-wider uppercase text-[var(--color-paper)] group-hover:text-[var(--color-brass)] transition-colors">
-                NoShitSherlock
-              </span>
-              <span className="hidden font-mono text-[9px] tracking-widest text-[var(--color-paper-muted)] sm:inline-block ml-2 border-l border-[var(--color-brass)]/30 pl-2">
-                COLD CASE UNIT
-              </span>
-            </div>
-          </Link>
-
-          <nav className="hidden items-center gap-6 font-mono text-xs uppercase tracking-wider text-[var(--color-paper-muted)] md:flex">
-            <Link
-              href="/cases"
-              onClick={() => soundEngine.playPaper()}
-              className="hover:text-[var(--color-paper)] transition-colors"
-            >
-              Cases
-            </Link>
-            <a href="#mechanics" className="hover:text-[var(--color-paper)] transition-colors">
-              Investigation
-            </a>
-            <a href="#enlist" className="hover:text-[var(--color-paper)] transition-colors">
-              Clearance
-            </a>
-            <Link
-              href="/legal"
-              onClick={() => soundEngine.playPaper()}
-              className="hover:text-[var(--color-paper)] transition-colors"
-            >
-              Directives
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-3 mr-24 sm:mr-28">
-            {user ? (
-              <Link
-                href="/cases"
-                onClick={() => soundEngine.playStamp()}
-                className="group relative flex items-center gap-2 border border-[var(--color-evidence-red)] bg-[var(--color-evidence-red)]/10 px-3.5 py-1.5 font-mono text-xs uppercase text-[var(--color-paper)] transition-all hover:bg-[var(--color-evidence-red)]"
-              >
-                <BlobatarAvatar
-                  name={user.agentTag || user.name}
-                  size={20}
-                  className="border-[var(--color-paper)]/40"
-                />
-                <span>AGENT [{user.agentTag || user.name.slice(0, 3).toUpperCase()}]</span>
-              </Link>
-            ) : (
-              <Link
-                href="/signup"
-                onClick={() => soundEngine.playStamp()}
-                className="relative overflow-hidden border border-[var(--color-brass)] bg-[var(--color-brass)]/10 px-3.5 py-1.5 font-mono text-xs uppercase tracking-wider text-[var(--color-paper)] transition-all hover:bg-[var(--color-brass)] hover:text-[var(--color-ink)]"
-              >
-                <BorderBeam size={80} duration={8} />
-                <span>ENLIST</span>
-              </Link>
-            )}
-          </div>
-        </header>
-
-        {/* Pinned 350vh GSAP Frame-Scrubber Track */}
-        <LandingFrameScrubber />
-
-        {/* Progressive Blur Masks on Top/Bottom */}
-        <ProgressiveBlur direction="top" className="top-0 h-24 z-20" />
-        <ProgressiveBlur direction="bottom" className="bottom-0 h-32 z-20" />
-
-        {/* Narrative Scroll Overlays Across Sections */}
-        <div className="relative z-20 -mt-[350vh]">
-          {/* SECTION 1: THE COLD OPEN (0vh - 100vh) */}
-          <section
-            id="sector-1"
-            className="relative flex min-h-screen flex-col items-center justify-center px-6 pt-20 text-center"
-          >
-            <div className="max-w-4xl space-y-6">
-              <div className="inline-flex items-center gap-2 border border-[var(--color-brass)]/40 bg-[var(--color-ink-raised)]/90 px-4 py-1 backdrop-blur-md">
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-evidence-red)] animate-ping" />
-                <TextScramble
-                  className="font-mono text-[11px] tracking-[0.25em] uppercase text-[var(--color-paper-muted)]"
-                  duration={1.2}
-                >
-                  {"DEPARTMENT OF UNRESOLVED INVESTIGATIONS // ARCHIVE 1928"}
-                </TextScramble>
-              </div>
-
-              <h1 className="font-serif text-5xl font-bold tracking-tight text-[var(--color-paper)] sm:text-7xl md:text-8xl">
-                SOME TRUTHS <br />
-                <TextShimmer className="text-[var(--color-brass)]">
-                  REFUSE TO REMAIN BURIED.
-                </TextShimmer>
-              </h1>
-
-              <p className="mx-auto max-w-2xl font-serif text-base leading-relaxed text-[var(--color-paper-muted)] sm:text-xl">
-                An episodic noir detective web game. Open the worn evidence folder, interrogate
-                wiretaps, decode cryptic manuscripts, and reconstruct the murder board in
-                chronological order.
-              </p>
-
-              <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-                <Link
-                  href={user ? "/cases" : "/signup"}
-                  onClick={() => soundEngine.playStamp()}
-                  className="group relative flex items-center gap-3 overflow-hidden border border-[var(--color-evidence-red)] bg-[var(--color-evidence-red)] px-6 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[var(--color-paper)] shadow-2xl transition-all duration-300 hover:bg-[#861f1e]"
-                >
-                  <BorderBeam size={140} duration={6} />
-                  <span>{user ? "RESUME ACTIVE CASE" : "ENLIST & CLAIM WARRANT"}</span>
-                  <span className="transition-transform duration-300 group-hover:translate-x-1">
-                    &rarr;
-                  </span>
-                </Link>
-
-                <Link
-                  href="/cases"
-                  onClick={() => soundEngine.playPaper()}
-                  className="border border-[var(--color-brass)]/50 bg-[var(--color-ink-raised)]/80 px-6 py-3 font-mono text-xs uppercase tracking-wider text-[var(--color-paper-muted)] backdrop-blur-md transition-all duration-300 hover:border-[var(--color-brass)] hover:text-[var(--color-paper)]"
-                >
-                  BROWSE CASE ARCHIVES
-                </Link>
-              </div>
-
-              {/* Scroll down indicator */}
-              <div className="pt-12 text-center">
-                <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-[var(--color-smoke)]">
-                  SCROLL TO ACCESS EVIDENCE
+        {/* Master Pinned Track (320vh total scrub length) */}
+        <div ref={trackRef} className="relative h-[320vh] w-full">
+          {/* Sticky 100vh Viewport Arena */}
+          <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
+            {/* Loading indicator for initial frame burst */}
+            {!isLoaded && (
+              <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[#090807]">
+                <span className="font-valmist font-bold text-sm tracking-[0.25em] uppercase text-[#A9874A] animate-pulse">
+                  PREPARING CASE DOSSIER... {Math.round((loadCount / TOTAL_FRAMES) * 100)}%
                 </span>
-                <div className="mx-auto mt-2 h-6 w-[1px] bg-[var(--color-brass)]/40 animate-pulse" />
-              </div>
-            </div>
-          </section>
-
-          {/* PERSPECTIVE MARQUEE OF CLASSIFIED DISPATCHES */}
-          <div className="my-8">
-            <PerspectiveMarquee speed={24} rotateDeg={-1.5}>
-              <span className="font-mono text-xs text-[var(--color-evidence-red)]">
-                DISPATCH 23:42 {"//"} TORN TICKET FOUND AT KING'S CROSS
-              </span>
-              <span className="text-[var(--color-brass)]">&bull;</span>
-              <span className="font-mono text-xs text-[var(--color-paper-muted)]">
-                AUTOPSY: POTASSIUM CYANIDE RESIDUE DETECTED
-              </span>
-              <span className="text-[var(--color-brass)]">&bull;</span>
-              <span className="font-mono text-xs text-[var(--color-brass)]">
-                WIRETAP INTERCEPT {"//"} EMBASSY FREQUENCY JAMMED
-              </span>
-              <span className="text-[var(--color-brass)]">&bull;</span>
-              <span className="font-mono text-xs text-[var(--color-evidence-red)]">
-                WARNING: TIME LIMIT ENFORCED ON SECTION 3
-              </span>
-              <span className="text-[var(--color-brass)]">&bull;</span>
-            </PerspectiveMarquee>
-          </div>
-
-          {/* SECTION 2: THE INVESTIGATION ENGINE & 3D DOSSIER VAULT (100vh - 220vh) */}
-          <section id="mechanics" className="relative min-h-screen px-6 py-24">
-            <div className="mx-auto max-w-6xl">
-              <div className="text-center space-y-4 mb-16">
-                <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-[var(--color-evidence-red)]">
-                  SECTOR II {"//"} THE DEDUCTION ENGINE
-                </span>
-                <h2 className="font-serif text-3xl font-bold tracking-tight text-[var(--color-paper)] md:text-5xl">
-                  5 Forensic Disciplines. One Unforgiving Timeline.
-                </h2>
-                <p className="mx-auto max-w-2xl font-serif text-sm text-[var(--color-paper-muted)] md:text-base">
-                  Every case contains five sections of cryptographic, forensic, and testimonial
-                  puzzles. The database is authoritative — your deductions are locked in stone.
-                </p>
-              </div>
-
-              {/* 6 Disciplines Spotlight Cards */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {DISCIPLINE_CARDS.map((card) => (
-                  <SpotlightCard key={card.num} className="p-6">
-                    <div className="flex items-center justify-between border-b border-[var(--color-brass)]/20 pb-3">
-                      <span className="font-mono text-xs font-bold text-[var(--color-evidence-red)]">
-                        {card.num}
-                      </span>
-                      <span className="font-mono text-[10px] uppercase text-[var(--color-paper-muted)]">
-                        VERIFIED DISCIPLINE
-                      </span>
-                    </div>
-                    <h3 className="mt-4 font-serif text-lg font-bold text-[var(--color-paper)]">
-                      {card.title}
-                    </h3>
-                    <p className="mt-2 font-serif text-xs leading-relaxed text-[var(--color-paper-muted)]">
-                      {card.desc}
-                    </p>
-                  </SpotlightCard>
-                ))}
-              </div>
-
-              {/* Vengeance UI 3D Books/Dossiers Showcase */}
-              <div className="mt-24">
-                <BooksShowcase cases={ACTIVE_CASES} />
-              </div>
-
-              {/* Vengeance UI Cylinder Carousel */}
-              <div className="mt-16">
-                <CylinderCarousel exhibits={EXHIBIT_ARTIFACTS} />
-              </div>
-            </div>
-          </section>
-
-          {/* SECTION 3: THE ENLISTMENT & EXECUTION GATE (220vh - 350vh) */}
-          <section
-            id="enlist"
-            className="relative flex min-h-screen flex-col items-center justify-center px-6 py-24 text-center"
-          >
-            {/* Background Radar Pulse */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <RadarRipple size={420} count={3} />
-            </div>
-
-            <div className="relative z-10 max-w-3xl space-y-8 border border-[var(--color-brass)]/40 bg-[var(--color-ink-raised)]/95 p-8 shadow-2xl backdrop-blur-md md:p-14">
-              <div className="inline-block border border-[var(--color-evidence-red)] px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-[var(--color-evidence-red)]">
-                SECURITY CLEARANCE ADMISSION
-              </div>
-
-              <h2 className="font-serif text-3xl font-bold tracking-tight text-[var(--color-paper)] md:text-5xl">
-                {user ? "REPORT BACK TO HEADQUARTERS" : "CLAIM YOUR DETECTIVE WARRANT"}
-              </h2>
-
-              <p className="font-serif text-sm leading-relaxed text-[var(--color-paper-muted)] md:text-base">
-                {user
-                  ? `Welcome back, Agent ${user.agentTag || user.name}. Cold cases are waiting in the central archives. Re-open your dossier or challenge your squad to beat your solving speed.`
-                  : "All operatives are issued a numbered 3-letter agent tag and a physical 3D warrant badge. Your credentials, hint balances, and solve records sync across every device."}
-              </p>
-
-              {/* Dynamic Operative Preview */}
-              <div className="flex flex-col items-center justify-center gap-4 py-4">
-                <BlobatarAvatar
-                  name={user ? user.agentTag || user.name : "rookie-detective"}
-                  size={64}
-                  className="border-[var(--color-brass)] shadow-xl"
-                />
-                <div className="font-mono text-xs text-[var(--color-paper-muted)]">
-                  {user ? (
-                    <span>
-                      REGISTERED: <span className="text-[var(--color-brass)]">{user.email}</span>
-                    </span>
-                  ) : (
-                    <span>
-                      STATUS:{" "}
-                      <TextMorph text={activeMotto} className="text-[var(--color-evidence-red)]" />
-                    </span>
-                  )}
+                <div className="mt-4 h-[2px] w-48 bg-[#15110F]">
+                  <div
+                    className="h-full bg-[#A92A28] transition-all duration-200"
+                    style={{ width: `${(loadCount / TOTAL_FRAMES) * 100}%` }}
+                  />
                 </div>
               </div>
+            )}
 
-              <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            {/* Subtle Crimson Atmospheric Rim Lighting */}
+            <div
+              ref={glowRef}
+              className="pointer-events-none absolute inset-0 z-0 opacity-40 transition-opacity"
+              style={{
+                background:
+                  "radial-gradient(circle 620px at 58% 50%, rgba(100, 27, 27, 0.28) 0%, rgba(169, 42, 40, 0.08) 45%, transparent 75%)",
+              }}
+            />
+
+            {/* Detective Canvas Container (controlled by GSAP scale and horizontal shift) */}
+            <div
+              ref={canvasWrapRef}
+              className="absolute inset-0 z-10 h-full w-full pointer-events-none flex items-center justify-center"
+            >
+              <canvas
+                ref={canvasRef}
+                className="h-full w-full object-cover transition-opacity duration-500"
+                style={{ opacity: isLoaded ? 1 : 0 }}
+              />
+            </div>
+
+            {/* Persistent Top Hairline Bar */}
+            <header className="fixed top-0 inset-x-0 z-30 flex items-center justify-between px-8 py-6 pointer-events-auto">
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-[#B8AD98]/60">
+                  CASE ARCHIVES {"//"} NO SHIT SHERLOCK
+                </span>
+              </div>
+
+              <div className="flex items-center gap-6 mr-28 sm:mr-32">
                 {user ? (
                   <Link
                     href="/cases"
                     onClick={() => soundEngine.playStamp()}
-                    className="relative overflow-hidden border border-[var(--color-evidence-red)] bg-[var(--color-evidence-red)] px-8 py-3.5 font-mono text-xs font-bold uppercase tracking-widest text-[var(--color-paper)] shadow-2xl transition-all duration-300 hover:bg-[#861f1e]"
+                    className="group flex items-center gap-2 border border-[#A9874A]/40 bg-[#15110F]/80 px-4 py-1.5 font-mono text-xs uppercase tracking-wider text-[#E7DDC8] backdrop-blur-md transition-all hover:border-[#A9874A] hover:bg-[#A9874A]/10"
                   >
-                    <BorderBeam size={160} duration={5} />
-                    <span>OPEN ACTIVE DOSSIER &rarr;</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#A92A28]" />
+                    <span>AGENT [{user.agentTag || user.name.slice(0, 3).toUpperCase()}]</span>
                   </Link>
                 ) : (
-                  <>
-                    <Link
-                      href="/signup"
-                      onClick={() => soundEngine.playStamp()}
-                      className="relative overflow-hidden border border-[var(--color-evidence-red)] bg-[var(--color-evidence-red)] px-8 py-3.5 font-mono text-xs font-bold uppercase tracking-widest text-[var(--color-paper)] shadow-2xl transition-all duration-300 hover:bg-[#861f1e]"
-                    >
-                      <BorderBeam size={160} duration={5} />
-                      <span>ENLIST AS DETECTIVE &rarr;</span>
-                    </Link>
+                  <div className="flex items-center gap-4 font-mono text-xs uppercase tracking-wider text-[#B8AD98]">
                     <Link
                       href="/login"
                       onClick={() => soundEngine.playPaper()}
-                      className="border border-[var(--color-brass)]/50 bg-[var(--color-ink)] px-6 py-3.5 font-mono text-xs uppercase tracking-widest text-[var(--color-paper-muted)] transition-all duration-300 hover:border-[var(--color-brass)] hover:text-[var(--color-paper)]"
+                      className="hover:text-[#E7DDC8] transition-colors"
                     >
-                      ENTER HQ WITH CREDENTIALS
+                      Log as detective
                     </Link>
-                  </>
+                    <Link
+                      href="/signup"
+                      onClick={() => soundEngine.playStamp()}
+                      className="border border-[#A9874A]/60 bg-[#A9874A]/10 px-3.5 py-1 text-[#E7DDC8] hover:border-[#A9874A] hover:bg-[#A9874A]/20 transition-all"
+                    >
+                      Register
+                    </Link>
+                  </div>
                 )}
+              </div>
+            </header>
+
+            {/* LEFT SIDE: OVERSIZED "NO SHIT SHERLOCK" TITLE TREATMENT */}
+            <div
+              ref={titleRef}
+              className="absolute left-8 sm:left-12 lg:left-16 top-[28vh] z-20 max-w-xl pointer-events-none select-none"
+            >
+              <div className="flex flex-col">
+                <span className="font-valmist font-extrabold text-[clamp(4.2rem,9.5vw,10.5rem)] uppercase leading-[0.82] tracking-tight text-[#E7DDC8]">
+                  NO
+                </span>
+                <span className="font-valmist font-extrabold text-[clamp(4.2rem,9.5vw,10.5rem)] uppercase leading-[0.82] tracking-tight text-[#E7DDC8]">
+                  SHIT
+                </span>
+                <span className="font-charlea font-bold italic text-[clamp(4.6rem,10.2vw,11.5rem)] leading-[0.85] tracking-[-0.03em] text-[#E7DDC8]">
+                  Sherlock
+                </span>
               </div>
             </div>
 
-            {/* Minimal Noir Footer */}
-            <footer className="mt-20 w-full max-w-5xl border-t border-[var(--color-brass)]/20 pt-8 pb-12">
-              <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-[var(--color-paper-muted)]">
-                <div>
-                  <span className="text-[var(--color-brass)]">
-                    &copy; 1928–2026 NoShitSherlock.
-                  </span>{" "}
-                  All Rights Reserved.
-                </div>
-                <div className="flex items-center gap-6">
-                  <Link
-                    href="/legal"
-                    onClick={() => soundEngine.playPaper()}
-                    className="hover:text-[var(--color-paper)] transition-colors"
-                  >
-                    Terms & Privacy
-                  </Link>
-                  <a
-                    href="https://github.com/DevInfinix/noshitsherlock"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-[var(--color-paper)] transition-colors"
-                  >
-                    GitHub Source
-                  </a>
-                  <Link
-                    href="/not-found"
-                    onClick={() => soundEngine.playPaper()}
-                    className="text-[var(--color-smoke)] hover:text-[var(--color-evidence-red)] transition-colors"
-                  >
-                    Classified 404
-                  </Link>
+            {/* RIGHT SIDE: CONTINUOUS CHOREOGRAPHED NARRATIVE BEATS */}
+            <div className="absolute right-8 sm:right-12 lg:right-16 top-[28vh] z-20 w-full max-w-md lg:max-w-lg pointer-events-auto">
+              {/* BEAT 1: THE PREMISE (Active 0.0 - 0.32) */}
+              <div ref={beat1Ref} className="space-y-6 text-left">
+                <span className="font-mono text-[11px] tracking-[0.3em] uppercase text-[#A92A28] block">
+                  THE PREMISE
+                </span>
+
+                <h2 className="font-valmist font-bold text-3xl sm:text-4xl lg:text-5xl uppercase leading-[1.05] tracking-tight text-[#E7DDC8]">
+                  Every cold case hides an unbroken sequence.
+                </h2>
+
+                <p className="font-selnora text-base sm:text-lg leading-relaxed text-[#B8AD98]">
+                  An open-source noir detective game. Open the evidence folder, examine crime-scene
+                  exhibits, decode encrypted messages, and interrogate wiretaps across five
+                  progressive sections.
+                </p>
+
+                <p className="font-garamond text-lg sm:text-xl italic text-[#B8AD98]/90 border-l-2 border-[#A9874A]/40 pl-4 py-1">
+                  Collect the clues into your notebook. Once the folder closes, string the red yarn
+                  on the pinboard to reconstruct the timeline.
+                </p>
+
+                <div className="pt-4 flex items-center gap-3 text-xs font-mono text-[#78716A] uppercase tracking-widest">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#A9874A] animate-ping" />
+                  <span>SCROLL TO PROCEED WITH INVESTIGATION &darr;</span>
                 </div>
               </div>
-            </footer>
-          </section>
+
+              {/* BEAT 2: THE CORE INVESTIGATION LOOP (Active 0.36 - 0.68) */}
+              <div ref={beat2Ref} className="space-y-6 text-left opacity-0">
+                <span className="font-mono text-[11px] tracking-[0.3em] uppercase text-[#A9874A] block">
+                  INVESTIGATION DISCIPLINE
+                </span>
+
+                <h2 className="font-valmist font-bold text-3xl sm:text-4xl lg:text-5xl uppercase leading-[1.05] tracking-tight text-[#E7DDC8]">
+                  Server-Authoritative.
+                  <br />
+                  <span className="text-[#A92A28]">Zero Guesswork.</span>
+                </h2>
+
+                <div className="space-y-4 font-mono text-xs text-[#B8AD98] border-t border-[#A9874A]/30 pt-4">
+                  <div className="flex gap-4">
+                    <span className="text-[#A9874A] font-bold">01</span>
+                    <div>
+                      <strong className="text-[#E7DDC8] uppercase block font-valmist text-sm">
+                        The Evidence Folder
+                      </strong>
+                      <p className="font-selnora text-sm text-[#B8AD98] mt-1 leading-normal">
+                        Five sections of puzzle deduction: letter-dash ciphers, witness
+                        cross-examinations, true/false testimony contradictions, cryptic codes, and
+                        analog wiretaps.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 border-t border-[#15110F] pt-3">
+                    <span className="text-[#A9874A] font-bold">02</span>
+                    <div>
+                      <strong className="text-[#E7DDC8] uppercase block font-valmist text-sm">
+                        The Detective Notebook
+                      </strong>
+                      <p className="font-selnora text-sm text-[#B8AD98] mt-1 leading-normal">
+                        Correct deductions permanently unlock evidence artifacts and timestamped
+                        testimonies into your inventory pocketbook.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 border-t border-[#15110F] pt-3">
+                    <span className="text-[#A92A28] font-bold">03</span>
+                    <div>
+                      <strong className="text-[#E7DDC8] uppercase block font-valmist text-sm">
+                        The Yarn Pinboard
+                      </strong>
+                      <p className="font-selnora text-sm text-[#B8AD98] mt-1 leading-normal">
+                        Arrange gathered clues in exact chronological order. One correct timeline
+                        breaks the case wide open.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="font-mono text-[11px] text-[#78716A]">
+                  * Correct answers never touch client memory. Scores and penalties are locked on
+                  the database.
+                </p>
+              </div>
+
+              {/* BEAT 3: CASE 01 & ENLISTMENT CALL TO ACTION (Active 0.72 - 1.0) */}
+              <div ref={beat3Ref} className="space-y-6 text-left opacity-0">
+                <div className="flex items-center gap-3">
+                  <span className="border border-[#A92A28] bg-[#A92A28]/20 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-[#E7DDC8]">
+                    CASE 01 ACTIVE
+                  </span>
+                  <span className="font-mono text-[10px] text-[#A9874A] tracking-widest">
+                    EDINBURGH EXPRESS {"//"} 1928
+                  </span>
+                </div>
+
+                <h2 className="font-valmist font-bold text-3xl sm:text-4xl lg:text-5xl uppercase leading-[1.05] tracking-tight text-[#E7DDC8]">
+                  The Blackwood Protocol
+                </h2>
+
+                <p className="font-selnora text-base sm:text-lg leading-relaxed text-[#B8AD98]">
+                  A diplomat found dead in a sealed railway carriage. An empty steel briefcase and
+                  five suspects with conflicting timetables. The files are open.
+                </p>
+
+                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                  {user ? (
+                    <Link
+                      href="/cases"
+                      onClick={() => soundEngine.playStamp()}
+                      className="px-8 py-3.5 bg-[#A92A28] hover:bg-[#861f1e] text-[#E7DDC8] font-valmist font-bold text-base uppercase tracking-widest text-center shadow-2xl transition-all cursor-pointer border border-[#A92A28]"
+                    >
+                      Resume investigation &rarr;
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        href="/signup"
+                        onClick={() => soundEngine.playStamp()}
+                        className="px-8 py-3.5 bg-[#A92A28] hover:bg-[#861f1e] text-[#E7DDC8] font-valmist font-bold text-base uppercase tracking-widest text-center shadow-2xl transition-all cursor-pointer border border-[#A92A28]"
+                      >
+                        Register as detective &rarr;
+                      </Link>
+                      <Link
+                        href="/login"
+                        onClick={() => soundEngine.playPaper()}
+                        className="px-6 py-3.5 bg-transparent hover:bg-[#A9874A]/10 text-[#E7DDC8] font-mono text-xs uppercase tracking-wider text-center border border-[#A9874A]/60 transition-all cursor-pointer"
+                      >
+                        Log as detective
+                      </Link>
+                    </>
+                  )}
+                </div>
+
+                <div className="pt-8 border-t border-[#A9874A]/20 flex items-center justify-between font-mono text-[10px] text-[#78716A]">
+                  <span>&copy; NOSHITSHERLOCK. ALL RIGHTS RESERVED.</span>
+                  <div className="flex gap-4">
+                    <Link href="/legal" className="hover:text-[#E7DDC8] transition-colors">
+                      TERMS & PRIVACY
+                    </Link>
+                    <a
+                      href="https://github.com/DevInfinix/noshitsherlock"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-[#E7DDC8] transition-colors"
+                    >
+                      GITHUB
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </SmoothScrollProvider>

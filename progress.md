@@ -76,17 +76,20 @@
    - Preserved full multi-step registration flow: 3-digit tag, callsign engraving, welcome takeover, and parchment legal training document with rubber stamp certification.
 9. **Phase M4.5 Cinematic Landing Page & Noir Interaction Engine (Issue #17)**:
    - Optimized 150 image frames from 109.12 MB down to 6.41 MB WebP (94.1% reduction) in `public/landing/frames/`.
-   - Built hardware-accelerated GSAP ScrollTrigger canvas frame-scrubbing engine (`LandingFrameScrubber.tsx`) across 350vh pinned track with progressive loading.
+   - Built hardware-accelerated GSAP ScrollTrigger canvas frame-scrubbing engine across pinned track with progressive loading.
    - Synchronized Lenis smooth scroll provider (`SmoothScrollProvider.tsx`) with GSAP ticker.
-   - Built custom spring-physics noir spotlight flashlight cursor (`src/components/ui/spotlight-cursor.tsx`).
-   - Built vertical Scroll Progress HUD (`ScrollProgressHud.tsx`) tracking clearance sectors and progress.
    - Implemented zero-latency procedural Noir Sound Engine (`src/lib/audio/sound-engine.ts`) with typewriter, paper rustle, rubber stamp impact, and ambient room tone loop alongside `AudioControlHud.tsx`.
-   - Added Motion-Primitives: `TextScramble`, `TextShimmer`, `ProgressiveBlur`, `SpotlightCard`.
-   - Added Magic UI: `BorderBeam`, `Particles`, `PerspectiveMarquee`, `RadarRipple`.
-   - Added Vengeance UI: `BooksShowcase` (3D interactive case books with mouse tilt), `CylinderCarousel` (3D rotating evidence artifact cylinder), `TextMorph`.
-   - Integrated `@blobatar/react` (`BlobatarAvatar.tsx`) across landing page operative badges, signup agent tag/username step, and login welcome screens.
+   - Integrated `@blobatar/react` (`BlobatarAvatar.tsx`) into signup agent tag/username step, and login welcome screens.
    - Built classified 404 easter egg page (`src/app/not-found.tsx` & `NotFoundView.tsx`) with crime scene tape, flashlight investigation cone, corrupted cipher decoder, and interactive evidence tag.
    - Relocated favicon assets into `public/` and configured metadata in `src/app/layout.tsx`.
+10. **Cinematic Landing Page Complete Redesign (PR #18 update)**:
+    - Delivered full-viewport cinematic noir experience with unified GSAP ScrollTrigger choreography.
+    - Master title treatment: "NO" and "SHIT" in heavy `TBJ Valmist` ExtraBold, "Sherlock" in substantial `Charlea Demo` SemiBold Italic with negative tracking. Title smoothly scales down from massive initial viewport presence into an anchored brand mark in top-left.
+    - Detective canvas: initial enlarged framing (`scale: 1.2`, `x: +8vw`), smoothly centering and scaling down (`scale: 1.0`, `x: 0vw`) as 150 frames scrub to lift magnifying glass towards viewer.
+    - Purged all artificial clutter, dummy departments, fake timelines, and carousels.
+    - Right-side content choreographed across 3 organic beats: Beat 1 (The Premise), Beat 2 (The Investigation Loop: Dossier, Notebook, Pinboard), Beat 3 (Case 01: The Blackwood Protocol & Enlistment CTAs: "Register as detective", "Log as detective").
+    - Refined spotlight cursor: hides default OS cursor on desktop and casts a soft, controlled cinematic flashlight beam with fluid spring damping.
+    - Seamless dark noir environment with procedural film grain noise, radial crimson rim lighting, and subtle vignettes.
 
 ---
 
