@@ -19,6 +19,37 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
     // Detect reduced motion preference
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    const width = container.clientWidth || window.innerWidth || 1280;
+    const height = container.clientHeight || 280;
+
+    // Safely pre-acquire 2D-only WebGL context with zero depth/stencil buffer requirements
+    const canvas = document.createElement("canvas");
+    let gl: RenderingContext | null = null;
+    try {
+      gl =
+        canvas.getContext("webgl2", {
+          alpha: true,
+          depth: false,
+          stencil: false,
+          antialias: false,
+          powerPreference: "low-power",
+        }) ||
+        canvas.getContext("webgl", {
+          alpha: true,
+          depth: false,
+          stencil: false,
+          antialias: false,
+          powerPreference: "low-power",
+        });
+    } catch {
+      gl = null;
+    }
+
+    if (!gl) {
+      // Graceful fallback: CSS cloud layers provide seamless volumetric visual
+      return;
+    }
+
     // Scene & Orthographic Camera for a 2D full-width volumetric smoke quad
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -26,12 +57,15 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({
+        canvas,
+        context: gl as WebGL2RenderingContext,
         alpha: true,
-        antialias: true,
-        powerPreference: "default",
+        antialias: false,
+        depth: false,
+        stencil: false,
+        powerPreference: "low-power",
       });
     } catch {
-      // Graceful fallback if WebGL fails
       return;
     }
 
@@ -39,18 +73,18 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
       e.preventDefault();
       if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
     };
-    renderer.domElement.addEventListener("webglcontextlost", handleContextLost, false);
+    canvas.addEventListener("webglcontextlost", handleContextLost, false);
 
     rendererRef.current = renderer;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(renderer.domElement);
+    renderer.setSize(width, height);
+    container.appendChild(canvas);
 
-    // Uniforms for the procedural volumetric smoke / cloud shader
+    // Uniforms for the procedural volumetric smoke / cloud shader with cursor tracking
     const uniforms = {
       uTime: { value: 0 },
       uResolution: {
-        value: new THREE.Vector2(container.clientWidth, container.clientHeight),
+        value: new THREE.Vector2(width, height),
       },
       uMouse: { value: new THREE.Vector2(0.5, 0.5) },
       uSpeed: { value: prefersReducedMotion ? 0.02 : 0.12 },
@@ -65,8 +99,7 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
       }
     `;
 
-    // Fragment Shader: Multi-octave domain-warped FBM procedural smoke/cloud
-    // Fades seamlessly into #100D0D at the top and bottom edges
+    // Fragment Shader: Multi-octave domain-warped FBM with glassy refractive highlights & cursor disturbance
     const fragmentShader = `
       precision highp float;
       varying vec2 vUv;
@@ -107,50 +140,54 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
       void main() {
         vec2 uv = vUv;
         float aspect = uResolution.x / max(uResolution.y, 1.0);
-        vec2 p = uv * vec2(aspect * 1.8, 1.8);
+        vec2 p = uv * vec2(aspect * 2.0, 2.0);
 
-        float t = uTime * 0.15;
+        float t = uTime * 0.16;
 
-        // Interactive mouse curl
+        // Interactive mouse curl & glassy distortion following cursor
         vec2 mouseDist = uv - uMouse;
-        float mouseEffect = exp(-dot(mouseDist, mouseDist) * 12.0) * 0.4;
+        float mouseEffect = exp(-dot(mouseDist, mouseDist) * 14.0) * 0.45;
 
         // Domain warping for organic, billowing cloud/smoke tendrils
         vec2 q = vec2(
-          fbm(p + vec2(0.0, t * 0.6) + mouseEffect),
-          fbm(p + vec2(5.2, t * 0.4))
+          fbm(p + vec2(0.0, t * 0.55) + mouseEffect),
+          fbm(p + vec2(5.2, t * 0.38))
         );
 
         vec2 r = vec2(
-          fbm(p + 3.0 * q + vec2(1.7 - t * 0.2, 9.2 + t * 0.3)),
-          fbm(p + 3.0 * q + vec2(8.3 + t * 0.2, 2.8 - t * 0.1))
+          fbm(p + 3.2 * q + vec2(1.7 - t * 0.22, 9.2 + t * 0.28)),
+          fbm(p + 3.2 * q + vec2(8.3 + t * 0.18, 2.8 - t * 0.12))
         );
 
-        float f = fbm(p + 3.5 * r + vec2(t * 0.1, t * 0.15));
-        f = clamp((f + 0.3) * 1.4, 0.0, 1.0);
+        float f = fbm(p + 3.6 * r + vec2(t * 0.1, t * 0.16));
+        f = clamp((f + 0.28) * 1.5, 0.0, 1.0);
 
         // Noir palette tokens:
-        // Charcoal ground: #100D0D (0.063, 0.051, 0.051)
-        // Burgundy wash: #260D10 (0.149, 0.051, 0.063)
-        // Rich Crimson: #A7192D (0.655, 0.098, 0.176)
-        // Warm Ivory: #E8DCC8 (0.910, 0.863, 0.784)
-        vec3 colCharcoal = vec3(0.063, 0.051, 0.051);
-        vec3 colBurgundy = vec3(0.149, 0.051, 0.063);
-        vec3 colCrimson  = vec3(0.655, 0.098, 0.176);
+        // Rolling Smoke: #261D1A (0.149, 0.114, 0.102)
+        // Deep Oxblood / Burgundy: #3D1016 (0.239, 0.063, 0.086)
+        // Vivid Crimson: #A7192D (0.655, 0.098, 0.176)
+        // Warm Ivory Fog: #E8DCC8 (0.910, 0.863, 0.784)
+        vec3 colSmoke    = vec3(0.149, 0.114, 0.102);
+        vec3 colBurgundy = vec3(0.239, 0.063, 0.086);
+        vec3 colCrimson  = vec3(0.72, 0.11, 0.19);
         vec3 colIvory    = vec3(0.910, 0.863, 0.784);
 
         // Mix colors based on smoke density and warping
-        vec3 color = mix(colCharcoal, colBurgundy, clamp(q.x * 1.5, 0.0, 1.0));
-        color = mix(color, colCrimson, clamp(length(r.x) * 0.85, 0.0, 1.0) * 0.55);
-        color = mix(color, colIvory, pow(f, 3.2) * 0.22);
+        vec3 color = mix(colBurgundy, colSmoke, clamp(q.x * 1.3, 0.0, 1.0));
+        color = mix(color, colCrimson, clamp(length(r.x) * 1.0, 0.0, 1.0) * 0.6);
+        color = mix(color, colIvory, pow(f, 2.2) * 0.45);
+
+        // Glassy specular shimmer along cloud ridges
+        float sheen = pow(clamp(f * 1.2, 0.0, 1.0), 3.0) * 0.35;
+        color += colIvory * sheen;
 
         // Flawless vertical edge feathering:
         // Top fades out to 0 alpha towards y=1.0
         // Bottom fades out to 0 alpha towards y=0.0
-        float verticalMask = smoothstep(0.0, 0.35, uv.y) * smoothstep(1.0, 0.65, uv.y);
+        float verticalMask = smoothstep(0.0, 0.22, uv.y) * smoothstep(1.0, 0.78, uv.y);
 
         // Cloud density mask
-        float alpha = clamp(f * 1.2, 0.0, 1.0) * verticalMask * 0.85;
+        float alpha = clamp(f * 1.4, 0.0, 1.0) * verticalMask * 0.90;
 
         gl_FragColor = vec4(color, alpha);
       }
@@ -169,7 +206,7 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    // Pointer move listener for atmospheric smoke disturbance
+    // Pointer move listener for atmospheric smoke disturbance following cursor
     const handlePointerMove = (e: PointerEvent) => {
       const rect = container.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
@@ -182,10 +219,12 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
     // Resize handler
     const handleResize = () => {
       if (!container || !renderer) return;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      renderer.setSize(width, height);
-      uniforms.uResolution.value.set(width, height);
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w > 0 && h > 0) {
+        renderer.setSize(w, h);
+        uniforms.uResolution.value.set(w, h);
+      }
     };
 
     window.addEventListener("resize", handleResize);
@@ -209,9 +248,10 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
 
       geometry.dispose();
       material.dispose();
-      renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
-      if (renderer.domElement.parentElement) {
-        renderer.domElement.parentElement.removeChild(renderer.domElement);
+
+      canvas.removeEventListener("webglcontextlost", handleContextLost);
+      if (canvas.parentElement) {
+        canvas.parentElement.removeChild(canvas);
       }
       try {
         renderer.forceContextLoss();
@@ -226,25 +266,34 @@ export function NoirCloudSeparator({ className = "" }: NoirCloudSeparatorProps) 
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-44 sm:h-56 md:h-64 pointer-events-none overflow-hidden select-none ${className}`}
+      className={`relative w-full h-60 sm:h-72 md:h-80 pointer-events-none overflow-hidden select-none z-20 ${className}`}
       aria-hidden="true"
     >
-      {/* Subtle top edge blend gradient */}
-      <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#100D0D] to-transparent z-10 pointer-events-none" />
+      {/* High-fidelity CSS Volumetric Fog Layers */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-75"
+        style={{
+          background: `
+            radial-gradient(ellipse 900px 300px at 25% 50%, rgba(167, 25, 45, 0.28) 0%, rgba(38, 13, 16, 0.55) 45%, transparent 75%),
+            radial-gradient(ellipse 1000px 320px at 75% 50%, rgba(232, 220, 200, 0.14) 0%, rgba(38, 13, 16, 0.45) 45%, transparent 75%)
+          `,
+        }}
+      />
 
-      {/* Subtle bottom edge blend gradient */}
-      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#100D0D] to-transparent z-10 pointer-events-none" />
+      {/* Top and bottom edge blend gradients */}
+      <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#100D0D] to-transparent z-10 pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#100D0D] to-transparent z-10 pointer-events-none" />
 
-      {/* Thin brass atmospheric metadata rule centered inside fog */}
-      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center pointer-events-none px-8">
-        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#79604A]/30 to-transparent" />
-        <div className="mx-4 flex items-center gap-2 border border-[#79604A]/30 bg-[#100D0D]/70 px-3 py-0.5 backdrop-blur-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#A7192D] animate-pulse" />
-          <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-[#A69A8C]">
+      {/* Distinctive Brass Atmospheric Metadata Rule */}
+      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center pointer-events-none px-6 sm:px-12">
+        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#79604A]/60 to-transparent" />
+        <div className="mx-4 flex items-center gap-2.5 border border-[#79604A]/70 bg-[#100D0D]/85 px-4 py-1.5 backdrop-blur-md shadow-2xl">
+          <span className="h-2 w-2 rounded-full bg-[#A7192D] animate-ping" />
+          <span className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.3em] text-[#E8DCC8] font-bold">
             NO SHIT SHERLOCK {"//"} EVIDENCE VAULT ARCHIVE
           </span>
         </div>
-        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#79604A]/30 to-transparent" />
+        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#79604A]/60 to-transparent" />
       </div>
     </div>
   );
