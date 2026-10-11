@@ -118,7 +118,7 @@ export function LoginForm() {
             </h1>
 
             <p className="mt-4 font-charlea text-xl sm:text-2xl text-paper-muted italic max-w-2xl">
-              Access cold case dossiers, evidence notebooks, and chronological pinboards.
+              Access cold cases, evidence notebooks, and chronological pinboards.
             </p>
 
             {errorMessage && (

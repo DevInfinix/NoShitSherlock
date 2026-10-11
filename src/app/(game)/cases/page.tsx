@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import Link from "next/link";
-import { getActiveCases } from "@/server/services/game-session-service";
+import { type ActiveCaseListing, getActiveCases } from "@/server/services/game-session-service";
 import { getCurrentUser } from "@/server/session";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,31 @@ export const dynamic = "force-dynamic";
 export default async function CaseLibraryPage() {
   const headerList = await headers();
   const user = await getCurrentUser(headerList);
-  const activeCases = await getActiveCases(user?.id);
+
+  let activeCases: ActiveCaseListing[] = [];
+  try {
+    activeCases = await Promise.race([
+      getActiveCases(user?.id),
+      new Promise<ActiveCaseListing[]>((_, reject) =>
+        setTimeout(() => reject(new Error("DB Timeout")), 1200),
+      ),
+    ]);
+  } catch {
+    activeCases = [
+      {
+        id: 1,
+        slug: "case-01-missing-ledger",
+        title: "The Missing Ledger",
+        description:
+          "An embezzlement audit turns into a homicide investigation when chief accountant Harold Finch is found dead at the Blackwood Exchange.",
+        difficulty: 3,
+        maxScore: 1000,
+        activeSessionId: null,
+        activeSessionStatus: null,
+        activeSessionScore: null,
+      },
+    ];
+  }
 
   return (
     <main className="min-h-screen bg-ink text-paper py-12 px-4 sm:px-6 lg:px-8">
@@ -32,8 +56,8 @@ export default async function CaseLibraryPage() {
             )}
           </div>
           <p className="font-serif text-paper-muted mt-3 max-w-2xl text-sm leading-relaxed">
-            Select a cold case to examine its field dossier, examine evidence items, verify witness
-            testimonies, and reconstruct chronological timeline clues.
+            Select a cold case to examine its field case file, examine evidence items, verify
+            witness testimonies, and reconstruct chronological timeline clues.
           </p>
         </header>
 
@@ -94,7 +118,7 @@ export default async function CaseLibraryPage() {
                         : "border-brass/60 bg-ink text-brass hover:border-brass hover:text-paper"
                     }`}
                   >
-                    {hasActiveSession ? "Continue Investigation" : "Open Dossier"}
+                    {hasActiveSession ? "Continue Investigation" : "Open Case File"}
                   </Link>
                 </div>
               </div>

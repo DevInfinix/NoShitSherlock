@@ -16,8 +16,14 @@ export function ProgressiveBlur({
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-x-0 ${
-        direction === "bottom" ? "bottom-0" : direction === "top" ? "top-0" : ""
+      className={`pointer-events-none absolute ${isVertical ? "inset-x-0" : "inset-y-0"} ${
+        direction === "bottom"
+          ? "bottom-0"
+          : direction === "top"
+            ? "top-0"
+            : direction === "right"
+              ? "right-0"
+              : "left-0"
       } ${className}`}
     >
       {Array.from({ length: layers }).map((_, index) => {

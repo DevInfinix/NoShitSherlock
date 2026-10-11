@@ -95,6 +95,20 @@
     - Removed `cursor-none`, restoring standard OS mouse pointer functionality while keeping the ambient spotlight beam following fluidly in the background.
     - Restored subsequent full sections below the hero: Section 2 (Investigation Mechanics: Evidence Folder, Notebook, Yarn Pinboard), Section 3 (Case Dossier Archives: The Blackwood Protocol), Section 4 (Enlistment Clearance), Section 5 (Complete Noir Footer).
     - Verified with `bun run check` (0 lint errors, 0 type errors, 18/18 tests pass) and successful Next.js 16 production build.
+12. **Landing Page Minimalist & Impeccable Overhaul**:
+    - Redesigned top navbar: high-contrast minimal glass styling (`bg-[#100D0D]/60 backdrop-blur-md`), directory favicon (`/favicon-32x32.png`), lowercase `noshitsherlock` in `fontGothica`, bold `STAR ON GITHUB` button with live GitHub icon, discreet The Sam Studios credit (`by The Sam Studios` linking to `https://thesamstudios.in`), and dual non-solid "Login as Detective" and "Sign up as Detective" actions.
+    - Globally removed default browser scrollbars across WebKit, Firefox, and IE/Edge via `globals.css` rules.
+    - Completely removed all audio controls, sound effects, and `AudioControlHud` from the landing page.
+    - Upgraded hero branding scale: "NO" and "SHIT" in massive `TBJ Valmist ExtraBold` (`clamp(6.8rem, 15vw, 17rem)`), "Sherlock" in `Charlea Demo SemiBold Italic` (`clamp(7.8rem, 17vw, 19.5rem)`), with chromatic drop shadow depth.
+    - Watermark crop protection: lengthened hero track to `400vh`, zoomed canvas by 1.16x and offset upward by 5% in `drawFrame`, and calibrated GSAP scale (`1.28` -> `1.14`) so bottom AI image watermarks are permanently clipped.
+    - Unboxed right-hand hero presentation: liberated elements from rigid bordered containers into an asymmetric, layered editorial dossier layout with live detective dispatch telemetry, tactile file tabs (`01 ABOUT`, `02 CASES & RANKS`, `03 GITHUB`), and smooth `motion` transitions.
+    - Built interactive Vertical Detective Timeline Meter (`VerticalInvestigateTimeline.tsx`) positioned alongside right-hand content with dynamic red thread scrubbing, evidence ruler tick marks, and scrub percentage readout.
+    - Implemented 3D Floating Detective Background Scene (`FloatingDetectiveScene.tsx`) with Three.js WebGL: features floating Manila case files, coroner autopsy reports, telegraph wiretap slips, Polaroid exhibit photos, warm brass desk lamp volumetric lighting, and 180 floating dust motes with mouse/scroll parallax.
+    - Added animated police evidence barrier tape ticker (`CrimeSceneTape.tsx`) and procedural Three.js volumetric smoke/cloud separator (`NoirCloudSeparator.tsx`).
+    - Purged the term "dossier" across user-facing pages and components, replacing it with "case", "case file", and "investigation".
+    - Added prominent The Sam Studios production redirect card in the footer linking to `https://thesamstudios.in`.
+    - Overhauled legal page (`src/app/(public)/legal/page.tsx`): replaced Scotland Yard parody and 1947 references with professional 2026 Terms of Service & Privacy Policy clauses, and added "Return to Home" button.
+    - Validated with `bun run check` (0 lint errors, 0 type errors, 18/18 tests pass) and multi-viewport Playwright headless browser testing (desktop 1440x900, tablet 768x1024, mobile 390x844).
 
 ---
 

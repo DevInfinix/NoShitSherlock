@@ -501,8 +501,8 @@ export function SignupForm() {
                 Choose Your <span className="text-brass">Agent Tag</span>
               </h2>
               <p className="mt-4 font-charlea text-xl sm:text-2xl text-paper-muted italic max-w-xl">
-                Type your permanent 3-digit badge number. This code will seal your dossiers and
-                appears live on your warrant badge.
+                Type your permanent 3-digit badge number. This code will seal your cases and appears
+                live on your warrant badge.
               </p>
 
               <form onSubmit={handleConfirmTag} className="mt-8 space-y-6">
@@ -718,7 +718,7 @@ export function SignupForm() {
               {/* Rubber Stamp Target */}
               <div className="mt-12 pt-6 border-t border-[#120f0d]/20 flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="font-mono text-xs text-[#78716a]">
-                  Affix official rubber stamp below to certify readiness and unlock case dossiers.
+                  Affix official rubber stamp below to certify readiness and unlock case files.
                 </div>
 
                 <div className="relative">

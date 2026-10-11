@@ -12,8 +12,8 @@ export function SpotlightCursor() {
   const mouseY = useMotionValue(-1000);
 
   // Smooth spring physics for organic momentum
-  const springX = useSpring(mouseX, { damping: 28, stiffness: 350, mass: 0.4 });
-  const springY = useSpring(mouseY, { damping: 28, stiffness: 350, mass: 0.4 });
+  const springX = useSpring(mouseX, { damping: 26, stiffness: 380, mass: 0.35 });
+  const springY = useSpring(mouseY, { damping: 26, stiffness: 380, mass: 0.35 });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -22,6 +22,10 @@ export function SpotlightCursor() {
       setIsTouchDevice(true);
       return;
     }
+
+    // Hide default OS cursor when detective spotlight is active
+    document.documentElement.classList.add("cursor-none");
+    document.body.classList.add("cursor-none");
 
     const handleMouseMove = (e: MouseEvent) => {
       mouseX.set(e.clientX);
@@ -45,6 +49,8 @@ export function SpotlightCursor() {
     document.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
+      document.documentElement.classList.remove("cursor-none");
+      document.body.classList.remove("cursor-none");
       window.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseleave", handleMouseLeave);
     };
@@ -60,34 +66,70 @@ export function SpotlightCursor() {
         y: springY,
       }}
     >
-      {/* Controlled cinematic flashlight beam */}
+      {/* Outer Wide Ambient Flashlight Light Cone */}
       <motion.div
         animate={{
           scale: isPointer ? 1.15 : 1,
-          opacity: isPointer ? 0.95 : 0.75,
+          opacity: isPointer ? 0.95 : 0.8,
         }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className="absolute rounded-full pointer-events-none"
         style={{
-          width: 320,
-          height: 320,
+          width: 760,
+          height: 760,
           background:
-            "radial-gradient(circle, rgba(231, 221, 200, 0.08) 0%, rgba(100, 27, 27, 0.05) 42%, rgba(9, 8, 7, 0) 70%)",
+            "radial-gradient(circle, rgba(232, 220, 200, 0.08) 0%, rgba(167, 25, 45, 0.06) 35%, rgba(38, 13, 16, 0.04) 55%, transparent 72%)",
         }}
       />
 
-      {/* Refined central lens focal pinpoint */}
+      {/* Inner Focused Flashlight Core Beam */}
       <motion.div
         animate={{
-          scale: isPointer ? 1.8 : 1,
-          backgroundColor: isPointer ? "var(--color-evidence-red)" : "var(--color-paper)",
-          boxShadow: isPointer
-            ? "0 0 14px rgba(169, 42, 40, 0.8), 0 0 4px rgba(169, 42, 40, 0.5)"
-            : "0 0 8px rgba(231, 221, 200, 0.6)",
+          scale: isPointer ? 1.25 : 1,
+          opacity: isPointer ? 0.9 : 0.7,
         }}
-        transition={{ type: "spring", stiffness: 450, damping: 28 }}
-        className="relative h-1.5 w-1.5 rounded-full pointer-events-none"
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="absolute rounded-full pointer-events-none"
+        style={{
+          width: 280,
+          height: 280,
+          background:
+            "radial-gradient(circle, rgba(232, 220, 200, 0.16) 0%, rgba(167, 25, 45, 0.10) 45%, transparent 75%)",
+        }}
       />
+
+      {/* Detective Crosshair Reticle (Expands over interactive elements) */}
+      <motion.div
+        animate={{
+          scale: isPointer ? 1.5 : 1,
+          borderColor: isPointer ? "#A7192D" : "rgba(121, 96, 74, 0.6)",
+        }}
+        transition={{ type: "spring", stiffness: 450, damping: 25 }}
+        className="relative flex items-center justify-center h-5 w-5 rounded-full border border-[#79604A]/60 pointer-events-none"
+      >
+        {/* Subtle crosshair hairline ticks when hovering buttons/links */}
+        {isPointer && (
+          <>
+            <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-[1px] h-1 bg-[#A7192D]" />
+            <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-[1px] h-1 bg-[#A7192D]" />
+            <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-[1px] w-1 bg-[#A7192D]" />
+            <span className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-[1px] w-1 bg-[#A7192D]" />
+          </>
+        )}
+
+        {/* Central Luminous Lens Focal Pinpoint */}
+        <motion.div
+          animate={{
+            scale: isPointer ? 1.8 : 1,
+            backgroundColor: isPointer ? "#C52A3B" : "#E8DCC8",
+            boxShadow: isPointer
+              ? "0 0 16px rgba(197, 42, 59, 0.9), 0 0 4px rgba(197, 42, 59, 0.6)"
+              : "0 0 8px rgba(232, 220, 200, 0.7)",
+          }}
+          transition={{ type: "spring", stiffness: 450, damping: 28 }}
+          className="h-1.5 w-1.5 rounded-full pointer-events-none"
+        />
+      </motion.div>
     </motion.div>
   );
 }

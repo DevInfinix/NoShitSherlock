@@ -81,3 +81,23 @@ body {
   color: var(--foreground);
   min-height: 100vh;
 }
+
+/* Hide default browser scrollbar across WebKit, Firefox, and IE/Edge */
+html,
+body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+html.cursor-none,
+html.cursor-none *,
+body.cursor-none,
+body.cursor-none * {
+  cursor: none;
+}
