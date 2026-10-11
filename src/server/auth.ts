@@ -9,6 +9,33 @@ export const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 const emailFrom = process.env.EMAIL_FROM || "NoShitSherlock <onboarding@resend.dev>";
 
+// In-memory sliding window to throttle external Resend API dispatches per recipient address
+const emailDispatchCooldowns = new Map<string, number>();
+const RESEND_EMAIL_COOLDOWN_MS = 60_000; // 60 seconds cooldown between dispatches to the same email
+
+function checkEmailDispatchAllowed(email: string): { allowed: boolean; remainingSecs: number } {
+  const normalized = email.trim().toLowerCase();
+  const lastTime = emailDispatchCooldowns.get(normalized);
+  const now = Date.now();
+
+  if (lastTime && now - lastTime < RESEND_EMAIL_COOLDOWN_MS) {
+    const remainingSecs = Math.ceil((RESEND_EMAIL_COOLDOWN_MS - (now - lastTime)) / 1000);
+    return { allowed: false, remainingSecs };
+  }
+
+  // Periodic pruning of expired entries
+  if (emailDispatchCooldowns.size > 1000) {
+    for (const [key, timestamp] of emailDispatchCooldowns.entries()) {
+      if (now - timestamp > RESEND_EMAIL_COOLDOWN_MS) {
+        emailDispatchCooldowns.delete(key);
+      }
+    }
+  }
+
+  emailDispatchCooldowns.set(normalized, now);
+  return { allowed: true, remainingSecs: 0 };
+}
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -22,6 +49,30 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "default-dev-secret-key-at-least-32-chars-long",
   baseURL:
     process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  rateLimit: {
+    enabled: true,
+    window: 60, // 60-second window
+    max: 120, // 120 requests/minute baseline (generous for genuine navigation)
+    storage: "memory",
+    customRules: {
+      "/sign-up/email": {
+        window: 60,
+        max: 5, // At most 5 registration attempts per minute per IP
+      },
+      "/sign-in/email": {
+        window: 60,
+        max: 10, // At most 10 login attempts per minute per IP (prevents credential stuffing)
+      },
+      "/send-verification-email": {
+        window: 60,
+        max: 2, // At most 2 verification email requests per minute per IP (protects Resend quota)
+      },
+      "/forget-password": {
+        window: 60,
+        max: 3, // At most 3 password reset requests per minute per IP
+      },
+    },
+  },
   user: {
     additionalFields: {
       agentTag: {
@@ -48,6 +99,14 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     expiresIn: 3600, // 60 minutes
     sendVerificationEmail: async ({ user, url, token }) => {
+      const { allowed, remainingSecs } = checkEmailDispatchAllowed(user.email);
+      if (!allowed) {
+        console.warn(
+          `[AUTH RATE-LIMIT] Suppressed duplicate email dispatch to ${user.email}. Resend cooldown active for ${remainingSecs}s.`,
+        );
+        return;
+      }
+
       console.log(`[AUTH] Dispatching verification email to ${user.email}...`);
       if (resend) {
         try {
