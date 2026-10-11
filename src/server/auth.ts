@@ -54,19 +54,48 @@ export const auth = betterAuth({
           const result = await resend.emails.send({
             from: emailFrom,
             to: user.email,
-            subject: "NoShitSherlock — Your Detective Verification Code",
-            text: `Your verification code is: ${token}\nOr verify your account by opening: ${url}\nThis code expires in 60 minutes.`,
-            html: `<div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #120e0c; color: #e8dcc8; padding: 32px; border: 2px solid #79604a;">
-              <h2 style="font-family: Courier, monospace; color: #a7192d; margin-top: 0; text-transform: uppercase; letter-spacing: 2px;">NoShitSherlock // Operative Verification</h2>
-              <p style="font-size: 15px; line-height: 1.6;">Operative ${user.name || user.email},</p>
-              <p style="font-size: 14px; line-height: 1.6; color: #b8ad98;">To verify your credentials and gain active clearance to departmental case files, confirm your email address below:</p>
-              <div style="background: #1c1510; border: 1px dashed #a7192d; padding: 16px; text-align: center; margin: 24px 0;">
-                <span style="font-family: Courier, monospace; font-size: 24px; font-weight: bold; color: #e8dcc8; letter-spacing: 4px;">${token}</span>
+            subject: "NoShitSherlock — Your Detective Verification Link",
+            text: `NoShitSherlock // Operative Verification\n\nOperative: ${user.name || "Detective"}\nRegistered Email: ${user.email}\n\nPlease verify your account by opening this link:\n${url}\n\nThis authorization link expires in 60 minutes.`,
+            html: `<div style="font-family: Georgia, serif; max-width: 580px; width: 100%; margin: 0 auto; background: #120e0c; color: #e8dcc8; padding: 28px; border: 2px solid #79604a; box-sizing: border-box; overflow: hidden;">
+              <div style="border-bottom: 1px solid #79604a44; padding-bottom: 16px; margin-bottom: 20px;">
+                <span style="font-family: 'Courier New', Courier, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #a7192d; font-weight: bold;">Departmental Clearance Protocol</span>
+                <h2 style="font-family: Georgia, serif; font-size: 22px; color: #e8dcc8; margin: 6px 0 0 0; letter-spacing: 1px;">NoShitSherlock // Account Verification</h2>
               </div>
-              <p style="text-align: center; margin: 24px 0;">
-                <a href="${url}" style="background: #641b1b; color: #e8dcc8; padding: 12px 24px; text-decoration: none; font-family: Courier, monospace; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border: 1px solid #a7192d;">Verify Active Clearance</a>
+
+              <p style="font-size: 14px; line-height: 1.6; margin: 0 0 12px 0;">Hello Operative <strong>${user.name || "Detective"}</strong>,</p>
+              <p style="font-size: 14px; line-height: 1.6; color: #b8ad98; margin: 0 0 16px 0;">
+                Your operative enrollment has been recorded for the following account:
               </p>
-              <p style="font-size: 11px; color: #79604a; border-top: 1px solid #79604a33; padding-top: 16px;">This authorization token expires in 60 minutes. If you did not initiate operative enrollment, ignore this dispatch.</p>
+
+              <div style="background: #1c1510; border: 1px solid #79604a55; padding: 14px 18px; margin: 0 0 24px 0; border-radius: 2px;">
+                <p style="font-family: 'Courier New', Courier, monospace; font-size: 13px; margin: 0 0 6px 0; color: #e8dcc8;">
+                  <span style="color: #79604a; text-transform: uppercase;">Registered Callsign:</span> <strong>${user.name || "Detective"}</strong>
+                </p>
+                <p style="font-family: 'Courier New', Courier, monospace; font-size: 13px; margin: 0; color: #e8dcc8;">
+                  <span style="color: #79604a; text-transform: uppercase;">Official Account Email:</span> <strong style="color: #c59e58;">${user.email}</strong>
+                </p>
+              </div>
+
+              <p style="font-size: 14px; line-height: 1.6; color: #b8ad98; margin: 0 0 24px 0;">
+                To activate your warrant and gain access to active cold cases and physical case files, click the button below:
+              </p>
+
+              <div style="text-align: center; margin: 28px 0;">
+                <a href="${url}" style="display: inline-block; background-color: #a7192d; color: #ffffff; text-decoration: none; padding: 14px 28px; font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border-radius: 2px; border: 1px solid #c2293e;">
+                  Verify Operative Credentials &rarr;
+                </a>
+              </div>
+
+              <div style="margin-top: 28px; padding: 14px; background: #181310; border: 1px solid #79604a33; border-radius: 2px;">
+                <p style="font-size: 11px; margin: 0 0 6px 0; color: #79604a; text-transform: uppercase; font-family: monospace;">If the button above does not work, open this direct verification link:</p>
+                <p style="font-size: 11px; margin: 0; word-break: break-all; color: #b8ad98; font-family: monospace; line-height: 1.5;">
+                  <a href="${url}" style="color: #c59e58; text-decoration: underline;">${url}</a>
+                </p>
+              </div>
+
+              <p style="font-size: 11px; color: #79604a; border-top: 1px solid #79604a33; padding-top: 16px; margin-top: 24px;">
+                This authorization link expires in 60 minutes. If you did not register for NoShitSherlock, no action is needed.
+              </p>
             </div>`,
           });
           if (result.error) {
