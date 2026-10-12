@@ -6,49 +6,40 @@ import * as THREE from "three";
 import { createWoolYarnBumpTexture } from "./textures";
 
 interface Catenary3DYarnProps {
+  hubPoint?: [number, number, number];
   points: Array<[number, number, number]>;
   isHovered?: boolean;
 }
 
-/**
- * Procedural 3D Crimson Wool Yarn Engine with authentic gravitational catenary sag
- * and harmonic spring dampening physics.
- */
-export function Catenary3DYarn({ points, isHovered = false }: Catenary3DYarnProps) {
+export function Catenary3DYarn({
+  hubPoint = [0, 1.45, 0.1],
+  points,
+  isHovered = false,
+}: Catenary3DYarnProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const meshRef = useRef<THREE.Mesh>(null);
-  const shadowMeshRef = useRef<THREE.Mesh>(null);
+  const springDisplacement = useRef(0);
+  const springVelocity = useRef(0);
 
-  // Harmonic spring oscillator state for yarn physical sway
-  const springState = useRef({
-    displacement: 0,
-    velocity: 0,
-    target: 0,
-  });
+  const woolBumpMap = useMemo(() => createWoolYarnBumpTexture(), []);
 
-  const woolBumpMap = useMemo(() => createWoolYarnBumpTexture(256), []);
-
-  // Wool yarn PBR material: matte, thick crimson wool (#BA1E28)
   const woolMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
         color: new THREE.Color("#BA1E28"),
         bumpMap: woolBumpMap,
-        bumpScale: 0.055,
-        roughness: 0.92,
-        metalness: 0.0,
+        bumpScale: 0.04,
+        roughness: 0.88,
+        metalness: 0.02,
       }),
     [woolBumpMap],
   );
 
-  // Soft contact shadow strand resting on the green felt
-  const shadowMaterial = useMemo(
+  const brassMaterial = useMemo(
     () =>
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color("#080D0A"),
-        transparent: true,
-        opacity: 0.45,
-        depthWrite: false,
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color("#C89E58"),
+        metalness: 0.88,
+        roughness: 0.25,
       }),
     [],
   );
@@ -57,103 +48,77 @@ export function Catenary3DYarn({ points, isHovered = false }: Catenary3DYarnProp
     return () => {
       woolBumpMap.dispose();
       woolMaterial.dispose();
-      shadowMaterial.dispose();
+      brassMaterial.dispose();
     };
-  }, [woolBumpMap, woolMaterial, shadowMaterial]);
+  }, [woolBumpMap, woolMaterial, brassMaterial]);
 
-  // When hover state triggers, apply physical impulse to the yarn spring
   useEffect(() => {
     if (isHovered) {
-      springState.current.velocity += 0.085;
+      springVelocity.current += 0.08;
     }
   }, [isHovered]);
 
-  // Construct catenary curves through pushpin anchor points
-  const curveSegments = useMemo(() => {
-    if (points.length < 2) return null;
+  const radiatingCurves = useMemo(() => {
+    if (points.length === 0) return [];
 
-    const curves: THREE.CatmullRomCurve3[] = [];
-    const shadowCurves: THREE.CatmullRomCurve3[] = [];
-
-    for (let i = 0; i < points.length - 1; i++) {
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      if (!p1 || !p2) continue;
-
-      const dist = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
-      // Gravitational sag proportional to distance between pushpins
-      const sagDepth = 0.22 + dist * 0.06;
-
-      const steps = 18;
+    return points.map((pCard) => {
+      const dist = Math.hypot(pCard[0] - hubPoint[0], pCard[1] - hubPoint[1]);
+      const sagDepth = 0.18 + dist * 0.06;
+      const steps = 24;
       const strandPoints: THREE.Vector3[] = [];
-      const shadowPoints: THREE.Vector3[] = [];
 
       for (let s = 0; s <= steps; s++) {
         const t = s / steps;
-        // Linear interpolation
-        const x = THREE.MathUtils.lerp(p1[0], p2[0], t);
-        const yBase = THREE.MathUtils.lerp(p1[1], p2[1], t);
-        const zBase = THREE.MathUtils.lerp(p1[2], p2[2], t);
-
-        // Gravitational catenary sag equation: 4 * sag * t * (1 - t)
+        const x = THREE.MathUtils.lerp(hubPoint[0], pCard[0], t);
+        const yBase = THREE.MathUtils.lerp(hubPoint[1], pCard[1], t);
+        const zBase = THREE.MathUtils.lerp(hubPoint[2], pCard[2], t);
         const sag = Math.sin(t * Math.PI) * sagDepth;
 
-        strandPoints.push(new THREE.Vector3(x, yBase - sag, zBase + 0.015));
-        shadowPoints.push(new THREE.Vector3(x, yBase - sag * 0.85, 0.008));
+        strandPoints.push(new THREE.Vector3(x, yBase - sag, zBase));
       }
 
-      curves.push(new THREE.CatmullRomCurve3(strandPoints));
-      shadowCurves.push(new THREE.CatmullRomCurve3(shadowPoints));
-    }
+      return new THREE.CatmullRomCurve3(strandPoints);
+    });
+  }, [hubPoint, points]);
 
-    return { curves, shadowCurves };
-  }, [points]);
-
-  // Spring physics loop for natural physical bounce
   useFrame((_, delta) => {
-    const k = 22.0; // Spring stiffness
-    const c = 3.8; // Damping coefficient
-
-    const spring = springState.current;
-    const force = -k * spring.displacement - c * spring.velocity;
-    spring.velocity += force * Math.min(delta, 0.05);
-    spring.displacement += spring.velocity * Math.min(delta, 0.05);
+    const k = 22.0;
+    const c = 3.5;
+    const force = -k * springDisplacement.current - c * springVelocity.current;
+    springVelocity.current += force * Math.min(delta, 0.05);
+    springDisplacement.current += springVelocity.current * Math.min(delta, 0.05);
 
     if (groupRef.current) {
-      groupRef.current.position.y = spring.displacement;
+      groupRef.current.position.y = springDisplacement.current;
     }
   });
 
-  if (!curveSegments || points.length < 2) return null;
-
   return (
     <group ref={groupRef}>
-      {curveSegments.curves.map((curve, idx) => {
-        const key = `yarn-seg-${idx}-${curve.points.length}`;
+      {/* Central Scotland Yard Hub Anchor Pushpin */}
+      <group position={hubPoint}>
+        <mesh position={[0, 0, -0.02]} material={brassMaterial}>
+          <cylinderGeometry args={[0.14, 0.16, 0.04, 20]} />
+        </mesh>
+        <mesh position={[0, 0, 0.02]} material={brassMaterial} castShadow>
+          <cylinderGeometry args={[0.08, 0.1, 0.06, 16]} />
+        </mesh>
+        <mesh position={[0, 0, 0.06]} castShadow>
+          <sphereGeometry args={[0.075, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
+          <meshStandardMaterial color="#8B141E" metalness={0.2} roughness={0.15} />
+        </mesh>
+      </group>
+
+      {/* Radiating Crimson Wool Yarn Strands */}
+      {radiatingCurves.map((curve, idx) => {
+        const key = `yarn-strand-${idx}`;
         return (
-          <group key={key}>
-            {/* Soft Contact Shadow beneath Yarn */}
-            <mesh
-              ref={shadowMeshRef}
-              geometry={
-                new THREE.TubeGeometry(
-                  curveSegments.shadowCurves[idx] ?? curve,
-                  48,
-                  0.026,
-                  6,
-                  false,
-                )
-              }
-              material={shadowMaterial}
-            />
-            {/* Thick Crimson Wool Yarn Mesh */}
-            <mesh
-              ref={meshRef}
-              geometry={new THREE.TubeGeometry(curve, 48, 0.032, 8, false)}
-              material={woolMaterial}
-              castShadow
-            />
-          </group>
+          <mesh
+            key={key}
+            geometry={new THREE.TubeGeometry(curve, 36, 0.024, 8, false)}
+            material={woolMaterial}
+            castShadow
+          />
         );
       })}
     </group>

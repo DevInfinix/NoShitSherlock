@@ -335,18 +335,15 @@ This document tracks all project tasks across development milestones with granul
 - [x] ★ Neon production database connection pooling verification.
 - [x] ★ All 21 tests passing across 7 test suites against live Neon database.
 
-### 3D Cases Noticeboard Atmosphere Overhaul
-- [x] ★ Upgraded procedural British Police Green Felt Baize texture (1024x1024) with velvet nap, microfibers, and pushpin holes.
-- [x] ★ Implemented 3D Dark Walnut Wood Frame with brass corner joiner brackets and engraved brass title plaque.
-- [x] ★ Restored high-clarity studio lighting (warm ambient 1.4 + studio key 2.0 + cool window rim + front fill) ensuring all card details and textures are instantly visible.
-- [x] ★ Removed harsh spotlight beam and dark vignette overlays; restored native interactive cursor.
-- [x] ★ Resolved `THREE.WebGLState: MultiplyBlending requires material.premultipliedAlpha = true` console error.
-- [x] ★ Resolved node-postgres `sslmode=require` security deprecation warning with explicit `sslmode=verify-full`.
-- [x] ★ Manila and tea-stained paper dossier textures with coffee cup stains, water droplet warping rings, charred deckle edges, staples, and crimson rubber stamps.
-- [x] ★ GLSL vertex shader dog-eared corner curling (`threejs-shaders`) on cards with physical page sag.
-- [x] ★ Thick textured crimson wool yarn (`#BA1E28`) with loose gravitational catenary sag and harmonic spring bounce physics.
-- [x] ★ Added bottom desk ledge props: Banker's lamp, magnifying glass, fountain pen, and glass ashtray with rising smoke.
-- [x] ★ Smooth fluid steady-cam rig with low-pass damping and gentle 15% hover focus de-emphasis.
+### 3D Cases Noticeboard Architecture Rebuild (Clean Slate)
+- [x] ★ Discarded CPU canvas rasterization loop to prevent memory and texture buffer stalls.
+- [x] ★ Rebuilt British Police Green Felt Baize noticeboard surface (`#1E4A31`) with 3D dark walnut frame and brass corner joiners.
+- [x] ★ Implemented 3D Detective Room Environment with Victorian wallpaper, carved chair rail moulding, and dark walnut wainscoting.
+- [x] ★ Integrated Hybrid 3D Pinned Dossiers (R3F spatial positioning + Drei `<Html transform>`) delivering 100% guaranteed retina-sharp typography, real polaroid crime scene photos, paperclips, burnt edges, and coffee stains.
+- [x] ★ Built In-Canvas 3D Incise Unrolling: hovering smoothly elevates the card (+1.55 Z), expands scale, and provides an immediate "Enter Investigation" action.
+- [x] ★ Implemented Central Scotland Yard Hub pushpin radiating thick crimson wool yarn (`#BA1E28`) with gravitational catenary sag and spring bounce physics.
+- [x] ★ Positioned tangible 3D desk ledge props: Banker's lamp with emerald glass transmission, brass magnifying glass, fountain pen, and crystal ashtray with rising smoke.
+- [x] ★ Balanced warm chiaroscuro lighting (ambient 1.35 + studio key 2.1 + cool window rim + desk fill) ensuring full clarity and zero black screens.
 
 ---
 

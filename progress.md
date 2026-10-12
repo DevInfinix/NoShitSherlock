@@ -127,19 +127,17 @@
 
 ---
 
-11. **3D Cases Noticeboard Atmospheric Overhaul & WebGL/DB Security Fixes**:
-    - **British Police Green Felt Baize**: High-resolution (1024x1024) procedural velvet texture with felt micro-fibers, sRGB color correction, and authentic pushpin holes.
+11. **Phase M5 3D Cases Noticeboard Architecture Rebuild (Clean Ground-Up Rebuild)**:
+    - **Clean Slate Architecture**: Replaced the previous CPU-bound canvas loop and fragile WebGL custom displacement with the proven Hybrid 3D Pinned Dossier pattern (R3F spatial positioning + Drei `<Html transform>`).
+    - **British Police Green Felt Baize**: Fast procedural velvet texture (`#1E4A31`) with woven nap, pushpin holes, and explicit sRGB color correction.
     - **3D Dark Walnut Wood Frame**: Mitered wooden border encasing the noticeboard with dark stained grain, 4 antique brass corner brackets with rivets, and central engraved department title plaque.
-    - **Stormy Window Lighting & Venetian Blinds**: Right-side cold blue-gray moonlight (`#5A738E`) with dynamic flickers and horizontal venetian blind shadow slats.
-    - **Resolved WebGL Blending Error**: Eliminated `THREE.WebGLState: MultiplyBlending requires material.premultipliedAlpha = true` by using premultiplied alpha and depthWrite=false on shadow projections.
-    - **Resolved Node-PG Deprecation Warning**: Explicitly configured `sslmode=verify-full` in `src/db/client.ts` to prepare for pg v9.0.0 and libpq standards.
-    - **High-Clarity Studio Lighting**: Calibrated warm natural ambient light (intensity 1.4), key directional studio light (intensity 2.0), cool window rim, and front fill light so all paper patterns, stamps, and textures are instantly bright and readable.
-    - **Removed Flashlight Overlays & Restored Cursor**: Removed the harsh 3D spotlight and 2D dark vignette overlays, restoring natural pointer navigation.
-    - **Aged Golden Manila & Tea-Stained Cardstock**: Procedural 1024x1400 paper textures with coffee cup stain rings, water droplet warping puckers, charred deckle bottom edges, rusted wire staples, and red classified rubber stamps.
-    - **Corner-Curl Vertex Displacement Shader (`threejs-shaders`)**: Physical dog-eared page curl on bottom-right and top-left corners with central gravitational bow.
-    - **Thick Crimson Wool Yarn (`#BA1E28`)**: Procedural wool bump map, loose gravitational catenary sag equation, harmonic spring dampening bounce, and dark felt contact shadows.
-    - **Tangible Desk Ledge Props**: Classic Banker's lamp with emerald green glass hood, brass magnifying glass, black lacquer fountain pen, and crystal glass ashtray with rising smoke.
-    - **Buttery Steady-Cam Rig & Subtle 15% Hover Focus**: Exponential low-pass damping on camera movement and gentle 15% focus de-emphasis on non-hovered cases without darkening the scene.
+    - **3D Detective Room Environment**: Back wall layer with aged Victorian wallpaper, carved chair rail moulding, dark walnut wainscoting, and warm brass wall sconces.
+    - **Retina-Sharp Pinned Evidence Dossiers**: Rendered via Drei `<Html transform>` with golden manila / tea-stained kraft cardstock, burnt deckle edges, yellowed tape strips, twin staples, red ledger lines, coffee rings, and real paperclipped polaroid crime scene photos (`EXHIBIT A // SCENE`).
+    - **In-Canvas 3D Incise Unrolling**: When hovered, cards elevate smoothly along Z (+1.55 units), expand scale (1.32x), de-emphasize background cards, and reveal an immediate "Enter Investigation" launch action directly within 3D space.
+    - **Radiating Crimson Wool Yarn**: Central Scotland Yard hub pushpin radiating thick textured crimson wool yarn (`#BA1E28`, radius `0.024`) to each pinned case with gravitational catenary sag and spring bounce physics.
+    - **Tangible Desk Ledge Props**: Classic Banker's lamp with emerald green glass hood and point light emission, vintage brass magnifying glass, black lacquer fountain pen, and crystal glass ashtray with rising smoke.
+    - **Balanced Noir Chiaroscuro Lighting**: High-clarity ambient light (1.35) + studio key directional light (2.1) + cool window rim (0.65) + front fill (0.5), completely eliminating black screens and harsh spotlight artifacts.
+    - **Fully Validated**: 0 Biome errors, 0 TypeScript errors, 21 passing test suites across 7 test files, and clean Next.js 16 production build.
 
 ---
 

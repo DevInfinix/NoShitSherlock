@@ -1,10 +1,12 @@
 "use client";
 
+import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { soundEngine } from "@/lib/audio/sound-engine";
 import type { ActiveCaseListing } from "@/server/services/game-session-service";
-import { createAgedPaperTexture } from "./textures";
 
 interface PinnedCaseCard3DProps {
   caseItem: ActiveCaseListing;
@@ -18,6 +20,13 @@ interface PinnedCaseCard3DProps {
   onSelect: (item: ActiveCaseListing) => void;
 }
 
+function getCasePreviewImage(slug: string): string {
+  if (slug === "case-01-missing-ledger") {
+    return "/cases/case-01-missing-ledger/images/case1_image1.webp";
+  }
+  return `/cases/${slug}/images/image_1.webp`;
+}
+
 export function PinnedCaseCard3D({
   caseItem,
   caseIndex = 0,
@@ -29,130 +38,78 @@ export function PinnedCaseCard3D({
   onHover,
   onSelect,
 }: PinnedCaseCard3DProps) {
-  const meshRef = useRef<THREE.Group>(null);
+  const router = useRouter();
+  const groupRef = useRef<THREE.Group>(null);
   const pointerOffset = useRef({ x: 0, y: 0 });
-  const dimPlaneRef = useRef<THREE.Mesh>(null);
+  const [imgFailed, setImgFailed] = useState(false);
 
-  // 1. Procedural Aged Golden Manila / Tea-Stained Parchment Textures
-  const { diffuse, bump } = useMemo(
-    () =>
-      createAgedPaperTexture(
-        caseItem.title,
-        `CASE-0${caseItem.id}`,
-        caseItem.difficulty,
-        caseIndex,
-        1024,
-      ),
-    [caseItem.title, caseItem.id, caseItem.difficulty, caseIndex],
-  );
-
-  // 2. Antique Turned Brass Pushpin Material
+  // Turned Brass Pushpin Material
   const brassMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
         color: new THREE.Color("#C89E58"),
-        metalness: 0.86,
-        roughness: 0.26,
+        metalness: 0.88,
+        roughness: 0.25,
       }),
     [],
   );
 
-  // 3. Realistic Manila Paper Material with Dog-Eared Corner Curvature Shader
-  const paperMaterial = useMemo(() => {
-    const mat = new THREE.MeshStandardMaterial({
-      map: diffuse,
-      bumpMap: bump,
-      bumpScale: 0.035,
-      roughness: 0.85,
-      metalness: 0.02,
-      side: THREE.DoubleSide,
-      shadowSide: THREE.DoubleSide,
-    });
-
-    // Custom GLSL vertex displacement for physical dog-eared paper curl
-    mat.customProgramCacheKey = () => "curled-paper-dossier-v2";
-    mat.onBeforeCompile = (shader) => {
-      shader.vertexShader = shader.vertexShader.replace(
-        "#include <begin_vertex>",
-        `
-        #include <begin_vertex>
-        // Smooth dog-eared corner curl at bottom-right (uv.x -> 1.0, uv.y -> 0.0)
-        float brDistance = length(vec2(uv.x - 1.0, uv.y - 0.0));
-        float brCurl = smoothstep(0.48, 0.0, brDistance) * 0.085;
-
-        // Subtle top-left lift (uv.x -> 0.0, uv.y -> 1.0)
-        float tlDistance = length(vec2(uv.x - 0.0, uv.y - 1.0));
-        float tlCurl = smoothstep(0.38, 0.0, tlDistance) * 0.045;
-
-        // Gravitational bow: paper sags slightly forward away from board in center
-        float centralBow = sin(uv.x * 3.14159) * sin(uv.y * 3.14159) * 0.028;
-
-        transformed.z += (brCurl + tlCurl + centralBow);
-        `,
-      );
-    };
-
-    return mat;
-  }, [diffuse, bump]);
-
-  useEffect(() => {
-    return () => {
-      diffuse.dispose();
-      bump.dispose();
-      paperMaterial.dispose();
-      brassMaterial.dispose();
-    };
-  }, [diffuse, bump, paperMaterial, brassMaterial]);
+  const previewImage = getCasePreviewImage(caseItem.slug);
+  const isManila = caseIndex % 2 === 0;
 
   useFrame((_, delta) => {
-    if (!meshRef.current) return;
+    if (!groupRef.current) return;
 
-    // Smooth Z elevation on hover: card pulls forward toward flashlight
-    const targetZ = position[2] + (isHovered ? 0.65 : 0);
-    meshRef.current.position.z = THREE.MathUtils.damp(
-      meshRef.current.position.z,
+    // Smooth Z elevation on hover: card smoothly lifts forward into large incise inspection
+    const targetZ = position[2] + (isHovered ? 1.55 : 0);
+    groupRef.current.position.z = THREE.MathUtils.damp(
+      groupRef.current.position.z,
       targetZ,
-      7.0,
+      6.0,
       delta,
     );
 
-    // Subtle pointer parallax tilt
+    // Dynamic scale expansion during 3D Incise inspection
+    const targetScale = scale * (isHovered ? 1.32 : 1.0);
+    groupRef.current.scale.setScalar(
+      THREE.MathUtils.damp(groupRef.current.scale.x, targetScale, 6.0, delta),
+    );
+
+    // Subtle pointer parallax tilt during inspection
     const targetRotX = isHovered ? -pointerOffset.current.y * 0.22 : 0;
     const targetRotY = isHovered ? pointerOffset.current.x * 0.24 : 0;
-    const targetRotZ = baseRotationZ + (isHovered ? 0 : 0);
+    const targetRotZ = isHovered ? 0 : baseRotationZ;
 
-    meshRef.current.rotation.x = THREE.MathUtils.damp(
-      meshRef.current.rotation.x,
+    groupRef.current.rotation.x = THREE.MathUtils.damp(
+      groupRef.current.rotation.x,
       targetRotX,
-      6.0,
+      5.0,
       delta,
     );
-    meshRef.current.rotation.y = THREE.MathUtils.damp(
-      meshRef.current.rotation.y,
+    groupRef.current.rotation.y = THREE.MathUtils.damp(
+      groupRef.current.rotation.y,
       targetRotY,
-      6.0,
+      5.0,
       delta,
     );
-    meshRef.current.rotation.z = THREE.MathUtils.damp(
-      meshRef.current.rotation.z,
+    groupRef.current.rotation.z = THREE.MathUtils.damp(
+      groupRef.current.rotation.z,
       targetRotZ,
-      6.0,
+      5.0,
       delta,
     );
-
-    // Subtle soft focus: when another card is hovered, gently de-emphasize by only 15% so cards stay 100% visible
-    if (dimPlaneRef.current) {
-      const targetDimOpacity = isDimmed && !isHovered ? 0.15 : 0;
-      const mat = dimPlaneRef.current.material as THREE.MeshBasicMaterial;
-      mat.opacity = THREE.MathUtils.damp(mat.opacity, targetDimOpacity, 9.0, delta);
-      dimPlaneRef.current.visible = mat.opacity > 0.01;
-    }
   });
 
+  const handleLaunchCase = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    soundEngine.playStamp();
+    router.push(`/cases/${caseItem.slug}`);
+  };
+
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: R3F Canvas group element
+    // biome-ignore lint/a11y/noStaticElementInteractions: R3F Canvas interactive group
     <group
-      ref={meshRef}
+      ref={groupRef}
       position={position}
       scale={scale}
       rotation={[0, 0, baseRotationZ]}
@@ -176,38 +133,173 @@ export function PinnedCaseCard3D({
         onSelect(caseItem);
       }}
     >
-      {/* 3D Paper Dossier Cardstock Mesh with 32x32 segments for smooth curvature */}
-      <mesh material={paperMaterial} castShadow receiveShadow>
-        <planeGeometry args={[1.9, 2.62, 32, 32]} />
+      {/* 3D Drop Shadow onto the Felt Board */}
+      <mesh position={[0.04, -0.05, -0.02]}>
+        <planeGeometry args={[2.0, 2.75]} />
+        <meshBasicMaterial
+          color="#000000"
+          transparent
+          opacity={isHovered ? 0.35 : 0.45}
+          depthWrite={false}
+        />
       </mesh>
 
-      {/* Atmospheric Dimming Shroud with smooth ease opacity transition */}
-      <mesh ref={dimPlaneRef} position={[0, 0, 0.018]} visible={false}>
-        <planeGeometry args={[1.92, 2.64]} />
-        <meshBasicMaterial color="#060504" transparent opacity={0} depthWrite={false} />
-      </mesh>
-
-      {/* Heavy Stepped Brass Pushpin at top center of paper */}
-      <group position={[0, 1.22, 0.06]}>
-        {/* Steel pin shaft piercing paper */}
-        <mesh position={[0, 0, -0.05]}>
-          <cylinderGeometry args={[0.014, 0.014, 0.1, 12]} />
-          <meshStandardMaterial color="#888888" metalness={0.92} roughness={0.2} />
+      {/* 3D Brass Pushpin at top center of paper */}
+      <group position={[0, 1.25, 0.08]}>
+        <mesh position={[0, 0, -0.04]} material={brassMaterial}>
+          <cylinderGeometry args={[0.014, 0.014, 0.08, 12]} />
         </mesh>
-        {/* Stepped brass base flange */}
         <mesh position={[0, 0, 0.01]} material={brassMaterial} castShadow>
-          <cylinderGeometry args={[0.075, 0.09, 0.045, 16]} />
+          <cylinderGeometry args={[0.075, 0.09, 0.04, 16]} />
         </mesh>
-        {/* Brass grip collar */}
-        <mesh position={[0, 0, 0.06]} material={brassMaterial} castShadow>
-          <cylinderGeometry args={[0.06, 0.075, 0.075, 16]} />
+        <mesh position={[0, 0, 0.05]} material={brassMaterial} castShadow>
+          <cylinderGeometry args={[0.06, 0.075, 0.06, 16]} />
         </mesh>
-        {/* Crimson enamel lacquer domed top */}
-        <mesh position={[0, 0, 0.1]} castShadow>
-          <sphereGeometry args={[0.062, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
+        <mesh position={[0, 0, 0.09]} castShadow>
+          <sphereGeometry args={[0.058, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
           <meshStandardMaterial color="#A81626" metalness={0.25} roughness={0.18} />
         </mesh>
       </group>
+
+      {/* Drei HTML Transform: Retina-Crisp Tactile Manila Dossier Card */}
+      <Html
+        transform
+        distanceFactor={3.2}
+        position={[0, 0, 0.02]}
+        className="pointer-events-auto select-none"
+      >
+        <div
+          className={`relative w-[310px] min-h-[415px] p-5 rounded-xs transition-opacity duration-200 cursor-pointer shadow-2xl ${
+            isDimmed && !isHovered ? "opacity-35" : "opacity-100"
+          }`}
+          style={{
+            background: isManila
+              ? "radial-gradient(circle at 45% 45%, #F4EBD8 0%, #EFE4CC 55%, #DECCA5 85%, #CAA975 100%)"
+              : "radial-gradient(circle at 45% 45%, #EDE3C8 0%, #E8DCBE 55%, #D6BF97 85%, #BA9C6C 100%)",
+            color: "#16110D",
+            boxShadow: isHovered
+              ? "0 28px 45px -12px rgba(0, 0, 0, 0.85), 0 0 0 2px rgba(169, 135, 74, 0.6)"
+              : "0 14px 25px -8px rgba(0, 0, 0, 0.7)",
+          }}
+        >
+          {/* Burnt Charred Deckle Bottom Edge */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-9 pointer-events-none rounded-b-xs"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(16, 8, 3, 0.95) 0%, rgba(36, 18, 8, 0.6) 45%, transparent 100%)",
+            }}
+          />
+
+          {/* Yellowed Tape Strips */}
+          <div
+            className="absolute -top-2.5 left-5 w-14 h-5 pointer-events-none rotate-[-4deg] opacity-75"
+            style={{
+              background: "rgba(225, 195, 130, 0.6)",
+              border: "1px solid rgba(255, 245, 215, 0.4)",
+            }}
+          />
+          <div
+            className="absolute -bottom-2 right-4 w-16 h-5 pointer-events-none rotate-[6deg] opacity-75"
+            style={{
+              background: "rgba(225, 195, 130, 0.6)",
+              border: "1px solid rgba(255, 245, 215, 0.4)",
+            }}
+          />
+
+          {/* Twin Staples at Top Margin */}
+          <div className="absolute top-2.5 left-16 w-4 h-1.5 bg-[#1B1510] shadow-sm rounded-xs border-t border-[#8C5528]" />
+          <div className="absolute top-2.5 right-16 w-4 h-1.5 bg-[#1B1510] shadow-sm rounded-xs border-t border-[#8C5528]" />
+
+          {/* Red Ledger Margin Line */}
+          <div className="absolute top-0 bottom-0 left-7 w-[1.5px] bg-[#A81626]/35 pointer-events-none" />
+
+          {/* Header Rubber Stamp */}
+          <div className="flex items-center justify-between border-b-2 border-[#16110D]/20 pb-2 mb-3">
+            <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#A81626] border border-[#A81626] px-1.5 py-0.5 rotate-[-1deg]">
+              SCOTLAND YARD {"//"} EVIDENCE
+            </span>
+            <span className="font-mono text-[10px] text-[#554030] font-bold">
+              FILE #{caseItem.id.toString().padStart(3, "0")}
+            </span>
+          </div>
+
+          {/* Case Title in Classic Noir Serif */}
+          <h2 className="font-serif text-lg font-bold leading-tight text-[#16110D] mb-1">
+            {caseItem.title}
+          </h2>
+
+          {/* Clearance Level */}
+          <div className="font-mono text-[10px] text-[#785938] mb-3 flex items-center gap-1.5">
+            <span>CLEARANCE:</span>
+            <span className="text-[#A9874A] tracking-wider font-bold">
+              {"★".repeat(caseItem.difficulty)}
+              {"☆".repeat(5 - caseItem.difficulty)}
+            </span>
+          </div>
+
+          {/* Crime Scene Polaroid (Option 5.a: Clipped to Top-Right / Float) */}
+          <div className="relative my-2 flex items-center justify-center">
+            <div className="relative bg-[#FAF6EE] p-1.5 pb-4 shadow-md rotate-[2deg] border border-[#D5C6A8] max-w-[170px]">
+              {/* Paperclip clamping polaroid */}
+              <div className="absolute -top-3.5 right-4 w-3.5 h-8 border-2 border-[#C89E58] rounded-full z-10 shadow-sm" />
+
+              {/* Photo Image */}
+              <div className="w-[155px] h-[105px] overflow-hidden bg-[#15110F] relative">
+                {!imgFailed ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={previewImage}
+                    alt={caseItem.title}
+                    onError={() => setImgFailed(true)}
+                    className="w-full h-full object-cover filter contrast-110 sepia-[0.35]"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-[#18130E] text-[#B8AD98] font-mono text-[9px]">
+                    <span className="text-[#A81626] font-bold">[EVIDENCE PHOTO]</span>
+                    <span>RESTRICTED ARCHIVE</span>
+                  </div>
+                )}
+              </div>
+              <div className="font-mono text-[8px] text-[#A81626] text-center mt-1.5 font-bold uppercase tracking-wider">
+                EXHIBIT A {"//"} SCENE
+              </div>
+            </div>
+          </div>
+
+          {/* Typewriter Dossier Debrief */}
+          <p className="font-serif text-[11px] leading-relaxed text-[#2B2017] mb-3 line-clamp-3 italic">
+            "{caseItem.description}"
+          </p>
+
+          {/* Coffee Ring Stain Overlay */}
+          <div
+            className="absolute bottom-8 left-4 w-20 h-20 rounded-full border-4 border-[#5E3618]/30 pointer-events-none"
+            style={{
+              boxShadow: "inset 0 0 12px rgba(85, 45, 18, 0.25)",
+            }}
+          />
+
+          {/* Expanded 3D Incise Actions (Option 4.a: Revealed / Highlighted on Hover) */}
+          <div className="mt-3 pt-2 border-t border-[#16110D]/20 flex items-center justify-between">
+            <div className="font-mono text-[9px] text-[#554030]">
+              STATUS: <span className="text-[#A81626] font-bold">ACTIVE</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleLaunchCase}
+              className={`px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer shadow-md ${
+                isHovered
+                  ? "bg-[#641B1B] text-[#E7DDC8] border-[#A81626] scale-105"
+                  : "bg-[#18120B] text-[#E7DDC8] border-[#A9874A]/40 hover:bg-[#641B1B]"
+              }`}
+            >
+              Enter Investigation &rarr;
+            </button>
+          </div>
+        </div>
+      </Html>
     </group>
   );
 }
