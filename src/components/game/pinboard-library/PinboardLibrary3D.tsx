@@ -81,7 +81,15 @@ function AshtraySmokeParticles({ position }: { position: [number, number, number
 /**
  * 3D Tangible Detective Desk Ledge with Banker's lamp, magnifying glass, fountain pen, ashtray.
  */
-function DeskLedgeProps({ yPos }: { yPos: number }) {
+function DeskLedgeProps({
+  yPos,
+  isLampLit,
+  onToggleLamp,
+}: {
+  yPos: number;
+  isLampLit: boolean;
+  onToggleLamp: () => void;
+}) {
   const brassMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -117,14 +125,14 @@ function DeskLedgeProps({ yPos }: { yPos: number }) {
     () =>
       new THREE.MeshPhysicalMaterial({
         color: new THREE.Color("#184D2B"),
-        emissive: new THREE.Color("#082212"),
-        emissiveIntensity: 0.35,
+        emissive: new THREE.Color(isLampLit ? "#256338" : "#020B04"),
+        emissiveIntensity: isLampLit ? 0.85 : 0.05,
         roughness: 0.18,
         metalness: 0.1,
         transmission: 0.45,
         thickness: 0.4,
       }),
-    [],
+    [isLampLit],
   );
 
   return (
@@ -138,8 +146,15 @@ function DeskLedgeProps({ yPos }: { yPos: number }) {
         <boxGeometry args={[18, 0.035, 0.035]} />
       </mesh>
 
-      {/* 1. Classic Banker's Lamp at far left */}
-      <group position={[-5.8, 0.12, 0.4]}>
+      {/* 1. Classic Banker's Lamp at far left (Interactive Click to Toggle Illumination) */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: 3D interactive banker lamp */}
+      <group
+        position={[-5.8, 0.12, 0.4]}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleLamp();
+        }}
+      >
         <mesh material={brassMaterial} castShadow>
           <cylinderGeometry args={[0.4, 0.5, 0.1, 24]} />
         </mesh>
@@ -444,6 +459,7 @@ function PinboardScene({
   onSelectCase,
 }: PinboardLibrary3DProps) {
   const { viewport } = useThree();
+  const [isLampLit, setIsLampLit] = useState(true);
 
   const { diffuse, bump } = useMemo(() => createProceduralGreenFeltTexture(), []);
   const windowGrillShadow = useMemo(() => createWindowGrillShadowTexture(), []);
@@ -550,7 +566,7 @@ function PinboardScene({
       <spotLight
         position={[-5.8, -boardHeight / 2 + 1.2, 1.8]}
         color="#FFAE42"
-        intensity={4.2}
+        intensity={isLampLit ? 4.2 : 0.0}
         distance={18}
         angle={0.72}
         penumbra={0.85}
@@ -561,7 +577,7 @@ function PinboardScene({
       <pointLight
         position={[-5.8, -boardHeight / 2 + 1.2, 0.8]}
         color="#FFA433"
-        intensity={2.4}
+        intensity={isLampLit ? 2.4 : 0.0}
         distance={9}
         decay={2.0}
       />
@@ -587,10 +603,10 @@ function PinboardScene({
         />
       </mesh>
 
-      {/* 7. Victorian Window Grill Shadow (slight fade only in edges) */}
-      <mesh position={[0, 0, 0.006]}>
+      {/* 7. Subtle Base Window Grill Shadow on Felt */}
+      <mesh position={[0, 0, 0.006]} raycast={() => null}>
         <planeGeometry args={[boardWidth, boardHeight]} />
-        <meshBasicMaterial map={windowGrillShadow} transparent opacity={0.48} depthWrite={false} />
+        <meshBasicMaterial map={windowGrillShadow} transparent opacity={0.25} depthWrite={false} />
       </mesh>
 
       {/* 8. 3D Dark Walnut Wood Frame encasing the board */}
@@ -638,8 +654,21 @@ function PinboardScene({
         );
       })}
 
-      {/* 9. Tangible Detective Props on the Bottom Desk Ledge (Option 8) */}
-      <DeskLedgeProps yPos={-boardHeight / 2 + 0.35} />
+      {/* 11. Victorian Window Grill Shadow Falling Over Whole Pinboard, Case Files & Yarn */}
+      <mesh position={[0, 0, 0.22]} raycast={() => null}>
+        <planeGeometry args={[boardWidth * 1.05, boardHeight * 1.05]} />
+        <meshBasicMaterial map={windowGrillShadow} transparent opacity={0.52} depthWrite={false} />
+      </mesh>
+
+      {/* 9. Tangible Detective Props on the Bottom Desk Ledge (Interactive Lamp) */}
+      <DeskLedgeProps
+        yPos={-boardHeight / 2 + 0.35}
+        isLampLit={isLampLit}
+        onToggleLamp={() => {
+          setIsLampLit((prev) => !prev);
+          soundEngine.playStamp();
+        }}
+      />
 
       {/* 10. Smooth Steady-Cam Rig */}
       <CameraRig focusedCasePos={focusedCasePos} />

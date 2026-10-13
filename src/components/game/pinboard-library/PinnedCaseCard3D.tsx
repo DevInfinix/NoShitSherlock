@@ -1,8 +1,7 @@
 "use client";
 
-import { Image } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { soundEngine } from "@/lib/audio/sound-engine";
 import type { ActiveCaseListing } from "@/server/services/game-session-service";
@@ -20,6 +19,69 @@ interface PinnedCaseCard3DProps {
   onSelect: (item: ActiveCaseListing) => void;
 }
 
+function EvidencePhotoMesh({ slug }: { slug: string }) {
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      `/cases/${slug}/images/image_1.webp`,
+      (tex) => {
+        if (!active) {
+          tex.dispose();
+          return;
+        }
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.generateMipmaps = true;
+        tex.minFilter = THREE.LinearMipmapLinearFilter;
+        tex.needsUpdate = true;
+        setTexture(tex);
+      },
+      undefined,
+      (err) => {
+        console.error("Failed to load evidence photo:", slug, err);
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [slug]);
+
+  return (
+    <group position={[0, 0.11, 0.003]}>
+      <mesh position={[0, 0, 0]}>
+        <planeGeometry args={[0.7, 0.68]} />
+        {texture ? (
+          <meshPhysicalMaterial
+            map={texture}
+            roughness={0.16}
+            metalness={0.04}
+            clearcoat={1.0}
+            clearcoatRoughness={0.08}
+          />
+        ) : (
+          <meshStandardMaterial color="#2B2018" roughness={0.8} />
+        )}
+      </mesh>
+      {/* Specular Lamp Reflection Sheen on glossy emulsion */}
+      <mesh position={[0, 0, 0.001]}>
+        <planeGeometry args={[0.7, 0.68]} />
+        <meshPhysicalMaterial
+          color="#FFF0D4"
+          transparent
+          opacity={0.18}
+          roughness={0.06}
+          metalness={0.04}
+          clearcoat={1.0}
+          clearcoatRoughness={0.05}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
 /**
  * 3D Clipped Evidence Polaroid Photo.
  * Includes photo paper frame, loaded WebP evidence photograph,
@@ -28,7 +90,7 @@ interface PinnedCaseCard3DProps {
 function PolaroidEvidencePhoto({
   slug,
   caseId,
-  position = [0.38, -0.24, 0.015],
+  position = [0.36, -0.2, 0.075],
   rotationZ = 0.045,
 }: {
   slug: string;
@@ -93,22 +155,8 @@ function PolaroidEvidencePhoto({
         <meshStandardMaterial color="#FAF6EE" roughness={0.7} metalness={0.03} />
       </mesh>
 
-      {/* Actual WebP Evidence Photograph */}
-      <Suspense
-        fallback={
-          <mesh position={[0, 0.11, 0.002]}>
-            <planeGeometry args={[0.7, 0.68]} />
-            <meshStandardMaterial color="#1A1410" roughness={0.8} />
-          </mesh>
-        }
-      >
-        <Image
-          url={`/cases/${slug}/images/image_1.webp`}
-          scale={[0.7, 0.68]}
-          position={[0, 0.11, 0.002]}
-          toneMapped
-        />
-      </Suspense>
+      {/* Actual Evidence Photo with Specular Emulsion Reflection */}
+      <EvidencePhotoMesh slug={slug} />
 
       {/* Polaroid Bottom Caption Area */}
       {captionTexture && (
@@ -153,8 +201,8 @@ export function PinnedCaseCard3D({
 }: PinnedCaseCard3DProps) {
   const groupRef = useRef<THREE.Group>(null);
 
-  // 1. Procedural Aged Golden Manila / Tea-Stained Parchment Textures
-  const { diffuse, bump } = useMemo(
+  // 1. Procedural Aged Golden Manila / Tea-Stained Parchment Textures with 3-map PBR
+  const { diffuse, bump, roughness } = useMemo(
     () =>
       createAgedPaperTexture(
         caseItem.title,
@@ -166,17 +214,34 @@ export function PinnedCaseCard3D({
     [caseItem.title, caseItem.id, caseItem.difficulty, caseIndex],
   );
 
-  // 2. Realistic Manila Paper Material
+  // 2. Realistic Manila Paper Material with Physical Curvature Shader Hook
   const paperMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    const mat = new THREE.MeshStandardMaterial({
       map: diffuse,
       bumpMap: bump,
-      bumpScale: 0.035,
-      roughness: 0.85,
+      bumpScale: 0.038,
+      roughnessMap: roughness,
+      roughness: 0.88,
       metalness: 0.02,
       side: THREE.DoubleSide,
     });
-  }, [diffuse, bump]);
+
+    mat.customProgramCacheKey = () => "aged-dossier-curled-paper";
+    mat.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader.replace(
+        "#include <begin_vertex>",
+        `
+        #include <begin_vertex>
+        // Physical dog-eared corner curl and central gravitational paper bow
+        float brCurl = smoothstep(0.70, 1.0, uv.x) * smoothstep(0.0, 0.32, 1.0 - uv.y) * 0.048;
+        float tlCurl = smoothstep(0.0, 0.30, 1.0 - uv.x) * smoothstep(0.72, 1.0, uv.y) * 0.038;
+        float centralBow = sin(uv.x * 3.14159) * sin(uv.y * 3.14159) * 0.022;
+        transformed.z += (brCurl + tlCurl + centralBow);
+        `,
+      );
+    };
+    return mat;
+  }, [diffuse, bump, roughness]);
 
   // 3. Antique Turned Brass Pushpin Material
   const brassMaterial = useMemo(
@@ -193,10 +258,11 @@ export function PinnedCaseCard3D({
     return () => {
       diffuse.dispose();
       bump.dispose();
+      roughness.dispose();
       paperMaterial.dispose();
       brassMaterial.dispose();
     };
-  }, [diffuse, bump, paperMaterial, brassMaterial]);
+  }, [diffuse, bump, roughness, paperMaterial, brassMaterial]);
 
   // Stable positioning with zero pop up hover animations
   useFrame(() => {
@@ -240,14 +306,14 @@ export function PinnedCaseCard3D({
 
       {/* 3D Paper Dossier Cardstock Mesh with Full Typography, Stamps & Incident Lines */}
       <mesh material={paperMaterial} castShadow receiveShadow>
-        <planeGeometry args={[1.9, 2.62, 16, 16]} />
+        <planeGeometry args={[1.9, 2.62, 32, 32]} />
       </mesh>
 
       {/* Clipped Evidence Polaroid Photograph */}
       <PolaroidEvidencePhoto
         slug={caseItem.slug}
         caseId={caseItem.id}
-        position={[0.38, -0.22, 0.015]}
+        position={[0.36, -0.2, 0.075]}
         rotationZ={0.045}
       />
 

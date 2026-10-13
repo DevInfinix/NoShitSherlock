@@ -249,11 +249,12 @@ export function createAgedPaperTexture(
   difficulty: number,
   paperToneIndex = 0,
   size = 1024,
-): { diffuse: THREE.Texture; bump: THREE.Texture } {
+): { diffuse: THREE.Texture; bump: THREE.Texture; roughness: THREE.Texture } {
   if (typeof window === "undefined") {
     return {
       diffuse: new THREE.Texture(),
       bump: new THREE.Texture(),
+      roughness: new THREE.Texture(),
     };
   }
 
@@ -267,19 +268,29 @@ export function createAgedPaperTexture(
   bCanvas.height = canvas.height;
   const bCtx = bCanvas.getContext("2d");
 
-  if (!ctx || !bCtx) {
+  const rCanvas = document.createElement("canvas");
+  rCanvas.width = canvas.width;
+  rCanvas.height = canvas.height;
+  const rCtx = rCanvas.getContext("2d");
+
+  if (!ctx || !bCtx || !rCtx) {
     return {
       diffuse: new THREE.Texture(canvas),
       bump: new THREE.Texture(bCanvas),
+      roughness: new THREE.Texture(rCanvas),
     };
   }
 
   const w = canvas.width;
   const h = canvas.height;
 
-  // Initial bump base
+  // Initial bump base (neutral middle gray 128)
   bCtx.fillStyle = "#808080";
   bCtx.fillRect(0, 0, w, h);
+
+  // Initial roughness base: paper is rough matte (#E8E8E8 ~ 0.91 roughness)
+  rCtx.fillStyle = "#E8E8E8";
+  rCtx.fillRect(0, 0, w, h);
 
   // 1. Paper Base Tone: Alternates between Aged Golden Manila (#D9C5A0) & Tea-Stained Pulp (#CBB994)
   const isManila = paperToneIndex % 2 === 0;
@@ -353,6 +364,29 @@ export function createAgedPaperTexture(
   bCtx.lineTo(w, h * 0.505);
   bCtx.stroke();
 
+  // Compressed fibers along fold: slightly smoother roughness
+  rCtx.strokeStyle = "rgba(160, 160, 160, 0.5)";
+  rCtx.lineWidth = 4.0;
+  rCtx.beginPath();
+  rCtx.moveTo(0, h * 0.5);
+  rCtx.lineTo(w, h * 0.505);
+  rCtx.stroke();
+
+  // Secondary diagonal fold crease (top-right corner dog-eared wear)
+  ctx.strokeStyle = "rgba(80, 56, 30, 0.18)";
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.moveTo(w * 0.78, 0);
+  ctx.lineTo(w, h * 0.18);
+  ctx.stroke();
+
+  bCtx.strokeStyle = "rgba(40, 40, 40, 0.4)";
+  bCtx.lineWidth = 2.5;
+  bCtx.beginPath();
+  bCtx.moveTo(w * 0.78, 0);
+  bCtx.lineTo(w, h * 0.18);
+  bCtx.stroke();
+
   // 5. Twin Rusty Staples at Top Margin with Oxidized Rust Stains
   const staple1X = w * 0.32;
   const staple2X = w * 0.68;
@@ -386,6 +420,11 @@ export function createAgedPaperTexture(
   ctx.fillStyle = "rgba(255, 250, 240, 0.4)";
   ctx.fillRect(staple1X - 20, stapleY - 2, 40, 2);
   ctx.fillRect(staple2X - 20, stapleY - 2, 40, 2);
+
+  // Staple metallic low roughness
+  rCtx.fillStyle = "#383838";
+  rCtx.fillRect(staple1X - 22, stapleY - 3, 44, 7);
+  rCtx.fillRect(staple2X - 22, stapleY - 3, 44, 7);
 
   // Staple puncture holes in bump
   bCtx.fillStyle = "#000000";
@@ -531,7 +570,7 @@ export function createAgedPaperTexture(
   ctx.fillText("METROPOLITAN CRIMINAL ARCHIVES", 0, 0);
   ctx.restore();
 
-  // Final Canvas Textures
+  // Final PBR Textures
   const diffuse = new THREE.CanvasTexture(canvas);
   diffuse.colorSpace = THREE.SRGBColorSpace;
   diffuse.needsUpdate = true;
@@ -540,5 +579,9 @@ export function createAgedPaperTexture(
   bump.colorSpace = THREE.NoColorSpace;
   bump.needsUpdate = true;
 
-  return { diffuse, bump };
+  const roughness = new THREE.CanvasTexture(rCanvas);
+  roughness.colorSpace = THREE.NoColorSpace;
+  roughness.needsUpdate = true;
+
+  return { diffuse, bump, roughness };
 }

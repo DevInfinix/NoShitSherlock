@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -136,72 +136,13 @@ export function PinboardLibraryContainer({
         </div>
       </div>
 
-      {/* 5. Bottom Subtle Case Status Indicator */}
-      <div className="absolute bottom-4 inset-x-4 sm:inset-x-8 z-20 pointer-events-none flex items-center justify-between">
-        <div className="pointer-events-auto border border-[#A9874A]/40 bg-[#100D0A]/90 px-4 py-2 backdrop-blur-md shadow-xl text-left max-w-lg">
-          {hoveredCase ? (
-            <div className="space-y-0.5">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[#A7192D] font-bold block">
-                [EXHIBIT TARGET] FILE #{hoveredCase.id}: {hoveredCase.title}
-              </span>
-              <span className="font-serif text-xs text-[#E7DDC8] block truncate">
-                Difficulty: {"★".repeat(hoveredCase.difficulty)} {"//"} Click to unroll forensic
-                dossier
-              </span>
-            </div>
-          ) : (
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[#78716A] block">
-              [CINEMATIC NOTICEBOARD {"//"} FLASHLIGHT ACTIVE]
-            </span>
-          )}
-        </div>
-
-        {/* Quick File Selectors */}
-        <div className="pointer-events-auto flex items-center gap-1.5">
-          {cases.map((c) => {
-            const isHovered = hoveredCase?.slug === c.slug;
-            const isSelected = selectedCase?.slug === c.slug;
-            return (
-              <button
-                type="button"
-                key={c.slug}
-                onClick={() => handleSelectCase(c)}
-                onMouseEnter={() => handleHoverCase(c)}
-                onMouseLeave={() => handleHoverCase(null)}
-                className={`border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
-                  isSelected || isHovered
-                    ? "border-[#A7192D] bg-[#641B1B] text-[#E7DDC8] font-bold shadow-md scale-105"
-                    : "border-[#A9874A]/30 bg-[#100D0A]/80 text-[#B8AD98] hover:border-[#A9874A]"
-                }`}
-              >
-                FILE #{c.id}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 6. Center Forensic Case Incise Modal (Stable click-to-unroll, zero hover race) */}
+      {/* 5. Fullscreen Borderless 3D Case Dossier Inspection View */}
       <AnimatePresence>
         {selectedCase && (
-          <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
-            {/* Backdrop Dimmer */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedCase(null)}
-              className="absolute inset-0 bg-black/85 backdrop-blur-md cursor-pointer"
-            />
-
-            {/* Modal Content */}
-            <div className="relative z-50 w-full max-w-4xl">
-              <ForensicCaseInciseOverlay
-                activeCase={selectedCase}
-                onClose={() => setSelectedCase(null)}
-              />
-            </div>
-          </div>
+          <ForensicCaseInciseOverlay
+            activeCase={selectedCase}
+            onClose={() => setSelectedCase(null)}
+          />
         )}
       </AnimatePresence>
     </div>
