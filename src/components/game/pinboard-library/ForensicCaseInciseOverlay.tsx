@@ -1,11 +1,11 @@
 "use client";
 
-import { OrbitControls } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { soundEngine } from "@/lib/audio/sound-engine";
 import type { ActiveCaseListing } from "@/server/services/game-session-service";
 
@@ -328,6 +328,7 @@ function CaseDossier3DScene({
   previewImage: string;
 }) {
   const groupRef = useRef<THREE.Group>(null);
+  const { pointer } = useThree();
 
   const sheetTextures = useMemo(() => createDossierReportSheetTexture(activeCase), [activeCase]);
 
@@ -380,11 +381,39 @@ function CaseDossier3DScene({
     };
   }, [sheetTextures, folderTextures, brassMaterial, captionTexture]);
 
-  // Subtle breathing idle rotation
-  useFrame((state) => {
+  // Fluid buttery smooth pointer hover parallax tilt & floating breath (no manual 360 drag rotation)
+  useFrame((state, delta) => {
     if (!groupRef.current) return;
+    const clampedDelta = Math.min(delta, 0.04);
     const t = state.clock.getElapsedTime();
-    groupRef.current.position.y = Math.sin(t * 0.8) * 0.02;
+
+    // Buttery pointer parallax tilt
+    const targetRotX = pointer.y * -0.16;
+    const targetRotY = pointer.x * 0.2;
+    const targetRotZ = pointer.x * -0.025;
+
+    groupRef.current.rotation.x = THREE.MathUtils.damp(
+      groupRef.current.rotation.x,
+      targetRotX,
+      4.5,
+      clampedDelta,
+    );
+    groupRef.current.rotation.y = THREE.MathUtils.damp(
+      groupRef.current.rotation.y,
+      targetRotY,
+      4.5,
+      clampedDelta,
+    );
+    groupRef.current.rotation.z = THREE.MathUtils.damp(
+      groupRef.current.rotation.z,
+      targetRotZ,
+      4.0,
+      clampedDelta,
+    );
+
+    // Organic gentle breathing float
+    groupRef.current.position.y = Math.sin(t * 1.2) * 0.02;
+    groupRef.current.position.z = Math.cos(t * 0.9) * 0.01;
   });
 
   return (
@@ -527,11 +556,14 @@ export function ForensicCaseInciseOverlay({ activeCase, onClose }: ForensicCaseI
         transition={{ duration: 0.3 }}
         className="fixed inset-0 z-50 w-screen h-screen overflow-hidden bg-[#0A0705]/92 backdrop-blur-md select-none"
       >
+        {/* Detective Spotlight Cursor */}
+        <SpotlightCursor />
+
         {/* Full-viewport Interactive 3D Case Dossier Canvas */}
         <div className="absolute inset-0 z-0">
           {mounted ? (
             <Canvas
-              camera={{ position: [0, 0, 4.4], fov: 42 }}
+              camera={{ position: [0, 0, 4.2], fov: 41 }}
               dpr={[1, 2]}
               gl={{
                 antialias: true,
@@ -539,16 +571,8 @@ export function ForensicCaseInciseOverlay({ activeCase, onClose }: ForensicCaseI
                 toneMappingExposure: 1.05,
               }}
               shadows
-              className="w-full h-full cursor-grab active:cursor-grabbing"
+              className="w-full h-full"
             >
-              <OrbitControls
-                enableZoom={true}
-                enablePan={false}
-                minDistance={2.4}
-                maxDistance={6.2}
-                maxPolarAngle={Math.PI / 2 + 0.25}
-                minPolarAngle={0.15}
-              />
               <CaseDossier3DScene activeCase={activeCase} previewImage={previewImage} />
             </Canvas>
           ) : (
@@ -558,66 +582,31 @@ export function ForensicCaseInciseOverlay({ activeCase, onClose }: ForensicCaseI
           )}
         </div>
 
-        {/* Floating Minimal In-World Header */}
-        <div className="absolute top-4 inset-x-4 sm:inset-x-8 z-10 pointer-events-none flex items-center justify-between gap-4">
-          <div className="pointer-events-auto border border-[#A9874A]/40 bg-[#100D0A]/90 px-3.5 py-1.5 backdrop-blur-md shadow-2xl flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-[#A7192D] animate-pulse" />
-            <span className="font-mono text-xs uppercase tracking-widest text-[#A9874A] font-bold">
-              SCOTLAND YARD {"//"} FILE #{activeCase.id.toString().padStart(3, "0")}
-            </span>
-          </div>
-
+        {/* Top-Right: Return to Noticeboard (ESC) */}
+        <div className="absolute top-5 right-5 sm:right-8 z-10 pointer-events-none">
           <button
             type="button"
             onClick={() => {
               soundEngine.playPaper();
               onClose();
             }}
-            className="pointer-events-auto border border-[#A9874A]/40 bg-[#100D0A]/90 px-4 py-1.5 font-mono text-xs uppercase tracking-wider text-[#E7DDC8] hover:border-[#A7192D] hover:bg-[#A7192D]/20 transition-colors shadow-2xl cursor-pointer"
+            className="pointer-events-auto border border-[#A9874A]/40 bg-[#100D0A]/90 px-4 py-2 font-mono text-xs uppercase tracking-wider text-[#E7DDC8] hover:border-[#A7192D] hover:bg-[#A7192D]/20 transition-colors shadow-2xl cursor-pointer"
           >
             &times; Return to Noticeboard (ESC)
           </button>
         </div>
 
-        {/* Floating Minimal In-World Action Footer */}
-        <div className="absolute bottom-5 inset-x-4 sm:inset-x-8 z-10 pointer-events-none flex flex-wrap items-center justify-between gap-4">
-          <button
-            type="button"
-            onClick={() => {
-              soundEngine.playPaper();
-              onClose();
-            }}
-            className="pointer-events-auto border border-[#A9874A]/40 bg-[#100D0A]/90 px-4 py-2 font-mono text-xs uppercase tracking-wider text-[#B8AD98] hover:border-[#A9874A] hover:text-[#E7DDC8] transition-colors shadow-2xl cursor-pointer"
+        {/* Bottom Center: Primary Open Case File Action */}
+        <div className="absolute bottom-6 inset-x-0 z-10 pointer-events-none flex justify-center">
+          <Link
+            href={`/cases/${activeCase.slug}`}
+            onClick={() => soundEngine.playStamp()}
+            className="pointer-events-auto border-2 border-[#A7192D] bg-[#A7192D] hover:bg-[#8A1424] text-[#E7DDC8] px-8 py-3 font-mono text-xs uppercase tracking-widest font-bold shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer"
           >
-            &larr; Back to Board
-          </button>
-
-          <div className="hidden sm:block pointer-events-none font-mono text-[10px] uppercase tracking-widest text-[#A9874A]/70 bg-[#100D0A]/80 px-3 py-1.5 border border-[#A9874A]/25 backdrop-blur-md shadow-xl">
-            DRAG TO ROTATE 3D DOSSIER &bull; SCROLL TO ZOOM
-          </div>
-
-          <div className="pointer-events-auto flex items-center gap-3">
-            {/* Evidence Pinboard link: ONLY visible when case is completed */}
-            {activeCase.activeSessionStatus === "COMPLETED" && (
-              <Link
-                href={`/pinboard/${activeCase.slug}`}
-                onClick={() => soundEngine.playPaper()}
-                className="border border-[#A9874A]/60 bg-[#100D0A]/90 px-4 py-2 font-mono text-xs uppercase tracking-wider text-[#A9874A] hover:bg-[#A9874A] hover:text-[#100D0A] transition-colors shadow-2xl"
-              >
-                Evidence Pinboard &rarr;
-              </Link>
-            )}
-
-            <Link
-              href={`/cases/${activeCase.slug}`}
-              onClick={() => soundEngine.playStamp()}
-              className="border-2 border-[#A7192D] bg-[#A7192D] hover:bg-[#8A1424] text-[#E7DDC8] px-6 py-2.5 font-mono text-xs uppercase tracking-widest font-bold shadow-2xl transition-transform hover:scale-105 active:scale-95"
-            >
-              {activeCase.activeSessionStatus === "IN_PROGRESS"
-                ? "Continue Investigation →"
-                : "Open Case File →"}
-            </Link>
-          </div>
+            {activeCase.activeSessionStatus === "IN_PROGRESS"
+              ? "Continue Investigation →"
+              : "Open Case File →"}
+          </Link>
         </div>
       </motion.div>
     </AnimatePresence>

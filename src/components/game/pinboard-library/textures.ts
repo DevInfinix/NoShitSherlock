@@ -115,38 +115,136 @@ export function createDarkWalnutWoodTexture(): {
 }
 
 /**
+ * Procedural Wool Yarn PBR Textures (256x256).
+ * Produces matte spun 2-ply wool fiber diffuse, helical thread bump map,
+ * and high-roughness micro-fuzz map to eliminate any plasticky look.
+ */
+export function createWoolYarnTextures(): {
+  diffuse: THREE.Texture;
+  bump: THREE.Texture;
+  roughness: THREE.Texture;
+} {
+  if (typeof window === "undefined") {
+    return {
+      diffuse: new THREE.Texture(),
+      bump: new THREE.Texture(),
+      roughness: new THREE.Texture(),
+    };
+  }
+
+  const size = 256;
+  const dCanvas = document.createElement("canvas");
+  dCanvas.width = size;
+  dCanvas.height = size;
+  const dCtx = dCanvas.getContext("2d");
+
+  const bCanvas = document.createElement("canvas");
+  bCanvas.width = size;
+  bCanvas.height = size;
+  const bCtx = bCanvas.getContext("2d");
+
+  const rCanvas = document.createElement("canvas");
+  rCanvas.width = size;
+  rCanvas.height = size;
+  const rCtx = rCanvas.getContext("2d");
+
+  if (!dCtx || !bCtx || !rCtx) {
+    return {
+      diffuse: new THREE.Texture(dCanvas),
+      bump: new THREE.Texture(bCanvas),
+      roughness: new THREE.Texture(rCanvas),
+    };
+  }
+
+  // Deep villain crime-scene crimson wool dye (#8B141E)
+  dCtx.fillStyle = "#8B141E";
+  dCtx.fillRect(0, 0, size, size);
+
+  // Neutral bump map base
+  bCtx.fillStyle = "#808080";
+  bCtx.fillRect(0, 0, size, size);
+
+  // Ultra-matte roughness base (#F0F0F0 ~ 0.94) to eliminate any plasticky reflection
+  rCtx.fillStyle = "#F0F0F0";
+  rCtx.fillRect(0, 0, size, size);
+
+  // Microscopic fiber fuzz noise
+  const imgData = dCtx.getImageData(0, 0, size, size);
+  const px = imgData.data;
+  for (let i = 0; i < px.length; i += 4) {
+    const noise = (Math.random() - 0.5) * 16;
+    px[i] = Math.min(255, Math.max(0, (px[i] ?? 0) + noise * 0.8));
+    px[i + 1] = Math.min(255, Math.max(0, (px[i + 1] ?? 0) + noise * 0.2));
+    px[i + 2] = Math.min(255, Math.max(0, (px[i + 2] ?? 0) + noise * 0.2));
+  }
+  dCtx.putImageData(imgData, 0, 0);
+
+  // Helical 2-ply twisted spun wool cords with shadowed crevices & bright fiber loops
+  for (let y = 0; y < size; y += 8) {
+    const twist = Math.sin((y / size) * Math.PI * 4) * 8;
+
+    // Highlighted fiber loop ridge
+    dCtx.strokeStyle = "rgba(182, 34, 46, 0.65)";
+    dCtx.lineWidth = 4.5;
+    dCtx.beginPath();
+    dCtx.moveTo(0, y + twist);
+    dCtx.lineTo(size, y - twist);
+    dCtx.stroke();
+
+    // Bump ridge
+    bCtx.strokeStyle = "rgba(220, 220, 220, 0.6)";
+    bCtx.lineWidth = 4.0;
+    bCtx.beginPath();
+    bCtx.moveTo(0, y + twist);
+    bCtx.lineTo(size, y - twist);
+    bCtx.stroke();
+
+    // Shadowed twisted crevice groove
+    dCtx.strokeStyle = "rgba(55, 6, 12, 0.75)";
+    dCtx.lineWidth = 2.5;
+    dCtx.beginPath();
+    dCtx.moveTo(0, y + twist + 4);
+    dCtx.lineTo(size, y - twist + 4);
+    dCtx.stroke();
+
+    // Bump depression
+    bCtx.strokeStyle = "rgba(35, 35, 35, 0.7)";
+    bCtx.lineWidth = 2.5;
+    bCtx.beginPath();
+    bCtx.moveTo(0, y + twist + 4);
+    bCtx.lineTo(size, y - twist + 4);
+    bCtx.stroke();
+  }
+
+  const diffuse = new THREE.CanvasTexture(dCanvas);
+  diffuse.colorSpace = THREE.SRGBColorSpace;
+  diffuse.wrapS = THREE.RepeatWrapping;
+  diffuse.wrapT = THREE.RepeatWrapping;
+  diffuse.repeat.set(24, 2);
+  diffuse.needsUpdate = true;
+
+  const bump = new THREE.CanvasTexture(bCanvas);
+  bump.colorSpace = THREE.NoColorSpace;
+  bump.wrapS = THREE.RepeatWrapping;
+  bump.wrapT = THREE.RepeatWrapping;
+  bump.repeat.set(24, 2);
+  bump.needsUpdate = true;
+
+  const roughness = new THREE.CanvasTexture(rCanvas);
+  roughness.colorSpace = THREE.NoColorSpace;
+  roughness.wrapS = THREE.RepeatWrapping;
+  roughness.wrapT = THREE.RepeatWrapping;
+  roughness.repeat.set(24, 2);
+  roughness.needsUpdate = true;
+
+  return { diffuse, bump, roughness };
+}
+
+/**
  * Fast procedural wool yarn bump texture (128x128).
  */
 export function createWoolYarnBumpTexture(): THREE.Texture {
-  if (typeof window === "undefined") return new THREE.Texture();
-
-  const size = 128;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return new THREE.Texture(canvas);
-
-  ctx.fillStyle = "#808080";
-  ctx.fillRect(0, 0, size, size);
-
-  for (let y = 0; y < size; y += 4) {
-    const twist = Math.sin(y * 0.2) * 6;
-    ctx.strokeStyle = Math.random() > 0.5 ? "rgba(40, 40, 40, 0.45)" : "rgba(210, 210, 210, 0.45)";
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.moveTo(0, y + twist);
-    ctx.lineTo(size, y - twist);
-    ctx.stroke();
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.NoColorSpace;
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(10, 2);
-  texture.needsUpdate = true;
-  return texture;
+  return createWoolYarnTextures().bump;
 }
 
 /**

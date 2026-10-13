@@ -4,6 +4,7 @@ import { AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { soundEngine } from "@/lib/audio/sound-engine";
 import { signOut } from "@/lib/auth-client";
 import type { ActiveCaseListing } from "@/server/services/game-session-service";
@@ -66,7 +67,10 @@ export function PinboardLibraryContainer({
   };
 
   return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-[#080605] text-[#E7DDC8] select-none cursor-default">
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-[#080605] text-[#E7DDC8] select-none">
+      {/* Detective Flashlight Spotlight Cursor */}
+      <SpotlightCursor isHoveringTarget={hoveredCase !== null} />
+
       {/* 1. Fullscreen 3D WebGL / R3F Canvas Layer */}
       <div className="absolute inset-0 z-0">
         <PinboardLibrary3D
@@ -84,21 +88,8 @@ export function PinboardLibraryContainer({
       {/* 3. Subtle Warm Lamp Atmosphere Glow at Lower-Left Desk Area */}
       <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_16%_88%,rgba(255,174,66,0.09)_0%,transparent_48%)]" />
 
-      {/* 4. Top Immersive Floating HUD Bar */}
-      <div className="absolute top-4 inset-x-4 sm:inset-x-8 z-20 pointer-events-none flex flex-wrap items-center justify-between gap-4">
-        {/* Top Left: Department Evidence Seal */}
-        <div className="pointer-events-auto border border-[#A9874A]/40 bg-[#100D0A]/90 px-4 py-2 backdrop-blur-md shadow-xl flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#A7192D] animate-pulse" />
-          <div>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[#A9874A] font-bold block">
-              METROPOLITAN POLICE {"//"} GREEN FELT NOTICEBOARD
-            </span>
-            <span className="font-serif text-xs text-[#E7DDC8]">
-              {cases.length} RESTRICTED EVIDENCE CASES PINNED
-            </span>
-          </div>
-        </div>
-
+      {/* 4. Top Minimal Floating Controls */}
+      <div className="absolute top-4 inset-x-4 sm:inset-x-8 z-20 pointer-events-none flex items-center justify-end">
         {/* Top Right: Detective Profile & Minimal Controls */}
         <div className="pointer-events-auto flex items-center gap-3">
           <Link

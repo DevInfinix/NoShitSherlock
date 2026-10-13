@@ -200,6 +200,7 @@ export function PinnedCaseCard3D({
   onSelect,
 }: PinnedCaseCard3DProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const pointerOffset = useRef({ x: 0, y: 0 });
 
   // 1. Procedural Aged Golden Manila / Tea-Stained Parchment Textures with 3-map PBR
   const { diffuse, bump, roughness } = useMemo(
@@ -265,11 +266,47 @@ export function PinnedCaseCard3D({
   }, [diffuse, bump, roughness, paperMaterial, brassMaterial]);
 
   // Stable positioning with zero pop up hover animations
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!groupRef.current) return;
-    groupRef.current.position.set(position[0], position[1], position[2]);
-    groupRef.current.scale.setScalar(scale);
-    groupRef.current.rotation.set(0, 0, baseRotationZ);
+    const clampedDelta = Math.min(delta, 0.04);
+
+    // Fluid parallel parallax elevation & subtle scale on hover
+    const targetZ = position[2] + (isHovered ? 0.09 : 0);
+    const targetScale = scale * (isHovered ? 1.04 : 1.0);
+
+    groupRef.current.position.z = THREE.MathUtils.damp(
+      groupRef.current.position.z,
+      targetZ,
+      5.5,
+      clampedDelta,
+    );
+    groupRef.current.scale.setScalar(
+      THREE.MathUtils.damp(groupRef.current.scale.x, targetScale, 5.5, clampedDelta),
+    );
+
+    // Smooth parallel pointer parallax tilt
+    const targetRotX = isHovered ? -pointerOffset.current.y * 0.14 : 0;
+    const targetRotY = isHovered ? pointerOffset.current.x * 0.16 : 0;
+    const targetRotZ = isHovered ? baseRotationZ * 0.6 : baseRotationZ;
+
+    groupRef.current.rotation.x = THREE.MathUtils.damp(
+      groupRef.current.rotation.x,
+      targetRotX,
+      5.0,
+      clampedDelta,
+    );
+    groupRef.current.rotation.y = THREE.MathUtils.damp(
+      groupRef.current.rotation.y,
+      targetRotY,
+      5.0,
+      clampedDelta,
+    );
+    groupRef.current.rotation.z = THREE.MathUtils.damp(
+      groupRef.current.rotation.z,
+      targetRotZ,
+      5.0,
+      clampedDelta,
+    );
   });
 
   return (
@@ -286,6 +323,13 @@ export function PinnedCaseCard3D({
       onPointerOut={(e) => {
         e.stopPropagation();
         onHover(null);
+      }}
+      onPointerMove={(e) => {
+        e.stopPropagation();
+        pointerOffset.current = {
+          x: (e.uv?.x ?? 0.5) - 0.5,
+          y: (e.uv?.y ?? 0.5) - 0.5,
+        };
       }}
       onClick={(e) => {
         e.stopPropagation();

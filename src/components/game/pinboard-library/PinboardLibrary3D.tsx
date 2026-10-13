@@ -423,25 +423,29 @@ function CameraRig({ focusedCasePos }: { focusedCasePos: [number, number] | null
   const { camera, pointer } = useThree();
 
   useFrame((_, delta) => {
-    const clampedDelta = Math.min(delta, 0.05);
-    const parallaxX = pointer.x * 0.16;
-    const parallaxY = pointer.y * 0.12;
+    const clampedDelta = Math.min(delta, 0.04);
+    // Smooth parallel continuous pointer parallax
+    const parallaxX = pointer.x * 0.28;
+    const parallaxY = pointer.y * 0.2;
 
     let targetX = parallaxX;
     let targetY = parallaxY;
     let targetZ = 6.8;
 
     if (focusedCasePos) {
-      targetX = focusedCasePos[0] * 0.18 + parallaxX * 0.04;
-      targetY = focusedCasePos[1] * 0.18 + parallaxY * 0.04;
-      targetZ = 6.1; // Smooth focus pull
+      // Fluid parallel parallax pan towards the active hovered case file
+      targetX = focusedCasePos[0] * 0.22 + parallaxX * 0.14;
+      targetY = focusedCasePos[1] * 0.18 + parallaxY * 0.12;
+      targetZ = 6.35; // Buttery gentle focus pull-in
     }
 
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, targetX, 2.6, clampedDelta);
-    camera.position.y = THREE.MathUtils.damp(camera.position.y, targetY, 2.6, clampedDelta);
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ, 2.6, clampedDelta);
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, targetX, 3.2, clampedDelta);
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, targetY, 3.2, clampedDelta);
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ, 3.0, clampedDelta);
 
-    camera.lookAt(targetX * 0.15, targetY * 0.15, 0);
+    const lookTargetX = THREE.MathUtils.damp(0, targetX * 0.45, 3.0, clampedDelta);
+    const lookTargetY = THREE.MathUtils.damp(0, targetY * 0.45, 3.0, clampedDelta);
+    camera.lookAt(lookTargetX, lookTargetY, 0);
   });
 
   return null;
@@ -524,13 +528,13 @@ function PinboardScene({
     const yarn: Array<[number, number, number]> = positions.map((p) => [
       p.pos[0],
       p.pos[1] + 1.25 * scale,
-      0.12,
+      0.15,
     ]);
 
     return { cardLayouts: positions, yarnPoints: yarn, cardScale: scale };
   }, [viewport.width]);
 
-  const activeItem = selectedCase;
+  const activeItem = selectedCase ?? hoveredCase;
   const focusedCasePos = useMemo<[number, number] | null>(() => {
     if (!activeItem) return null;
     const idx = cases.findIndex((c) => c.slug === activeItem.slug);
@@ -612,12 +616,8 @@ function PinboardScene({
       {/* 8. 3D Dark Walnut Wood Frame encasing the board */}
       <WalnutNoticeboardFrame width={boardWidth} height={boardHeight} />
 
-      {/* 9. Procedural Red Wool Yarn Radiating from Central Hub */}
-      <Catenary3DYarn
-        hubPoint={[0, 1.85, 0.12]}
-        points={yarnPoints}
-        isHovered={hoveredCase !== null}
-      />
+      {/* 9. Interconnected Crime Scene Villain Woolen Yarn Network */}
+      <Catenary3DYarn points={yarnPoints} isHovered={hoveredCase !== null} />
 
       {/* 10. Pinned Case Dossier Cards */}
       {cases.map((caseItem, index) => {

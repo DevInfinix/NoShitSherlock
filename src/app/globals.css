@@ -99,5 +99,6 @@ html.cursor-none,
 html.cursor-none *,
 body.cursor-none,
 body.cursor-none * {
-  cursor: none;
+  /* biome-ignore lint/complexity/noImportantStyles: Suppress OS cursor for custom spotlight cursor */
+  cursor: none !important;
 }
