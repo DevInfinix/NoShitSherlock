@@ -7,7 +7,11 @@ import { soundEngine } from "@/lib/audio/sound-engine";
 import type { ActiveCaseListing } from "@/server/services/game-session-service";
 import { Catenary3DYarn } from "./Catenary3DYarn";
 import { PinnedCaseCard3D } from "./PinnedCaseCard3D";
-import { createDarkWalnutWoodTexture, createProceduralGreenFeltTexture } from "./textures";
+import {
+  createDarkWalnutWoodTexture,
+  createProceduralGreenFeltTexture,
+  createWindowGrillShadowTexture,
+} from "./textures";
 
 interface PinboardLibrary3DProps {
   cases: ActiveCaseListing[];
@@ -442,13 +446,15 @@ function PinboardScene({
   const { viewport } = useThree();
 
   const { diffuse, bump } = useMemo(() => createProceduralGreenFeltTexture(), []);
+  const windowGrillShadow = useMemo(() => createWindowGrillShadowTexture(), []);
 
   useEffect(() => {
     return () => {
       diffuse.dispose();
       bump.dispose();
+      windowGrillShadow.dispose();
     };
-  }, [diffuse, bump]);
+  }, [diffuse, bump, windowGrillShadow]);
 
   // Layout for cases across the board
   const { cardLayouts, yarnPoints, cardScale } = useMemo(() => {
@@ -508,7 +514,7 @@ function PinboardScene({
     return { cardLayouts: positions, yarnPoints: yarn, cardScale: scale };
   }, [viewport.width]);
 
-  const activeItem = selectedCase ?? hoveredCase;
+  const activeItem = selectedCase;
   const focusedCasePos = useMemo<[number, number] | null>(() => {
     if (!activeItem) return null;
     const idx = cases.findIndex((c) => c.slug === activeItem.slug);
@@ -522,27 +528,54 @@ function PinboardScene({
 
   return (
     <>
-      {/* 1. Main Key Studio Light */}
+      {/* 1. Main Key Studio Light with Calibrated Shadow Bounds */}
       <directionalLight
-        position={[4.5, 7.5, 5.5]}
-        color="#FFF8EC"
-        intensity={2.1}
+        position={[5.5, 8.0, 6.0]}
+        color="#FFF5E4"
+        intensity={1.85}
         castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-left={-9.5}
+        shadow-camera-right={9.5}
+        shadow-camera-top={6.5}
+        shadow-camera-bottom={-6.5}
+        shadow-camera-near={0.5}
+        shadow-camera-far={24}
         shadow-bias={-0.0001}
+        shadow-normalBias={0.02}
       />
 
-      {/* 2. Soft Cool Window Fill Light from Left */}
-      <directionalLight position={[-6.0, 3.5, 3.0]} color="#8DAECF" intensity={0.65} />
+      {/* 2. Warm Banker Lamp Light Effect (Tungsten Amber Glow across lower/mid board) */}
+      <spotLight
+        position={[-5.8, -boardHeight / 2 + 1.2, 1.8]}
+        color="#FFAE42"
+        intensity={4.2}
+        distance={18}
+        angle={0.72}
+        penumbra={0.85}
+        decay={1.6}
+        castShadow
+        shadow-bias={-0.0001}
+      />
+      <pointLight
+        position={[-5.8, -boardHeight / 2 + 1.2, 0.8]}
+        color="#FFA433"
+        intensity={2.4}
+        distance={9}
+        decay={2.0}
+      />
 
-      {/* 3. Front Fill Light to illuminate card details evenly */}
-      <directionalLight position={[0, -2, 4]} color="#FFE8C2" intensity={0.5} />
+      {/* 3. Soft Cool Window Moonlight Rim Light from Left */}
+      <directionalLight position={[-6.8, 4.2, 3.8]} color="#7E9EB8" intensity={0.65} />
 
-      {/* 4. Detective Room Back Wall Layer (Option 3.a) */}
+      {/* 4. Front Fill Light to softly illuminate paper details */}
+      <directionalLight position={[0, -1.8, 4.5]} color="#FFE8D2" intensity={0.35} />
+
+      {/* 5. Detective Room Back Wall Layer */}
       <DetectiveRoomBackWall width={boardWidth} height={boardHeight} />
 
-      {/* 5. British Police Green Felt Baize Noticeboard Surface (Option 1.a) */}
+      {/* 6. British Police Green Felt Baize Noticeboard Surface */}
       <mesh position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[boardWidth, boardHeight]} />
         <meshStandardMaterial
@@ -554,17 +587,23 @@ function PinboardScene({
         />
       </mesh>
 
-      {/* 6. 3D Dark Walnut Wood Frame encasing the board */}
+      {/* 7. Victorian Window Grill Shadow (slight fade only in edges) */}
+      <mesh position={[0, 0, 0.006]}>
+        <planeGeometry args={[boardWidth, boardHeight]} />
+        <meshBasicMaterial map={windowGrillShadow} transparent opacity={0.48} depthWrite={false} />
+      </mesh>
+
+      {/* 8. 3D Dark Walnut Wood Frame encasing the board */}
       <WalnutNoticeboardFrame width={boardWidth} height={boardHeight} />
 
-      {/* 7. Procedural Red Wool Yarn Radiating from Central Hub (Option 5.a) */}
+      {/* 9. Procedural Red Wool Yarn Radiating from Central Hub */}
       <Catenary3DYarn
         hubPoint={[0, 1.85, 0.12]}
         points={yarnPoints}
         isHovered={hoveredCase !== null}
       />
 
-      {/* 8. Pinned Case Dossier Cards (Option 2.a & 4.a: 3D Drei Html transform) */}
+      {/* 10. Pinned Case Dossier Cards */}
       {cases.map((caseItem, index) => {
         const layout = cardLayouts[index] ?? {
           pos: [index * 2 - 4, 0, 0.05],
@@ -640,7 +679,7 @@ export function PinboardLibrary3D(props: PinboardLibrary3DProps) {
         className="w-full h-full"
       >
         <color attach="background" args={["#0D0B09"]} />
-        <ambientLight color="#FFF3DC" intensity={1.35} />
+        <ambientLight color="#3D3025" intensity={0.65} />
         <PinboardScene {...props} />
       </Canvas>
     </div>

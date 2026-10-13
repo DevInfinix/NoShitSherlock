@@ -18,7 +18,7 @@ export default async function CaseFilePage({ params }: { params: Promise<{ slug:
   try {
     user = await requireUser(headerList);
   } catch {
-    notFound();
+    redirect(`/login?callbackUrl=${encodeURIComponent(`/cases/${slug}`)}`);
   }
 
   try {

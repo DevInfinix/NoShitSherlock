@@ -78,6 +78,12 @@ export function PinboardLibraryContainer({
         />
       </div>
 
+      {/* 2. Atmospheric Noir Vignette Overlay (edge fade and corner darkening) */}
+      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_42%,rgba(8,6,4,0.48)_72%,rgba(4,3,2,0.92)_100%)]" />
+
+      {/* 3. Subtle Warm Lamp Atmosphere Glow at Lower-Left Desk Area */}
+      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_16%_88%,rgba(255,174,66,0.09)_0%,transparent_48%)]" />
+
       {/* 4. Top Immersive Floating HUD Bar */}
       <div className="absolute top-4 inset-x-4 sm:inset-x-8 z-20 pointer-events-none flex flex-wrap items-center justify-between gap-4">
         {/* Top Left: Department Evidence Seal */}

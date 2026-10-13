@@ -16,7 +16,10 @@ export function ForensicCaseInciseOverlay({ activeCase, onClose }: ForensicCaseI
 
   if (!activeCase) return null;
 
-  const previewImage = `/cases/${activeCase.slug}/images/image_1.webp`;
+  const previewImage =
+    activeCase.slug === "case-01-missing-ledger"
+      ? "/cases/case-01-missing-ledger/images/case1_image1.webp"
+      : `/cases/${activeCase.slug}/images/image_1.webp`;
 
   return (
     <AnimatePresence>

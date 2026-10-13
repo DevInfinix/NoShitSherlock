@@ -6,6 +6,11 @@ const protectedPrefixes = ["/cases", "/teams", "/pinboard", "/play"];
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Never intercept static file requests (images, audio, media)
+  if (/\.(webp|png|jpg|jpeg|gif|svg|ico|mp3|wav|ogg|json)$/i.test(pathname)) {
+    return NextResponse.next();
+  }
+
   const isProtected =
     protectedPrefixes.some((prefix) => pathname.startsWith(prefix)) && pathname !== "/cases";
   if (isProtected) {

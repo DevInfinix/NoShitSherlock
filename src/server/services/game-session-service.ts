@@ -80,11 +80,23 @@ export async function startOrResumeSession(
   caseSlug: string,
   teamId?: number,
 ): Promise<{ session: SessionWithOwnership; isNew: boolean }> {
-  const [activeCase] = await db
+  let [activeCase] = await db
     .select()
     .from(cases)
     .where(and(eq(cases.slug, caseSlug), eq(cases.isActive, true)))
     .limit(1);
+
+  if (!activeCase) {
+    const allActive = await db.select().from(cases).where(eq(cases.isActive, true));
+    activeCase = allActive.find(
+      (c) =>
+        c.slug === caseSlug ||
+        c.slug.startsWith(caseSlug) ||
+        c.id.toString() === caseSlug ||
+        (caseSlug.startsWith("case-01") && c.slug.startsWith("case-01")) ||
+        (caseSlug.startsWith("case-1") && c.slug.startsWith("case-01")),
+    );
+  }
 
   if (!activeCase) {
     throw new GameSessionError("Case file not found or currently archived.", 404);
