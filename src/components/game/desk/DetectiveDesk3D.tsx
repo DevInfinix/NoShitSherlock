@@ -19,14 +19,23 @@ if (typeof window !== "undefined") {
 }
 
 interface DetectiveDeskProps {
-  viewMode: "inspection" | "reading";
-  onToggleViewMode?: () => void;
+  isLampLit?: boolean;
+  onToggleLamp?: () => void;
 }
 
 /**
  * Procedural Banker's Lamp with brass stand and emerald-green cased glass hood.
+ * Clickable Easter egg toggles warm desk illumination on and off.
  */
-function BankerLamp({ position }: { position: [number, number, number] }) {
+function BankerLamp({
+  position,
+  isLampLit = true,
+  onToggleLamp,
+}: {
+  position: [number, number, number];
+  isLampLit?: boolean;
+  onToggleLamp?: () => void;
+}) {
   const brassMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -41,18 +50,25 @@ function BankerLamp({ position }: { position: [number, number, number] }) {
     () =>
       new THREE.MeshPhysicalMaterial({
         color: new THREE.Color("#1B4D2E"),
-        emissive: new THREE.Color("#0A2614"),
-        emissiveIntensity: 0.4,
+        emissive: new THREE.Color(isLampLit ? "#144A28" : "#020D05"),
+        emissiveIntensity: isLampLit ? 0.75 : 0.05,
         roughness: 0.15,
         metalness: 0.1,
         transmission: 0.4,
         thickness: 0.5,
       }),
-    [],
+    [isLampLit],
   );
 
   return (
-    <group position={position}>
+    // biome-ignore lint/a11y/noStaticElementInteractions: Clickable Easter egg lamp in 3D
+    <group
+      position={position}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggleLamp?.();
+      }}
+    >
       {/* Heavy Stepped Brass Base */}
       <mesh position={[0, 0.08, 0]} material={brassMaterial} castShadow receiveShadow>
         <cylinderGeometry args={[0.7, 0.85, 0.16, 32]} />
@@ -107,7 +123,7 @@ function BankerLamp({ position }: { position: [number, number, number] }) {
       {/* Warm Light Bulb Mesh inside hood */}
       <mesh position={[0.5, 2.25, 0]}>
         <sphereGeometry args={[0.12, 16, 16]} />
-        <meshBasicMaterial color="#FFF5D6" />
+        <meshBasicMaterial color={isLampLit ? "#FFF5D6" : "#2E241A"} />
       </mesh>
 
       {/* Conic Spotlight casting onto desk */}
@@ -115,7 +131,7 @@ function BankerLamp({ position }: { position: [number, number, number] }) {
         position={[0.5, 2.2, 0]}
         target-position={[2.0, 0, 0.5]}
         color="#FFF1CC"
-        intensity={4.2}
+        intensity={isLampLit ? 4.2 : 0.0}
         distance={15}
         angle={Math.PI / 3.2}
         penumbra={0.7}
@@ -125,7 +141,12 @@ function BankerLamp({ position }: { position: [number, number, number] }) {
       />
 
       {/* Emerald Ambient Glow */}
-      <pointLight position={[0.5, 2.4, 0]} color="#2E7D46" intensity={1.2} distance={4} />
+      <pointLight
+        position={[0.5, 2.4, 0]}
+        color="#2E7D46"
+        intensity={isLampLit ? 1.2 : 0.05}
+        distance={4}
+      />
     </group>
   );
 }
@@ -292,43 +313,33 @@ function AmbientDustMotes({ count = 45 }: { count?: number }) {
 }
 
 /**
- * Camera Controller handling smooth view transitions and mouse parallax.
+ * Camera Controller handling smooth organic pointer parallax over the detective desk.
  */
-function CameraRig({ viewMode }: { viewMode: "inspection" | "reading" }) {
+function CameraRig() {
   const { camera, pointer } = useThree();
 
-  const targetPos = useMemo(() => {
-    if (viewMode === "reading") {
-      return new THREE.Vector3(0, 4.8, 1.4);
-    }
-    return new THREE.Vector3(0, 3.2, 5.2);
-  }, [viewMode]);
-
-  const lookAtTarget = useMemo(() => {
-    if (viewMode === "reading") {
-      return new THREE.Vector3(0, 0, 0.4);
-    }
-    return new THREE.Vector3(0, 0.3, 0);
-  }, [viewMode]);
+  const targetPos = useMemo(() => new THREE.Vector3(0, 3.6, 3.4), []);
+  const lookAtTarget = useMemo(() => new THREE.Vector3(0, 0, 0.2), []);
 
   useFrame((_, delta) => {
-    // Parallax damping
-    const parallaxX = pointer.x * 0.4;
-    const parallaxY = pointer.y * 0.25;
+    const clampedDelta = Math.min(delta, 0.04);
+    // Smooth pointer parallax
+    const parallaxX = pointer.x * 0.35;
+    const parallaxY = pointer.y * 0.2;
 
     camera.position.x = THREE.MathUtils.damp(
       camera.position.x,
       targetPos.x + parallaxX,
-      3.5,
-      delta,
+      3.2,
+      clampedDelta,
     );
     camera.position.y = THREE.MathUtils.damp(
       camera.position.y,
       targetPos.y + parallaxY,
-      3.5,
-      delta,
+      3.2,
+      clampedDelta,
     );
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, targetPos.z, 3.5, delta);
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, targetPos.z, 3.2, clampedDelta);
 
     camera.lookAt(lookAtTarget);
   });
@@ -336,7 +347,7 @@ function CameraRig({ viewMode }: { viewMode: "inspection" | "reading" }) {
   return null;
 }
 
-export function DetectiveDesk3D({ viewMode, onToggleViewMode }: DetectiveDeskProps) {
+export function DetectiveDesk3D({ isLampLit = true, onToggleLamp }: DetectiveDeskProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -359,16 +370,16 @@ export function DetectiveDesk3D({ viewMode, onToggleViewMode }: DetectiveDeskPro
       <Canvas
         shadows
         gl={{ antialias: true, alpha: false }}
-        camera={{ position: [0, 3.2, 5.2], fov: 46 }}
+        camera={{ position: [0, 3.6, 3.4], fov: 46 }}
         className="w-full h-full pointer-events-none"
       >
         <color attach="background" args={["#0D0A08"]} />
 
         {/* Global Dark Noir Fill Light */}
-        <ambientLight color="#241B15" intensity={0.5} />
+        <ambientLight color="#241B15" intensity={isLampLit ? 0.55 : 0.25} />
 
         {/* Moonlight Rim Backlight */}
-        <directionalLight position={[4, 5, -5]} color="#7A93A6" intensity={0.4} />
+        <directionalLight position={[4, 5, -5]} color="#7A93A6" intensity={isLampLit ? 0.4 : 0.8} />
 
         {/* Desk Surface (Polished Dark Walnut) */}
         <mesh position={[0, -0.25, 0]} receiveShadow>
@@ -376,8 +387,8 @@ export function DetectiveDesk3D({ viewMode, onToggleViewMode }: DetectiveDeskPro
           <meshStandardMaterial color="#211812" roughness={0.55} metalness={0.08} />
         </mesh>
 
-        {/* Banker's Lamp at Top-Left */}
-        <BankerLamp position={[-3.6, 0, -1.8]} />
+        {/* Banker's Lamp at Top-Left (Clickable Easter Egg) */}
+        <BankerLamp position={[-3.6, 0, -1.8]} isLampLit={isLampLit} onToggleLamp={onToggleLamp} />
 
         {/* Authentic Detective Props */}
         <DeskProps />
@@ -386,22 +397,8 @@ export function DetectiveDesk3D({ viewMode, onToggleViewMode }: DetectiveDeskPro
         <AmbientDustMotes count={40} />
 
         {/* Smooth Camera Rig */}
-        <CameraRig viewMode={viewMode} />
+        <CameraRig />
       </Canvas>
-
-      {/* Perspective / Reading View Mode Switcher Button */}
-      {onToggleViewMode && (
-        <div className="absolute top-4 right-4 z-20 pointer-events-auto">
-          <button
-            type="button"
-            onClick={onToggleViewMode}
-            className="flex items-center gap-2 border border-[#A9874A]/60 bg-[#15110F]/90 px-3 py-1.5 font-mono text-[11px] tracking-wider uppercase text-[#E7DDC8] backdrop-blur-md transition-all hover:border-[#A9874A] hover:bg-[#15110F] cursor-pointer"
-          >
-            <span className="inline-block h-2 w-2 rounded-full bg-[#A9874A] animate-pulse" />
-            {viewMode === "reading" ? "3D Desk Perspective" : "Forensic Examination Focus"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }

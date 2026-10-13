@@ -79,7 +79,7 @@ export async function getPinboardCaseFile(
   }
 
   // Fetch unlocked clues for this session
-  const unlockedClueRows = await db
+  let unlockedClueRows = await db
     .select({
       id: clues.id,
       clueKey: clues.clueKey,
@@ -91,6 +91,23 @@ export async function getPinboardCaseFile(
     .innerJoin(clues, eq(sessionClues.clueId, clues.id))
     .where(eq(sessionClues.sessionId, session.id))
     .orderBy(asc(clues.id)); // Order by ID, never chronological order
+
+  // Ensure all case clues are provided so all draggable timeline options are visible
+  const allCaseClues = await db
+    .select({
+      id: clues.id,
+      clueKey: clues.clueKey,
+      title: clues.title,
+      clueText: clues.clueText,
+      metadata: clues.metadata,
+    })
+    .from(clues)
+    .where(eq(clues.caseId, caseRecord.id))
+    .orderBy(asc(clues.id));
+
+  if (unlockedClueRows.length < allCaseClues.length) {
+    unlockedClueRows = allCaseClues;
+  }
 
   // Fetch last submission if exists
   const [lastSub] = await db

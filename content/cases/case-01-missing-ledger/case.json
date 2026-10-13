@@ -29,8 +29,8 @@
         {
           "questionKey": "q1_ledger_word",
           "questionType": "FILL_DASHES",
-          "prompt": "Inspect the margin of the ledger blotter. What six-letter surname is faintly scrawled in blue ink beneath the ledger binding?",
-          "placeholderText": "______",
+          "prompt": "Inspect the margin of the ledger blotter. What five-letter surname is faintly scrawled in blue ink beneath the ledger binding?",
+          "placeholderText": "_____",
           "correctAnswer": "VANCE",
           "points": 150,
           "maxAttempts": 5,

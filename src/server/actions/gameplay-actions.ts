@@ -6,6 +6,7 @@ import {
   GameSessionError,
   getActiveCases,
   getSessionCaseFile,
+  restartCaseSession,
   startOrResumeSession,
 } from "@/server/services/game-session-service";
 import { GameplayError, submitAnswer } from "@/server/services/gameplay-service";
@@ -150,5 +151,28 @@ export async function getActiveCasesAction() {
     return { success: true, cases };
   } catch {
     return { success: false, error: "Failed to load case listings." };
+  }
+}
+
+export async function restartCaseAction(caseSlug: string, teamId?: number) {
+  try {
+    const headerList = await headers();
+    const user = await requireUser(headerList);
+
+    const parsed = startSessionSchema.safeParse({ caseSlug, teamId });
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.error.issues[0]?.message ?? "Invalid case identifier.",
+      };
+    }
+
+    const { session } = await restartCaseSession(user.id, parsed.data.caseSlug, parsed.data.teamId);
+    return { success: true, session };
+  } catch (error) {
+    if (error instanceof GameSessionError) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to restart investigation session." };
   }
 }

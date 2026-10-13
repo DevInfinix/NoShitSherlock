@@ -233,6 +233,117 @@ export async function startOrResumeSession(
   });
 }
 
+/**
+ * Cleanly restart a case session: marks any previous active session as ABANDONED
+ * and starts a fresh session with initialized question states, reset score, and new start timer.
+ */
+export async function restartCaseSession(
+  userId: string,
+  caseSlug: string,
+  teamId?: number,
+): Promise<{ session: typeof gameSessions.$inferSelect }> {
+  let [activeCase] = await db
+    .select()
+    .from(cases)
+    .where(and(eq(cases.slug, caseSlug), eq(cases.isActive, true)))
+    .limit(1);
+
+  if (!activeCase) {
+    const allActive = await db.select().from(cases).where(eq(cases.isActive, true));
+    activeCase = allActive.find(
+      (c) =>
+        c.slug === caseSlug ||
+        c.slug.startsWith(caseSlug) ||
+        c.id.toString() === caseSlug ||
+        (caseSlug.startsWith("case-01") && c.slug.startsWith("case-01")),
+    );
+  }
+
+  if (!activeCase) {
+    throw new GameSessionError("Case file not found or currently archived.", 404);
+  }
+
+  return await db.transaction(async (tx) => {
+    // Abandon any existing IN_PROGRESS session
+    if (teamId) {
+      await tx
+        .update(gameSessions)
+        .set({ status: "ABANDONED" })
+        .where(
+          and(
+            eq(gameSessions.teamId, teamId),
+            eq(gameSessions.caseId, activeCase.id),
+            eq(gameSessions.status, "IN_PROGRESS"),
+          ),
+        );
+    } else {
+      await tx
+        .update(gameSessions)
+        .set({ status: "ABANDONED" })
+        .where(
+          and(
+            eq(gameSessions.userId, userId),
+            eq(gameSessions.caseId, activeCase.id),
+            eq(gameSessions.status, "IN_PROGRESS"),
+          ),
+        );
+    }
+
+    const [firstSection] = await tx
+      .select()
+      .from(sections)
+      .where(and(eq(sections.caseId, activeCase.id), eq(sections.sectionOrder, 1)))
+      .limit(1);
+
+    const [newSession] = await tx
+      .insert(gameSessions)
+      .values({
+        caseId: activeCase.id,
+        userId: teamId ? null : userId,
+        teamId: teamId ? teamId : null,
+        status: "IN_PROGRESS",
+        currentSectionId: firstSection?.id ?? null,
+        score: 0,
+        hintBalance: 100,
+        wrongAttempts: 0,
+        totalTimeSeconds: 0,
+        startedAt: new Date(),
+      })
+      .returning();
+
+    if (!newSession) {
+      throw new GameSessionError("Failed to initialize session.", 500);
+    }
+
+    // Populate question states
+    const caseSections = await tx
+      .select({ id: sections.id })
+      .from(sections)
+      .where(eq(sections.caseId, activeCase.id));
+
+    if (caseSections.length > 0) {
+      const sectionIds = caseSections.map((s) => s.id);
+      const caseQuestions = await tx
+        .select({ id: questions.id })
+        .from(questions)
+        .where(inArray(questions.sectionId, sectionIds));
+
+      if (caseQuestions.length > 0) {
+        await tx.insert(sessionQuestionStates).values(
+          caseQuestions.map((q) => ({
+            sessionId: newSession.id,
+            questionId: q.id,
+            attemptsUsed: 0,
+            isSolved: false,
+          })),
+        );
+      }
+    }
+
+    return { session: newSession };
+  });
+}
+
 export interface SanitizedQuestionOption {
   id: number;
   optionText: string;
