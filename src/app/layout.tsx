@@ -24,6 +24,28 @@ export const metadata: Metadata = {
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   manifest: "/site.webmanifest",
+  openGraph: {
+    title: "NoShitSherlock | Detective Web Game",
+    description: "An open-source noir detective web game. Crack the case before time runs out.",
+    url: "https://noshitsherlock.thesamstudios.in",
+    siteName: "NoShitSherlock",
+    images: [
+      {
+        url: "/og-banner.png",
+        width: 1200,
+        height: 630,
+        alt: "NoShitSherlock - Detective Web Game",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NoShitSherlock | Detective Web Game",
+    description: "An open-source noir detective web game. Crack the case before time runs out.",
+    images: ["/og-banner.png"],
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
