@@ -13,6 +13,9 @@ import {
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://noshitsherlock.thesamstudios.in",
+  ),
   title: "NoShitSherlock | Detective Web Game",
   description: "An open-source noir detective web game. Crack the case before time runs out.",
   icons: {
@@ -31,9 +34,19 @@ export const metadata: Metadata = {
     siteName: "NoShitSherlock",
     images: [
       {
-        url: "/og-banner.png",
+        url: "https://noshitsherlock.thesamstudios.in/og-banner.jpg",
+        secureUrl: "https://noshitsherlock.thesamstudios.in/og-banner.jpg",
         width: 1200,
         height: 630,
+        type: "image/jpeg",
+        alt: "NoShitSherlock - Detective Web Game",
+      },
+      {
+        url: "https://noshitsherlock.thesamstudios.in/og-banner.png",
+        secureUrl: "https://noshitsherlock.thesamstudios.in/og-banner.png",
+        width: 1200,
+        height: 630,
+        type: "image/png",
         alt: "NoShitSherlock - Detective Web Game",
       },
     ],
@@ -44,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "NoShitSherlock | Detective Web Game",
     description: "An open-source noir detective web game. Crack the case before time runs out.",
-    images: ["/og-banner.png"],
+    images: ["https://noshitsherlock.thesamstudios.in/og-banner.jpg"],
   },
 };
 
